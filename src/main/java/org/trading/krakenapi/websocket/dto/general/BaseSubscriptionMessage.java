@@ -30,11 +30,5 @@ public class BaseSubscriptionMessage extends GeneralMessage {
             this.pair = objectMapper.valueToTree(pair);
             return self();
         }
-
-        public B pair(String pair) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            this.pair = objectMapper.valueToTree(Collections.singletonList(pair));
-            return self();
-        }
     }
 }

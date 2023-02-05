@@ -26,31 +26,29 @@ import org.trading.krakenapi.websocket.enums.WebSocketEnumerations;
 import org.trading.krakenapi.websocket.utils.PublicationMessageObjectDeserializer;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class ClientWebSocketHandler extends TextWebSocketHandler {
     private PublicationMessageObjectDeserializer publicationMessageObjectDeserializer;
-    private WebSocketsAuthenticationClient webSocketsAuthenticationClient;
+    private final WebSocketsAuthenticationClient webSocketsAuthenticationClient;
     private final WebSocketEnumerations.CHANNEL channel;
-    private final String pair;
+    private final List<String> pairs;
 
-    public ClientWebSocketHandler(WebSocketEnumerations.CHANNEL channel, String pair) {
+    public ClientWebSocketHandler(
+        WebSocketsAuthenticationClient client,
+        WebSocketEnumerations.CHANNEL channel,
+        List<String> pairs
+    ) {
+        webSocketsAuthenticationClient = client;
         this.channel = channel;
-        this.pair = pair;
+        this.pairs = pairs;
     }
 
     @Autowired
     public void setDeserializer(PublicationMessageObjectDeserializer publicationMessageObjectDeserializer) {
         this.publicationMessageObjectDeserializer = publicationMessageObjectDeserializer;
-    }
-
-    @Autowired
-    public void setWebSocketsAuthenticationClient(WebSocketsAuthenticationClient client) {
-        this.webSocketsAuthenticationClient = client;
     }
 
     @Override
@@ -63,7 +61,7 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
         if (Objects.nonNull(token.getResult()))
             embeddedObjectBuilder = embeddedObjectBuilder.token(token.getResult().getToken());
         SubscribeMessage subscribeMessage = SubscribeMessage.builder()
-            .pair(pair)
+            .pair(pairs)
             .subscription(embeddedObjectBuilder.build())
             .build();
         String subscribeAsJson = objectMapper.writeValueAsString(subscribeMessage);

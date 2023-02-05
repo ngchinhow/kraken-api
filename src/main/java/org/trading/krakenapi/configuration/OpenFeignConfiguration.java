@@ -3,17 +3,15 @@ package org.trading.krakenapi.configuration;
 import feign.RequestInterceptor;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.util.ObjectUtils;
 
 import javax.crypto.Mac;
@@ -24,19 +22,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
-@Getter
-@Setter
 @Configuration
-@ConfigurationProperties(prefix = "kraken.rest-api")
-@ConfigurationPropertiesScan
 public class OpenFeignConfiguration {
     private static final String SHA256_ALGORITHM = "SHA-256";
     private static final String HMAC_ALGORITHM = "HmacSHA512";
-    private String apiKey;
-    private String privateKey;
+
 
     @Bean
-    public RequestInterceptor requestInterceptor() {
+    @Scope(BeanDefinition.SCOPE_PROTOTYPE)
+    public RequestInterceptor requestInterceptor(String apiKey, String privateKey) {
         return requestTemplate -> {
             if (Objects.isNull(apiKey) || Objects.isNull(privateKey)) return;
             // Step 1. Append nonce to urlencoded form payload
