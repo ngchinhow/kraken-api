@@ -33,7 +33,7 @@ public class SpreadMessage extends PublicationMessage {
     > extends PublicationMessageBuilder<C, B> {
         public B time(String timestamp) {
             this.time = DateTimeUtils.epochMicroToLocalDateTime(timestamp);
-            return self();
+            return this.self();
         }
 
         public B time(LocalDateTime time) {

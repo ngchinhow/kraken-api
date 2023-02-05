@@ -9,7 +9,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.trading.krakenapi.websocket.enums.WebSocketEnumerations;
 
 @Data
-@Builder(builderClassName = "Builder")
+@Builder(builderClassName = "Builder", toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class SubscriptionEmbeddedObject {
@@ -20,6 +20,8 @@ public class SubscriptionEmbeddedObject {
     private Boolean rateCounter;
     private Boolean snapshot;
     private String token;
+    @JsonProperty("consolidate_taker")
+    private Boolean consolidateTaker;
 
     public static class Builder {
         public Builder depth(Integer depth) {
@@ -55,6 +57,15 @@ public class SubscriptionEmbeddedObject {
                     "The snapshot parameter within the Subscription object is only used for subscriptions to the Own Trades channel"
                 );
             this.snapshot = snapshot;
+            return this;
+        }
+
+        public Builder consolidateTaker(Boolean consolidateTaker) {
+            if (ObjectUtils.isNotEmpty(consolidateTaker) && !name.equals(WebSocketEnumerations.CHANNEL.OWN_TRADES))
+                throw new RuntimeException(
+                    "The consolidateTaker parameter within the Subscription object is only used for subscriptions to the Own Trades channel"
+                );
+            this.consolidateTaker = consolidateTaker;
             return this;
         }
     }

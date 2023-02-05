@@ -7,12 +7,9 @@ import java.time.ZoneId;
 public class DateTimeUtils {
 
     public static LocalDateTime epochMicroToLocalDateTime(String epochInMicro) {
-        String[] epochComponents = epochInMicro.split("\\.");
+        String[] components = epochInMicro.split("\\.");
         return Instant
-            .ofEpochSecond(
-                Long.parseLong(epochComponents[0]),
-                Long.parseLong(epochComponents[1]) * 1000L
-            )
+            .ofEpochSecond(Long.parseLong(components[0]), Long.parseLong(components[1]) * 1000L)
             .atZone(ZoneId.systemDefault())
             .toLocalDateTime();
     }

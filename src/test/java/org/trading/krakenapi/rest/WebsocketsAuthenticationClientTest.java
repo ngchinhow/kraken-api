@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.trading.krakenapi.rest.client.WebSocketsAuthenticationClient;
 
 @SpringBootTest
-public class WebsocketsAuthenticationTest {
+public class WebsocketsAuthenticationClientTest {
     @Autowired
     private WebSocketsAuthenticationClient client;
 
