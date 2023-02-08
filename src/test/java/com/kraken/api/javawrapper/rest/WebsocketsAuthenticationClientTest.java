@@ -1,4 +1,4 @@
-package org.trading.krakenapi.rest;
+package com.kraken.api.javawrapper.rest;
 
 public class WebsocketsAuthenticationClientTest {
 
