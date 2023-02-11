@@ -1,11 +1,11 @@
 package com.kraken.api.javawrapper.websocket.dto.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,7 +23,8 @@ public class TradeMessage extends PublicationMessage {
         this.setChannelName(WebSocketEnumerations.CHANNEL.TRADE);
     }
 
-    public static TradeMessage fromJsonNodeList(List<JsonNode> jsonNodeList, WebSocketEnumerations.CHANNEL channel) {
+    @SuppressWarnings("unused")
+    public static TradeMessage fromJsonNodeList(List<JsonNode> jsonNodeList) {
         List<TradeEmbeddedObject> trades = new ArrayList<>();
         Iterator<JsonNode> tradesIterator = jsonNodeList.get(1).elements();
         while (tradesIterator.hasNext()) {
@@ -39,7 +40,6 @@ public class TradeMessage extends PublicationMessage {
         }
         return new TradeMessage().toBuilder()
             .channelId(jsonNodeList.get(0).asInt())
-            .channelName(channel)
             .pair(jsonNodeList.get(2).asText())
             .trades(trades)
             .build();

@@ -10,6 +10,7 @@
 	<properties>
 		<java.version>19</java.version>
 		<openfeign.version>12.1</openfeign.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
 		<dependency>

@@ -17,6 +17,7 @@ import java.util.List;
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 public class OHLCMessage extends PublicationMessage {
+    private int interval;
     private LocalDateTime intervalStart;
     private LocalDateTime intervalEnd;
     private BigDecimal open;
@@ -31,6 +32,7 @@ public class OHLCMessage extends PublicationMessage {
         this.setChannelName(WebSocketEnumerations.CHANNEL.OHLC);
     }
 
+    @SuppressWarnings("unused")
     public static abstract class OHLCMessageBuilder<
         C extends OHLCMessage,
         B extends OHLCMessageBuilder<C, B>
@@ -56,11 +58,13 @@ public class OHLCMessage extends PublicationMessage {
         }
     }
 
-    public static OHLCMessage fromJsonNodeList(List<JsonNode> jsonNodeList, WebSocketEnumerations.CHANNEL channel) {
+   @SuppressWarnings("unused")
+    public static OHLCMessage fromJsonNodeList(List<JsonNode> jsonNodeList) {
+        String[] channelInfo = jsonNodeList.get(2).asText().split("-");
         return new OHLCMessage().toBuilder()
             .channelId(jsonNodeList.get(0).asInt())
-            .channelName(channel)
-            .pair(jsonNodeList.get(2).asText())
+            .interval(Integer.parseInt(channelInfo[1]))
+            .pair(jsonNodeList.get(3).asText())
             .intervalStart(jsonNodeList.get(1).get(0).asText())
             .intervalEnd(jsonNodeList.get(1).get(1).asText())
             .open(new BigDecimal(jsonNodeList.get(1).get(2).asText()))

@@ -46,10 +46,10 @@ public class TickerMessage extends PublicationMessage {
         private BigDecimal last24Hours;
     }
 
-    public static TickerMessage fromJsonNodeList(List<JsonNode> jsonNodeList, WebSocketEnumerations.CHANNEL channel) {
+    @SuppressWarnings("unused")
+    public static TickerMessage fromJsonNodeList(List<JsonNode> jsonNodeList) {
         return new TickerMessage().toBuilder()
             .channelId(jsonNodeList.get(0).asInt())
-            .channelName(channel)
             .pair(jsonNodeList.get(3).asText())
             .ask(Price.builder()
                 .price(new BigDecimal(jsonNodeList.get(1).get("a").get(0).asText()))

@@ -4,19 +4,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.kraken.api.javawrapper.websocket.dto.general.GeneralMessage;
-import com.kraken.api.javawrapper.websocket.dto.general.PingMessage;
-import com.kraken.api.javawrapper.websocket.dto.general.SubscribeMessage;
-import com.kraken.api.javawrapper.websocket.dto.general.SubscriptionEmbeddedObject;
+import com.kraken.api.javawrapper.websocket.dto.general.*;
+import com.kraken.api.javawrapper.websocket.dto.publication.PublicationMessage;
+import com.kraken.api.javawrapper.websocket.utils.PublicationMessageObjectDeserializer;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import com.kraken.api.javawrapper.websocket.dto.publication.PublicationMessage;
-import com.kraken.api.javawrapper.websocket.utils.PublicationMessageObjectDeserializer;
 
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class KrakenWebSocketClient extends WebSocketClient {
@@ -49,7 +47,35 @@ public class KrakenWebSocketClient extends WebSocketClient {
         }
         log.info("Subscription payload: {}", subscribeAsJson);
         this.send(subscribeAsJson);
-        this.send(pingAsJson);
+//        this.send(pingAsJson);
+        try {
+            subscribeAsJson = objectMapper.writeValueAsString(subscribeMessageBuilder
+                .reqid(BigInteger.valueOf(123))
+                .subscription(subscriptionEmbeddedObject.toBuilder().depth(100).build())
+                .build()
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        log.info("Subscription payload: {}", subscribeAsJson);
+        this.send(subscribeAsJson);
+//        UnsubscribeMessage unsubscribeMessage = UnsubscribeMessage.builder()
+//            .subscription(subscriptionEmbeddedObject)
+//            .pair(pairs)
+//            .build();
+//        String unsubscribeAsJson;
+//        try {
+//            unsubscribeAsJson = objectMapper.writeValueAsString(unsubscribeMessage);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        log.info("Unsubscription payload: {}", unsubscribeAsJson);
+//        this.send(unsubscribeAsJson);
     }
 
     @Override
@@ -61,19 +87,24 @@ public class KrakenWebSocketClient extends WebSocketClient {
         objectMapper.registerModule(simpleModule);
         GeneralMessage generalMessage = null;
         PublicationMessage publicationMessage = null;
+        boolean isNotGeneralMessage = true;
         try {
             generalMessage = objectMapper.readValue(s, GeneralMessage.class);
+            isNotGeneralMessage = false;
         } catch (JsonProcessingException e) {
+            log.trace("Received message is not a GeneralMessage. {}", e.getLocalizedMessage());
+        }
+        if (isNotGeneralMessage) {
             try {
                 publicationMessage = objectMapper.readValue(s, PublicationMessage.class);
             } catch (JsonProcessingException ex) {
-                throw new RuntimeException(ex);
+                throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
             }
         }
-        if (generalMessage != null)
-            log.info("General message class: {}", generalMessage.getClass());
-        if (publicationMessage != null)
-            log.info("Publication message class: {}", publicationMessage.getClass());
+        if (Objects.nonNull(generalMessage))
+            log.info("General message class: {}", generalMessage);
+        if (Objects.nonNull(publicationMessage))
+            log.info("Publication message class: {}", publicationMessage);
     }
 
     @Override
@@ -85,5 +116,40 @@ public class KrakenWebSocketClient extends WebSocketClient {
     public void onError(Exception e) {
         log.error("Unexpected error during websocket operation: {}", e.getMessage());
         throw new RuntimeException(e);
+    }
+
+    public PongMessage ping() {
+
+        return null;
+    }
+
+    public SubscriptionStatusMessage subscribe() {
+
+        return null;
+    }
+
+    public SubscriptionStatusMessage unsubscribe() {
+
+        return null;
+    }
+
+    public void addOrder() {
+
+    }
+
+    public void editOrder() {
+
+    }
+
+    public void cancelOrder() {
+
+    }
+
+    public void cancelAllOrders() {
+
+    }
+
+    public void cancelAllOrdersAfter() {
+
     }
 }

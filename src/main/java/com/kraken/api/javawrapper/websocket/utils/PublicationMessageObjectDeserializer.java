@@ -11,7 +11,6 @@ import com.kraken.api.javawrapper.websocket.dto.publication.PublicationMessageFa
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class PublicationMessageObjectDeserializer extends StdDeserializer<PublicationMessage> {
@@ -22,21 +21,14 @@ public class PublicationMessageObjectDeserializer extends StdDeserializer<Public
 
     @Override
     public PublicationMessage deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-        JsonNode array = p.getCodec().readTree(p);
         List<JsonNode> objectList = new ArrayList<>();
-        Iterator<JsonNode> objectIterator = array.elements();
-        int objectIndex = 0;
-        WebSocketEnumerations.CHANNEL channel = null;
+        JsonNode array = p.getCodec().readTree(p);
+        array.elements().forEachRemaining(objectList::add);
+        int secondLastIndex = objectList.size() - 2;
+        WebSocketEnumerations.CHANNEL channel = WebSocketEnumerations.CHANNEL.getEChannel(
+            objectList.get(secondLastIndex).asText().split("-")[0]
+        );
 
-        while (objectIterator.hasNext()) {
-            JsonNode node = objectIterator.next();
-            if (objectIndex == 1 || objectIndex == 2)
-                channel = WebSocketEnumerations.CHANNEL.getEChannel(node.asText().split("-")[0]);
-            objectList.add(node);
-            objectIndex++;
-        }
-
-        assert channel != null;
         try {
             return PublicationMessageFactory.fromJsonNodeList(objectList, channel);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {

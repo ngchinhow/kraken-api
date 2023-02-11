@@ -1,13 +1,13 @@
 package com.kraken.api.javawrapper.websocket.dto.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
-import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,55 +16,38 @@ import java.util.List;
 @Setter
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
-public class BookMessage extends PublicationMessage {
-    private List<Level> askLevels;
-    private List<Level> bidLevels;
+@NoArgsConstructor
+public class BookSnapshotMessage extends BaseBookMessage {
+    private List<BookLevelEmbeddedObject> askLevels;
+    private List<BookLevelEmbeddedObject> bidLevels;
 
-    public BookMessage() {
-        this.setChannelName(WebSocketEnumerations.CHANNEL.BOOK);
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Level {
-        private BigDecimal price;
-        private BigDecimal volume;
-        private LocalDateTime timestamp;
-
-        public static class LevelBuilder {
-            public LevelBuilder timestamp(String timestamp) {
-                this.timestamp = DateTimeUtils.epochMicroToLocalDateTime(timestamp);
-                return this;
-            }
-        }
-    }
-
-    public static BookMessage fromJsonNodeList(List<JsonNode> jsonNodeList, WebSocketEnumerations.CHANNEL channel) {
-        List<Level> askLevels = new ArrayList<>();
+    public static BookSnapshotMessage fromJsonNodeList(List<JsonNode> jsonNodeList, int depth) {
+        List<BookLevelEmbeddedObject> askLevels = new ArrayList<>();
         Iterator<JsonNode> askLevelsIterator = jsonNodeList.get(1).get("as").elements();
         while (askLevelsIterator.hasNext()) {
             JsonNode askLevelNode = askLevelsIterator.next();
-            askLevels.add(Level.builder()
+            askLevels.add(BookLevelEmbeddedObject.builder()
                 .price(new BigDecimal(askLevelNode.get(0).asText()))
                 .volume(new BigDecimal(askLevelNode.get(1).asText()))
                 .timestamp(askLevelNode.get(2).asText())
                 .build());
         }
-        List<Level> bidLevels = new ArrayList<>();
+        List<BookLevelEmbeddedObject> bidLevels = new ArrayList<>();
         Iterator<JsonNode> bidLevelsIterator = jsonNodeList.get(1).get("bs").elements();
         while (bidLevelsIterator.hasNext()) {
             JsonNode bidLevelNode = bidLevelsIterator.next();
-            bidLevels.add(Level.builder()
+            bidLevels.add(BookLevelEmbeddedObject.builder()
                 .price(new BigDecimal(bidLevelNode.get(0).asText()))
                 .volume(new BigDecimal(bidLevelNode.get(1).asText()))
                 .timestamp(bidLevelNode.get(2).asText())
                 .build());
         }
-        return new BookMessage().toBuilder()
+        return new BookSnapshotMessage().toBuilder()
+            .channelId(jsonNodeList.get(0).asInt())
             .askLevels(askLevels)
             .bidLevels(bidLevels)
+            .depth(depth)
+            .pair(jsonNodeList.get(3).asText())
             .build();
     }
 }

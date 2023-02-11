@@ -11,7 +11,7 @@ public class PublicationMessageFactory {
 
     public static PublicationMessage fromJsonNodeList(List<JsonNode> jsonNodeList, WebSocketEnumerations.CHANNEL channel) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         return (PublicationMessage) channel.getPublicationMessageClass()
-            .getMethod(DESERIALIZATION_METHOD_NAME, List.class, WebSocketEnumerations.CHANNEL.class)
-            .invoke(null, jsonNodeList, channel);
+            .getMethod(DESERIALIZATION_METHOD_NAME, List.class)
+            .invoke(null, jsonNodeList);
     }
 }

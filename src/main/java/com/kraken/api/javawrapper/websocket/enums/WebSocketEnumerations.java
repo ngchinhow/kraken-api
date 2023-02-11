@@ -7,30 +7,34 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WebSocketEnumerations {
-    public static final String PING_EVENT = "ping";
-    public static final String PONG_EVENT = "pong";
-    public static final String HEARTBEAT_EVENT = "heartbeat";
-    public static final String SYSTEM_STATUS_EVENT = "systemStatus";
-    public static final String SUBSCRIBE_EVENT = "subscribe";
-    public static final String UNSUBSCRIBE_EVENT = "unsubscribe";
-    public static final String SUBSCRIPTION_STATUS_EVENT = "subscriptionStatus";
-    public static final String ADD_ODER_EVENT = "addOrder";
-    public static final String ADD_ORDER_STATUS_EVENT = "addOrderStatus";
-    public static final String EDIT_ORDER_EVENT = "editOrder";
-    public static final String EDIT_ORDER_STATUS_EVENT = "editOrderStatus";
-    public static final String CANCEL_ORDER_EVENT = "cancelOrder";
-    public static final String CANCEL_ORDER_STATUS_EVENT = "cancelOrderStatus";
-    public static final String CANCEL_ALL_EVENT = "cancelAll";
-    public static final String CANCEL_ALL_STATUS_EVENT = "cancelAllStatus";
-    public static final String CANCEL_ALL_ORDERS_AFTER_EVENT = "cancelAllOrdersAfter";
-    public static final String CANCEL_ALL_ORDERS_AFTER_STATUS_EVENT = "cancelAllOrdersAfterStatus";
+
+    public static class EVENT {
+        public static final String EVENT = "event";
+        public static final String PING = "ping";
+        public static final String PONG = "pong";
+        public static final String HEARTBEAT = "heartbeat";
+        public static final String SYSTEM_STATUS = "systemStatus";
+        public static final String SUBSCRIBE = "subscribe";
+        public static final String UNSUBSCRIBE = "unsubscribe";
+        public static final String SUBSCRIPTION_STATUS = "subscriptionStatus";
+        public static final String ADD_ODER = "addOrder";
+        public static final String ADD_ORDER_STATUS = "addOrderStatus";
+        public static final String EDIT_ORDER = "editOrder";
+        public static final String EDIT_ORDER_STATUS = "editOrderStatus";
+        public static final String CANCEL_ORDER = "cancelOrder";
+        public static final String CANCEL_ORDER_STATUS = "cancelOrderStatus";
+        public static final String CANCEL_ALL = "cancelAll";
+        public static final String CANCEL_ALL_STATUS = "cancelAllStatus";
+        public static final String CANCEL_ALL_ORDERS_AFTER = "cancelAllOrdersAfter";
+        public static final String CANCEL_ALL_ORDERS_AFTER_STATUS = "cancelAllOrdersAfterStatus";
+    }
 
     public enum CHANNEL {
         TICKER("ticker", "public", TickerMessage.class),
         OHLC("ohlc", "public", OHLCMessage.class),
         TRADE("trade", "public", TradeMessage.class),
         SPREAD("spread", "public", SpreadMessage.class),
-        BOOK("book", "public", BookMessage.class),
+        BOOK("book", "public", BaseBookMessage.class),
         OWN_TRADES("ownTrades", "private", null),
         OPEN_ORDERS("openOrders", "private", null);
 

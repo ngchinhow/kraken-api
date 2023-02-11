@@ -26,7 +26,8 @@ public class SpreadMessage extends PublicationMessage {
     public SpreadMessage() {
         this.setChannelName(WebSocketEnumerations.CHANNEL.SPREAD);
     }
-    
+
+    @SuppressWarnings("unused")
     public static abstract class SpreadMessageBuilder<
         C extends SpreadMessage,
         B extends SpreadMessageBuilder<C, B>
@@ -42,10 +43,10 @@ public class SpreadMessage extends PublicationMessage {
         }
     }
 
-    public static SpreadMessage fromJsonNodeList(List<JsonNode> jsonNodeList, WebSocketEnumerations.CHANNEL channel) {
+    @SuppressWarnings("unused")
+    public static SpreadMessage fromJsonNodeList(List<JsonNode> jsonNodeList) {
         return new SpreadMessage().toBuilder()
             .channelId(jsonNodeList.get(0).asInt())
-            .channelName(channel)
             .pair(jsonNodeList.get(2).asText())
             .bid(new BigDecimal(jsonNodeList.get(1).get(0).asText()))
             .ask(new BigDecimal(jsonNodeList.get(1).get(1).asText()))

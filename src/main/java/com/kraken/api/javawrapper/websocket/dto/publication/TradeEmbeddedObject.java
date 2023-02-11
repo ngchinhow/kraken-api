@@ -1,10 +1,10 @@
 package com.kraken.api.javawrapper.websocket.dto.publication;
 
+import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,6 +21,7 @@ public class TradeEmbeddedObject {
     private String orderType;
     private String misc;
 
+    @SuppressWarnings("unused")
     public static class TradeEmbeddedObjectBuilder {
         public TradeEmbeddedObjectBuilder time(String timestamp) {
             this.time = DateTimeUtils.epochMicroToLocalDateTime(timestamp);

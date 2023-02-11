@@ -5,16 +5,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
-import java.util.List;
+import java.math.BigInteger;
 
 @Getter
 @Setter
 @SuperBuilder
+@Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseSubscriptionMessage extends GeneralMessage {
-    private String reqid;
-    private List<String> pair;
+    private BigInteger reqid;
     private SubscriptionEmbeddedObject subscription;
 }
