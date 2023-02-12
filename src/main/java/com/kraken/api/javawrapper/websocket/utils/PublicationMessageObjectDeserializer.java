@@ -5,22 +5,22 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
-import com.kraken.api.javawrapper.websocket.dto.publication.PublicationMessage;
-import com.kraken.api.javawrapper.websocket.dto.publication.PublicationMessageFactory;
+import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
+import com.kraken.api.javawrapper.websocket.model.publication.PublicationMessageFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PublicationMessageObjectDeserializer extends StdDeserializer<PublicationMessage> {
+public class PublicationMessageObjectDeserializer extends StdDeserializer<AbstractPublicationMessage> {
 
     public PublicationMessageObjectDeserializer() {
-        super(PublicationMessage.class);
+        super(AbstractPublicationMessage.class);
     }
 
     @Override
-    public PublicationMessage deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+    public AbstractPublicationMessage deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
         List<JsonNode> objectList = new ArrayList<>();
         JsonNode array = p.getCodec().readTree(p);
         array.elements().forEachRemaining(objectList::add);

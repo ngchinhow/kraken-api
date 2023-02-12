@@ -1,8 +1,10 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.kraken.api.javawrapper.websocket.model.publication.embedded.BookLevelContainerObject;
+import com.kraken.api.javawrapper.websocket.model.publication.embedded.BookLevelEmbeddedObject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

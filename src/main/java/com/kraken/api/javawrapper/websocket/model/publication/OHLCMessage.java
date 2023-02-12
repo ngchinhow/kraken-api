@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
-public class OHLCMessage extends PublicationMessage {
+public class OHLCMessage extends AbstractPublicationMessage {
     private int interval;
     private LocalDateTime intervalStart;
     private LocalDateTime intervalEnd;
@@ -36,7 +36,7 @@ public class OHLCMessage extends PublicationMessage {
     public static abstract class OHLCMessageBuilder<
         C extends OHLCMessage,
         B extends OHLCMessageBuilder<C, B>
-    > extends PublicationMessageBuilder<C, B> {
+    > extends AbstractPublicationMessageBuilder<C, B> {
         public B intervalStart(String timestamp) {
             this.intervalStart = DateTimeUtils.epochMicroToLocalDateTime(timestamp);
             return this.self();

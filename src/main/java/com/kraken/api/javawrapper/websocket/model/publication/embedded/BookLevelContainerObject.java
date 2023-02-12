@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication.embedded;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

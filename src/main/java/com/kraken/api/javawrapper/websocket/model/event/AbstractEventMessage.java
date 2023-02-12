@@ -1,7 +1,13 @@
-package com.kraken.api.javawrapper.websocket.dto.general;
+package com.kraken.api.javawrapper.websocket.model.event;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.kraken.api.javawrapper.websocket.model.event.request.PingMessage;
+import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
+import com.kraken.api.javawrapper.websocket.model.event.request.UnsubscribeMessage;
+import com.kraken.api.javawrapper.websocket.model.event.response.PongMessage;
+import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -11,9 +17,11 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 @Data
 @SuperBuilder
 @NoArgsConstructor
+@AllArgsConstructor
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
-    property = EVENT
+    property = EVENT,
+    visible = true
 )
 @JsonSubTypes({
     @JsonSubTypes.Type(value = PingMessage.class, name = PING),
@@ -24,5 +32,6 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
     @JsonSubTypes.Type(value = UnsubscribeMessage.class, name = UNSUBSCRIBE),
     @JsonSubTypes.Type(value = SubscriptionStatusMessage.class, name = SUBSCRIPTION_STATUS)
 })
-public abstract class GeneralMessage {
+public abstract class AbstractEventMessage {
+    private String event;
 }

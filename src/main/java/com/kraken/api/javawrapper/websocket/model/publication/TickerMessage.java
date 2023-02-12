@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
-public class TickerMessage extends PublicationMessage {
+public class TickerMessage extends AbstractPublicationMessage {
     private Price ask;
     private Price bid;
     private Price close;

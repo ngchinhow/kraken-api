@@ -2,7 +2,7 @@ package com.kraken.api.javawrapper.websocket;
 
 import com.kraken.api.javawrapper.manager.KrakenConnectionManager;
 import com.kraken.api.javawrapper.websocket.client.KrakenWebSocketClient;
-import com.kraken.api.javawrapper.websocket.dto.general.SubscriptionEmbeddedObject;
+import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmbeddedObject;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import org.junit.jupiter.api.Test;
 
@@ -19,8 +19,8 @@ public class WebSocketClientTest {
     @Test
     public void givenWebSocketClient_whenSubscribePublic_thenSuccess() throws InterruptedException {
         WEB_SOCKET_CLIENT.connect();
-//        while (true) {
-//
-//        }
+        while (true) {
+
+        }
     }
 }

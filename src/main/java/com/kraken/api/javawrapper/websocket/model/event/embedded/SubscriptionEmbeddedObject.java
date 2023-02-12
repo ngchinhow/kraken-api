@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.general;
+package com.kraken.api.javawrapper.websocket.model.event.embedded;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;

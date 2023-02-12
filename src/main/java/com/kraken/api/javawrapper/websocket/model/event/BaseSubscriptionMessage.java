@@ -1,21 +1,17 @@
-package com.kraken.api.javawrapper.websocket.dto.general;
+package com.kraken.api.javawrapper.websocket.model.event;
 
+import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmbeddedObject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.jackson.Jacksonized;
-
-import java.math.BigInteger;
 
 @Getter
 @Setter
 @SuperBuilder
-@Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
-public class BaseSubscriptionMessage extends GeneralMessage {
-    private BigInteger reqid;
+public abstract class BaseSubscriptionMessage extends AbstractInteractiveMessage {
     private SubscriptionEmbeddedObject subscription;
 }

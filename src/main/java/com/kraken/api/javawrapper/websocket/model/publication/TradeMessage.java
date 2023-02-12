@@ -1,6 +1,7 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kraken.api.javawrapper.websocket.model.publication.embedded.TradeEmbeddedObject;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +17,7 @@ import java.util.List;
 @Setter
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
-public class TradeMessage extends PublicationMessage {
+public class TradeMessage extends AbstractPublicationMessage {
     private List<TradeEmbeddedObject> trades;
 
     public TradeMessage() {

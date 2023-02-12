@@ -7,7 +7,7 @@ import com.kraken.api.javawrapper.rest.dto.websocketsauthentication.WebSocketsTo
 import com.kraken.api.javawrapper.rest.enums.RestEnumerations;
 import com.kraken.api.javawrapper.rest.requestinterceptor.KrakenRequestInterceptor;
 import com.kraken.api.javawrapper.websocket.client.KrakenWebSocketClient;
-import com.kraken.api.javawrapper.websocket.dto.general.SubscriptionEmbeddedObject;
+import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmbeddedObject;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import feign.Feign;
 import feign.Logger;

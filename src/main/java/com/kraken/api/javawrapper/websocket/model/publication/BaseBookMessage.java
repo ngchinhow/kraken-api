@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.C
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
-public class BaseBookMessage extends PublicationMessage {
+public class BaseBookMessage extends AbstractPublicationMessage {
     private int depth;
 
     public BaseBookMessage() {

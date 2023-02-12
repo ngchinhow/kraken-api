@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class PublicationMessage {
+public abstract class AbstractPublicationMessage {
     private int channelId;
     private WebSocketEnumerations.CHANNEL channelName;
     private String pair;

@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
-public class SpreadMessage extends PublicationMessage {
+public class SpreadMessage extends AbstractPublicationMessage {
     private BigDecimal bid;
     private BigDecimal ask;
     private LocalDateTime time;
@@ -31,7 +31,7 @@ public class SpreadMessage extends PublicationMessage {
     public static abstract class SpreadMessageBuilder<
         C extends SpreadMessage,
         B extends SpreadMessageBuilder<C, B>
-    > extends PublicationMessageBuilder<C, B> {
+    > extends AbstractPublicationMessageBuilder<C, B> {
         public B time(String timestamp) {
             this.time = DateTimeUtils.epochMicroToLocalDateTime(timestamp);
             return this.self();

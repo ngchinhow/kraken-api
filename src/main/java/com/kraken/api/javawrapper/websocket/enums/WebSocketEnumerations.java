@@ -1,7 +1,7 @@
 package com.kraken.api.javawrapper.websocket.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.kraken.api.javawrapper.websocket.dto.publication.*;
+import com.kraken.api.javawrapper.websocket.model.publication.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,15 +35,15 @@ public class WebSocketEnumerations {
         TRADE("trade", "public", TradeMessage.class),
         SPREAD("spread", "public", SpreadMessage.class),
         BOOK("book", "public", BaseBookMessage.class),
-        OWN_TRADES("ownTrades", "private", null),
-        OPEN_ORDERS("openOrders", "private", null);
+        OWN_TRADES("ownTrades", "private", OwnTradesMessage.class),
+        OPEN_ORDERS("openOrders", "private", OpenOrdersMessage.class);
 
         private final String channel;
         private final String visibility;
-        private final Class<? extends PublicationMessage> publicationMessageClass;
+        private final Class<? extends AbstractPublicationMessage> publicationMessageClass;
         private static final Map<String, CHANNEL> CHANNEL_MAP = new HashMap<>();
 
-        CHANNEL(String channel, String visibility, Class<? extends PublicationMessage> publicationMessageClass) {
+        CHANNEL(String channel, String visibility, Class<? extends AbstractPublicationMessage> publicationMessageClass) {
             this.channel = channel;
             this.visibility = visibility;
             this.publicationMessageClass = publicationMessageClass;
@@ -64,7 +64,7 @@ public class WebSocketEnumerations {
             return this.visibility;
         }
 
-        public Class<? extends PublicationMessage> getPublicationMessageClass() {
+        public Class<? extends AbstractPublicationMessage> getPublicationMessageClass() {
             return this.publicationMessageClass;
         }
 

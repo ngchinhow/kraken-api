@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto.publication;
+package com.kraken.api.javawrapper.websocket.model.publication.embedded;
 
 import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
 import lombok.AllArgsConstructor;
