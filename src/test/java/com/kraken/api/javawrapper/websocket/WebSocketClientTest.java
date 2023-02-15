@@ -6,10 +6,12 @@ import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmb
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 public class WebSocketClientTest {
     private static final KrakenWebSocketClient WEB_SOCKET_CLIENT = new KrakenConnectionManager("", "")
         .getKrakenWebSocketClient(
-            "XBT/USD",
+            List.of("XBT/USD", "XBT/EUR"),
             SubscriptionEmbeddedObject.builder()
                 .name(WebSocketEnumerations.CHANNEL.BOOK)
                 .depth(10)
@@ -19,6 +21,7 @@ public class WebSocketClientTest {
     @Test
     public void givenWebSocketClient_whenSubscribePublic_thenSuccess() throws InterruptedException {
         WEB_SOCKET_CLIENT.connect();
+        WEB_SOCKET_CLIENT.ping().thenAcceptAsync(System.out::println);
         while (true) {
 
         }

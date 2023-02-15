@@ -1,5 +1,6 @@
 package com.kraken.api.javawrapper.properties;
 
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -16,4 +17,6 @@ public class KrakenProperties {
             throw new RuntimeException(e);
         }
     }
+
+    public static final BigInteger KRAKEN_REQ_ID_MAX_LIMIT = new BigInteger("18446744073709551616");
 }

@@ -1,11 +1,11 @@
 package com.kraken.api.javawrapper.websocket.model.publication;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 public class OwnTradesMessage extends AbstractPublicationMessage {
 }

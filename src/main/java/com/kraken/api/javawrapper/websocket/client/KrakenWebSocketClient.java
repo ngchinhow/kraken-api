@@ -4,17 +4,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.kraken.api.javawrapper.websocket.dto.RequestIdentifier;
-import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
-import com.kraken.api.javawrapper.websocket.model.event.*;
+import com.kraken.api.javawrapper.threading.DaemonThreadFactory;
+import com.kraken.api.javawrapper.websocket.model.event.AbstractEventMessage;
+import com.kraken.api.javawrapper.websocket.model.event.SystemStatusMessage;
 import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmbeddedObject;
-import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
 import com.kraken.api.javawrapper.websocket.model.event.request.PingMessage;
 import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
+import com.kraken.api.javawrapper.websocket.model.event.request.UnsubscribeMessage;
+import com.kraken.api.javawrapper.websocket.model.event.response.IResponseMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.PongMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
+import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
 import com.kraken.api.javawrapper.websocket.utils.PublicationMessageObjectDeserializer;
-import com.kraken.api.javawrapper.websocket.utils.ConcurrentLinkedQueueUtils;
+import com.kraken.api.javawrapper.websocket.utils.RandomUtils;
+import com.kraken.api.javawrapper.websocket.utils.WebSocketTrafficGateway;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -22,14 +25,21 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.math.BigInteger;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_REQ_ID_MAX_LIMIT;
 
 @Slf4j
 public class KrakenWebSocketClient extends WebSocketClient {
-    private final Map<? extends RequestIdentifier, ConcurrentLinkedQueue<? extends AbstractInteractiveMessage>>
-        requestsToQueueMap = new HashMap<>();
+    private final ExecutorService executorService = Executors.newCachedThreadPool(new DaemonThreadFactory());
+    private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(
+        JsonInclude.Include.NON_NULL
+    );
+
+    private final WebSocketTrafficGateway webSocketTrafficGateway = new WebSocketTrafficGateway();
 
     private final List<String> pairs;
     private final SubscriptionEmbeddedObject subscriptionEmbeddedObject;
@@ -42,18 +52,16 @@ public class KrakenWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        Map<Class<? extends AbstractEventMessage>, ConcurrentLinkedQueue<? extends AbstractEventMessage>> hashMap =
-            Arrays.stream(WebSocketEnumerations.EVENT.class.getDeclaredClasses()).map(c -> {
-            try {
-                //noinspection unchecked
-                return (Class<? extends AbstractEventMessage>) c.getField("").get(null);
-            } catch (IllegalAccessException | NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toMap(Function.identity(), ConcurrentLinkedQueueUtils::create));
-        ConcurrentLinkedQueue<SubscribeMessage> t = (ConcurrentLinkedQueue<SubscribeMessage>) hashMap.get(SubscribeMessage.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+//        Map<Class<? extends AbstractEventMessage>, ConcurrentLinkedQueue<? extends AbstractEventMessage>> hashMap =
+//            Arrays.stream(WebSocketEnumerations.EVENT.class.getDeclaredClasses()).map(c -> {
+//                try {
+//                    //noinspection unchecked
+//                    return (Class<? extends AbstractEventMessage>) c.getField("").get(null);
+//                } catch (IllegalAccessException | NoSuchFieldException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }).collect(Collectors.toMap(Function.identity(), ConcurrentLinkedQueueUtils::create));
+//        ConcurrentLinkedQueue<SubscribeMessage> t = (ConcurrentLinkedQueue<SubscribeMessage>) hashMap.get(SubscribeMessage.class);
         SubscribeMessage.SubscribeMessageBuilder<?, ?> subscribeMessageBuilder = SubscribeMessage.builder()
             .subscription(subscriptionEmbeddedObject);
         if (!pairs.isEmpty()) subscribeMessageBuilder.pair(pairs);
@@ -73,7 +81,7 @@ public class KrakenWebSocketClient extends WebSocketClient {
 //        this.send(pingAsJson);
         try {
             subscribeAsJson = objectMapper.writeValueAsString(subscribeMessageBuilder
-                .reqId(BigInteger.valueOf(123))
+                .reqId(new BigInteger("11111111111111111111111111111111111111111111111"))
                 .subscription(subscriptionEmbeddedObject.toBuilder().depth(100).build())
                 .build()
             );
@@ -110,14 +118,20 @@ public class KrakenWebSocketClient extends WebSocketClient {
         objectMapper.registerModule(simpleModule);
         AbstractEventMessage abstractEventMessage = null;
         AbstractPublicationMessage publicationMessage = null;
-        boolean isNotGeneralMessage = true;
+        boolean isEventMessage = false;
         try {
             abstractEventMessage = objectMapper.readValue(s, AbstractEventMessage.class);
-            isNotGeneralMessage = false;
+            isEventMessage = true;
         } catch (JsonProcessingException e) {
             log.trace("Received message is not an AbstractEventMessage. {}", e.getLocalizedMessage());
         }
-        if (isNotGeneralMessage) {
+        if (isEventMessage) {
+            if (abstractEventMessage instanceof IResponseMessage responseMessage) {
+                webSocketTrafficGateway.offer(responseMessage);
+            } else if (abstractEventMessage instanceof SystemStatusMessage) {
+
+            }
+        } else {
             try {
                 publicationMessage = objectMapper.readValue(s, AbstractPublicationMessage.class);
             } catch (JsonProcessingException ex) {
@@ -125,7 +139,7 @@ public class KrakenWebSocketClient extends WebSocketClient {
             }
         }
         if (Objects.nonNull(abstractEventMessage))
-            log.info("General message class: {}", abstractEventMessage);
+            log.info("Event message class: {}", abstractEventMessage);
         if (Objects.nonNull(publicationMessage))
             log.info("Publication message class: {}", publicationMessage);
     }
@@ -141,17 +155,40 @@ public class KrakenWebSocketClient extends WebSocketClient {
         throw new RuntimeException(e);
     }
 
-    public PongMessage ping() {
+    public CompletableFuture<PongMessage> ping() {
+        return ping(new PingMessage());
+    }
+
+    public CompletableFuture<PongMessage> ping(PingMessage pingMessage) {
+        return CompletableFuture.supplyAsync(
+            () -> {
+                if (Objects.isNull(pingMessage.getReqId())) pingMessage.setReqId(this.generateRandomReqId());
+                ConcurrentLinkedQueue<PongMessage> pongMessageQueue = new ConcurrentLinkedQueue<>();
+                webSocketTrafficGateway.put(pingMessage.toRequestIdentifier(), pongMessageQueue);
+                String pingAsJson;
+                try {
+                    pingAsJson = objectMapper.writeValueAsString(pingMessage);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                this.send(pingAsJson);
+
+                //noinspection StatementWithEmptyBody,LoopConditionNotUpdatedInsideLoop
+                while (pongMessageQueue.isEmpty()) { }
+                PongMessage pongMessage = pongMessageQueue.poll();
+                webSocketTrafficGateway.remove(pongMessage.toRequestIdentifier());
+                return pongMessage;
+            },
+            executorService
+        );
+    }
+
+    public SubscriptionStatusMessage subscribe(SubscribeMessage subscribeMessage) {
 
         return null;
     }
 
-    public SubscriptionStatusMessage subscribe() {
-
-        return null;
-    }
-
-    public SubscriptionStatusMessage unsubscribe() {
+    public SubscriptionStatusMessage unsubscribe(UnsubscribeMessage unsubscribeMessage) {
 
         return null;
     }
@@ -174,5 +211,9 @@ public class KrakenWebSocketClient extends WebSocketClient {
 
     public void cancelAllOrdersAfter() {
 
+    }
+
+    private BigInteger generateRandomReqId() {
+        return RandomUtils.nextBigInteger(KRAKEN_REQ_ID_MAX_LIMIT);
     }
 }

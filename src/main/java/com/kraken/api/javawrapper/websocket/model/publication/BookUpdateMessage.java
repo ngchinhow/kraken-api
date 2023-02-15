@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.kraken.api.javawrapper.websocket.model.publication.embedded.BookLevelContainerObject;
 import com.kraken.api.javawrapper.websocket.model.publication.embedded.BookLevelEmbeddedObject;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.lang.reflect.InvocationTargetException;
@@ -16,8 +16,8 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,7 +33,7 @@ public class BookUpdateMessage extends BaseBookMessage {
         }
     }};
 
-    public static BookUpdateMessage fromJsonNodeList(List<JsonNode> jsonNodeList, int depth) {
+    public static BookUpdateMessage fromJsonNodeList(List<JsonNode> jsonNodeList, Integer depth) {
         BookUpdateMessageBuilder<?, ?> messageBuilder = new BookUpdateMessage().toBuilder();
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayNode contentArray = objectMapper.createArrayNode();

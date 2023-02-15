@@ -1,16 +1,17 @@
 package com.kraken.api.javawrapper.websocket.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
-@Getter
-@Setter
-@SuperBuilder
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT.PING;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder(toBuilder = true)
 public class PingRequestIdentifier extends RequestIdentifier {
 
-    @Override
-    public boolean equals(RequestIdentifier requestIdentifier) {
-        return this.getReqId().equals(requestIdentifier.getReqId());
+    public PingRequestIdentifier() {
+        this.setEvent(PING);
     }
 }

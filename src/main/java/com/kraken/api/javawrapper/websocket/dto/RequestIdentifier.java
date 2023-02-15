@@ -5,13 +5,12 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigInteger;
 
-@Getter
-@Setter
-@SuperBuilder
+@Data
+@SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public abstract class RequestIdentifier {
     private BigInteger reqId;
 
-    public abstract boolean equals(RequestIdentifier requestIdentifier);
+    private String event;
 }

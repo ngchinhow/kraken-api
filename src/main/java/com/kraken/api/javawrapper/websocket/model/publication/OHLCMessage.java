@@ -1,23 +1,22 @@
 package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kraken.api.javawrapper.websocket.dto.SubscribeRequestIdentifier;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 public class OHLCMessage extends AbstractPublicationMessage {
-    private int interval;
+    private Integer interval;
     private LocalDateTime intervalStart;
     private LocalDateTime intervalEnd;
     private BigDecimal open;
@@ -26,7 +25,7 @@ public class OHLCMessage extends AbstractPublicationMessage {
     private BigDecimal close;
     private BigDecimal vwap;
     private BigDecimal volume;
-    private int count;
+    private Integer count;
 
     public OHLCMessage() {
         this.setChannelName(WebSocketEnumerations.CHANNEL.OHLC);
@@ -74,6 +73,13 @@ public class OHLCMessage extends AbstractPublicationMessage {
             .vwap(new BigDecimal(jsonNodeList.get(1).get(6).asText()))
             .volume(new BigDecimal(jsonNodeList.get(1).get(7).asText()))
             .count(jsonNodeList.get(1).get(8).asInt())
+            .build();
+    }
+
+    @Override
+    public SubscribeRequestIdentifier toSubscribeRequestIdentifier() {
+        return super.toSubscribeRequestIdentifier().toBuilder()
+            .interval(this.interval)
             .build();
     }
 }

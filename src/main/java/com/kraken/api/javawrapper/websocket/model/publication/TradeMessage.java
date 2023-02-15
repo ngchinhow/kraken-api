@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.kraken.api.javawrapper.websocket.model.publication.embedded.TradeEmbeddedObject;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 public class TradeMessage extends AbstractPublicationMessage {

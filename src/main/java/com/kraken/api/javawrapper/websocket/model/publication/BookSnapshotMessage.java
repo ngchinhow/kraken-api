@@ -3,9 +3,9 @@ package com.kraken.api.javawrapper.websocket.model.publication;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kraken.api.javawrapper.websocket.model.publication.embedded.BookLevelEmbeddedObject;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,7 +22,7 @@ public class BookSnapshotMessage extends BaseBookMessage {
     private List<BookLevelEmbeddedObject> askLevels;
     private List<BookLevelEmbeddedObject> bidLevels;
 
-    public static BookSnapshotMessage fromJsonNodeList(List<JsonNode> jsonNodeList, int depth) {
+    public static BookSnapshotMessage fromJsonNodeList(List<JsonNode> jsonNodeList, Integer depth) {
         List<BookLevelEmbeddedObject> askLevels = new ArrayList<>();
         Iterator<JsonNode> askLevelsIterator = jsonNodeList.get(1).get("as").elements();
         while (askLevelsIterator.hasNext()) {
@@ -44,6 +44,7 @@ public class BookSnapshotMessage extends BaseBookMessage {
                 .build());
         }
         return new BookSnapshotMessage().toBuilder()
+            .isSnapshot(true)
             .channelId(jsonNodeList.get(0).asInt())
             .askLevels(askLevels)
             .bidLevels(bidLevels)

@@ -4,16 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 public class SpreadMessage extends AbstractPublicationMessage {
