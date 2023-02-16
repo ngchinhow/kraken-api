@@ -4,6 +4,8 @@ import com.kraken.api.javawrapper.manager.KrakenConnectionManager;
 import com.kraken.api.javawrapper.websocket.client.KrakenWebSocketClient;
 import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmbeddedObject;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.internal.jdk8.CompletionStageConsumer;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,7 +23,8 @@ public class WebSocketClientTest {
     @Test
     public void givenWebSocketClient_whenSubscribePublic_thenSuccess() throws InterruptedException {
         WEB_SOCKET_CLIENT.connect();
-        WEB_SOCKET_CLIENT.ping().thenAcceptAsync(System.out::println);
+        Thread.sleep(5000);
+        WEB_SOCKET_CLIENT.ping().subscribe(System.out::println);
         while (true) {
 
         }

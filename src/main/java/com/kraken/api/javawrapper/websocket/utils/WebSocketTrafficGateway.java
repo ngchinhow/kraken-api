@@ -7,6 +7,7 @@ import com.kraken.api.javawrapper.websocket.model.event.AbstractInteractiveMessa
 import com.kraken.api.javawrapper.websocket.model.event.SystemStatusMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.IResponseMessage;
 import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,35 +19,29 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @NoArgsConstructor
 public class WebSocketTrafficGateway {
 
-    // This is strictly a Map of RequestIdentifier subclasses to ConcurrentLinkedQueues of subclasses of IResponseMessage
+    public final PublishSubject<SystemStatusMessage> systemStatusMessages = PublishSubject.create();
+    // This is strictly a Map of RequestIdentifiers to PublishSubjects of subclasses of IResponseMessage
     // But since Java is fussy about types this is the easiest way
-    private static final Map<Object, Object> REQUESTS_TO_QUEUE_MAP = new HashMap<>();
-
-    // This is strictly a Map of SubscribeRequestIdentifiers to ConcurrentLinkedQueues of subclasses of
+    private static final Map<RequestIdentifier, Object> REQUESTS_TO_PUBLISH_SUBJECT_MAP = new HashMap<>();
+    // This is strictly a Map of SubscribeRequestIdentifiers to PublishSubjects of subclasses of
     // AbstractPublicationMessages. But since Java is fussy about types, this is the easiest way.
     private static final Map<SubscribeRequestIdentifier, Object> SUBSCRIPTION_TO_PUBLICATION_QUEUE = new HashMap<>();
 
-    public static final ConcurrentLinkedQueue<SystemStatusMessage> SYSTEM_STATUS_MESSAGES = new ConcurrentLinkedQueue<>();
-
-    public static <T extends AbstractInteractiveMessage> ConcurrentLinkedQueue<T> create(Class<T> ignoredTClass) {
-        return new ConcurrentLinkedQueue<>();
-    }
-
     public <T extends RequestIdentifier, U extends IResponseMessage> void put(
         T requestIdentifier,
-        ConcurrentLinkedQueue<U> responseMessageQueue
+        PublishSubject<U> responseMessagePublishSubject
     ) {
-        REQUESTS_TO_QUEUE_MAP.put(requestIdentifier, responseMessageQueue);
+        REQUESTS_TO_PUBLISH_SUBJECT_MAP.put(requestIdentifier, responseMessagePublishSubject);
     }
 
     @SuppressWarnings("unchecked")
     public <T extends IResponseMessage> void offer(T responseMessage) {
-        ((ConcurrentLinkedQueue<T>) REQUESTS_TO_QUEUE_MAP.get(responseMessage.toRequestIdentifier()))
-            .offer(responseMessage);
+        ((PublishSubject<T>) REQUESTS_TO_PUBLISH_SUBJECT_MAP.get(responseMessage.toRequestIdentifier()))
+            .onNext(responseMessage);
     }
 
     public <T extends RequestIdentifier> void remove(T requestIdentifier) {
-        REQUESTS_TO_QUEUE_MAP.remove(requestIdentifier);
+        REQUESTS_TO_PUBLISH_SUBJECT_MAP.remove(requestIdentifier);
     }
 
     public <T extends AbstractPublicationMessage> ConcurrentLinkedQueue<T> subscribe(SubscribeRequestIdentifier requestIdentifier) {

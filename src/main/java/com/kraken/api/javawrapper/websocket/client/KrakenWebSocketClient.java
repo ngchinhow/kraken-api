@@ -18,17 +18,20 @@ import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicatio
 import com.kraken.api.javawrapper.websocket.utils.PublicationMessageObjectDeserializer;
 import com.kraken.api.javawrapper.websocket.utils.RandomUtils;
 import com.kraken.api.javawrapper.websocket.utils.WebSocketTrafficGateway;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_REQ_ID_MAX_LIMIT;
 
@@ -77,7 +80,7 @@ public class KrakenWebSocketClient extends WebSocketClient {
             throw new RuntimeException(e);
         }
         log.info("Subscription payload: {}", subscribeAsJson);
-        this.send(subscribeAsJson);
+//        this.send(subscribeAsJson);
 //        this.send(pingAsJson);
         try {
             subscribeAsJson = objectMapper.writeValueAsString(subscribeMessageBuilder
@@ -89,7 +92,7 @@ public class KrakenWebSocketClient extends WebSocketClient {
             throw new RuntimeException(e);
         }
         log.info("Subscription payload: {}", subscribeAsJson);
-        this.send(subscribeAsJson);
+//        this.send(subscribeAsJson);
 //        UnsubscribeMessage unsubscribeMessage = UnsubscribeMessage.builder()
 //            .subscription(subscriptionEmbeddedObject)
 //            .pair(pairs)
@@ -128,8 +131,8 @@ public class KrakenWebSocketClient extends WebSocketClient {
         if (isEventMessage) {
             if (abstractEventMessage instanceof IResponseMessage responseMessage) {
                 webSocketTrafficGateway.offer(responseMessage);
-            } else if (abstractEventMessage instanceof SystemStatusMessage) {
-
+            } else if (abstractEventMessage instanceof SystemStatusMessage systemStatusMessage) {
+                webSocketTrafficGateway.getSystemStatusMessages().onNext(systemStatusMessage);
             }
         } else {
             try {
@@ -155,32 +158,37 @@ public class KrakenWebSocketClient extends WebSocketClient {
         throw new RuntimeException(e);
     }
 
-    public CompletableFuture<PongMessage> ping() {
+    public Single<PongMessage> ping() {
         return ping(new PingMessage());
     }
 
-    public CompletableFuture<PongMessage> ping(PingMessage pingMessage) {
-        return CompletableFuture.supplyAsync(
-            () -> {
-                if (Objects.isNull(pingMessage.getReqId())) pingMessage.setReqId(this.generateRandomReqId());
-                ConcurrentLinkedQueue<PongMessage> pongMessageQueue = new ConcurrentLinkedQueue<>();
-                webSocketTrafficGateway.put(pingMessage.toRequestIdentifier(), pongMessageQueue);
-                String pingAsJson;
-                try {
-                    pingAsJson = objectMapper.writeValueAsString(pingMessage);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                this.send(pingAsJson);
-
-                //noinspection StatementWithEmptyBody,LoopConditionNotUpdatedInsideLoop
-                while (pongMessageQueue.isEmpty()) { }
-                PongMessage pongMessage = pongMessageQueue.poll();
-                webSocketTrafficGateway.remove(pongMessage.toRequestIdentifier());
-                return pongMessage;
-            },
-            executorService
-        );
+    public Single<PongMessage> ping(PingMessage pingMessage) {
+        if (Objects.isNull(pingMessage.getReqId())) pingMessage.setReqId(this.generateRandomReqId());
+        AtomicReference<PongMessage> pongMessage = new AtomicReference<>();
+        PublishSubject<PongMessage> pongMessagePublishSubject = PublishSubject.create();
+        webSocketTrafficGateway.put(pingMessage.toRequestIdentifier(), pongMessagePublishSubject);
+        String pingAsJson;
+        try {
+            pingAsJson = objectMapper.writeValueAsString(pingMessage);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        this.send(pingAsJson);
+        return pongMessagePublishSubject.firstOrError();
+//        return CompletableFuture.supplyAsync(
+//            () -> {
+//                if (Objects.isNull(pingMessage.getReqId())) pingMessage.setReqId(this.generateRandomReqId());
+//                ConcurrentLinkedQueue<PongMessage> pongMessageQueue = new ConcurrentLinkedQueue<>();
+//
+//
+//                //noinspection StatementWithEmptyBody,LoopConditionNotUpdatedInsideLoop
+//                while (pongMessageQueue.isEmpty()) { }
+//                PongMessage pongMessage = pongMessageQueue.poll();
+//                webSocketTrafficGateway.remove(pongMessage.toRequestIdentifier());
+//                return pongMessage;
+//            },
+//            executorService
+//        );
     }
 
     public SubscriptionStatusMessage subscribe(SubscribeMessage subscribeMessage) {
