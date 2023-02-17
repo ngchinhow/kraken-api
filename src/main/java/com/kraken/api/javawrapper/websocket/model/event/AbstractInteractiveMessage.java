@@ -12,8 +12,8 @@ import java.math.BigInteger;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public abstract class AbstractInteractiveMessage extends AbstractEventMessage {
     @JsonProperty("reqid")
     private BigInteger reqId;

@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto;
+package com.kraken.api.javawrapper.websocket.dto.request;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

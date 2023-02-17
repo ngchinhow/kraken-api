@@ -13,5 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 public class BookLevelContainerObject {
     private List<BookLevelEmbeddedObject> levels;
-    private int checksum;
+    private Integer checksum;
 }

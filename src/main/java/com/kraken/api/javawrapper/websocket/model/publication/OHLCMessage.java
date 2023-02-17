@@ -1,7 +1,7 @@
 package com.kraken.api.javawrapper.websocket.model.publication;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.kraken.api.javawrapper.websocket.dto.SubscribeRequestIdentifier;
+import com.kraken.api.javawrapper.websocket.dto.request.SubscribeRequestIdentifier;
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
 import lombok.*;

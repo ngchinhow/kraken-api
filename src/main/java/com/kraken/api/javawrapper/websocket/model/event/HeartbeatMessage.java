@@ -2,14 +2,17 @@ package com.kraken.api.javawrapper.websocket.model.event;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
+
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT.HEARTBEAT;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
-@NoArgsConstructor
 public class HeartbeatMessage extends AbstractEventMessage {
+    public HeartbeatMessage() {
+        this.setEvent(HEARTBEAT);
+    }
 }

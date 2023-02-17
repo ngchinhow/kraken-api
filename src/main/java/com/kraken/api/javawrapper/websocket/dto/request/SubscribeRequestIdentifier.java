@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto;
+package com.kraken.api.javawrapper.websocket.dto.request;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,7 +15,7 @@ public class SubscribeRequestIdentifier extends BaseSubscriptionRequestIdentifie
         this.setEvent(SUBSCRIBE);
     }
 
-    public SubscribeRequestIdentifier duplicate() {
+    public SubscribeRequestIdentifier toPublicationRequestIdentifier() {
         return new SubscribeRequestIdentifier().toBuilder()
             .channel(this.getChannel())
             .pair(this.getPair())

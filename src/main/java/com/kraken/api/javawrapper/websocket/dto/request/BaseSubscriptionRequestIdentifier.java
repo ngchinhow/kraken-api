@@ -1,4 +1,4 @@
-package com.kraken.api.javawrapper.websocket.dto;
+package com.kraken.api.javawrapper.websocket.dto.request;
 
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import lombok.AllArgsConstructor;

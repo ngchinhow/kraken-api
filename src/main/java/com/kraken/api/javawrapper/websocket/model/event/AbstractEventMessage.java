@@ -16,8 +16,8 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 
 @Data
 @SuperBuilder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     property = EVENT,
@@ -34,4 +34,13 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 })
 public abstract class AbstractEventMessage {
     private String event;
+//    @SuppressWarnings("unused")
+//    public abstract static class AbstractEventMessageBuilder<
+//        C extends AbstractEventMessage,
+//        B extends AbstractEventMessageBuilder<C, B>
+//    > {
+//        private B event(String event) {
+//            return this.self();
+//        }
+//    }
 }

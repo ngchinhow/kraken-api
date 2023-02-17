@@ -10,8 +10,8 @@ import lombok.experimental.SuperBuilder;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public abstract class BaseSubscriptionMessage extends AbstractInteractiveMessage {
     private SubscriptionEmbeddedObject subscription;
 }

@@ -28,64 +28,32 @@ public class SubscriptionEmbeddedObject {
 
     @SuppressWarnings("unused")
     public static class Builder {
-        public Builder depth(Integer depth) {
-            if (Objects.nonNull(name)) {
-                if (Objects.nonNull(depth) && !name.equals(WebSocketEnumerations.CHANNEL.BOOK))
-                    throw new RuntimeException(
-                        "The depth parameter within the Subscription object is only used for subscriptions to the Book channel"
-                    );
-                else
-                    this.depth = depth;
-            }
-            return this;
-        }
+        public SubscriptionEmbeddedObject build() {
+            if (Objects.nonNull(this.snapshot) && !this.name.equals(WebSocketEnumerations.CHANNEL.OWN_TRADES))
+                throw new RuntimeException("The snapshot parameter within the Subscription object is only used for " +
+                    "subscriptions to the Own Trades channel");
+            if (Objects.nonNull(this.consolidateTaker) && !this.name.equals(WebSocketEnumerations.CHANNEL.OWN_TRADES))
+                throw new RuntimeException("The consolidateTaker parameter within the Subscription object is only " +
+                    "used for subscriptions to the Own Trades channel");
+            if (Objects.nonNull(this.rateCounter) && !this.name.equals(WebSocketEnumerations.CHANNEL.OPEN_ORDERS))
+                throw new RuntimeException("The ratecounter parameter within the Subscription object is only used " +
+                    "for subscriptions to the Open Orders channel");
+            if (Objects.nonNull(this.interval) && !this.name.equals(WebSocketEnumerations.CHANNEL.OHLC))
+                throw new RuntimeException("The interval parameter within the Subscription object is only used for " +
+                    "subscriptions to the OHLC channel");
+            if (Objects.nonNull(this.depth) && !this.name.equals(WebSocketEnumerations.CHANNEL.BOOK))
+                throw new RuntimeException("The depth parameter within the Subscription object is only used for " +
+                    "subscriptions to the Book channel");
 
-        public Builder interval(Integer interval) {
-            if (Objects.nonNull(name)) {
-                if (Objects.nonNull(interval) && !name.equals(WebSocketEnumerations.CHANNEL.OHLC))
-                    throw new RuntimeException(
-                        "The interval parameter within the Subscription object is only used for subscriptions to the OHLC channel"
-                    );
-                else
-                    this.interval = interval;
-            }
-            return this;
-        }
-
-        public Builder rateCounter(Boolean rateCounter) {
-            if (Objects.nonNull(name)) {
-                if (Objects.nonNull(rateCounter) && !name.equals(WebSocketEnumerations.CHANNEL.OPEN_ORDERS))
-                    throw new RuntimeException(
-                        "The ratecounter parameter within the Subscription object is only used for subscriptions to the Open Orders channel"
-                    );
-                else
-                    this.rateCounter = rateCounter;
-            }
-            return this;
-        }
-
-        public Builder snapshot(Boolean snapshot) {
-            if (Objects.nonNull(name)) {
-                if (Objects.nonNull(snapshot) && !name.equals(WebSocketEnumerations.CHANNEL.OWN_TRADES))
-                    throw new RuntimeException(
-                        "The snapshot parameter within the Subscription object is only used for subscriptions to the Own Trades channel"
-                    );
-                else
-                    this.snapshot = snapshot;
-            }
-            return this;
-        }
-
-        public Builder consolidateTaker(Boolean consolidateTaker) {
-            if (Objects.nonNull(name)) {
-                if (Objects.nonNull(consolidateTaker) && !name.equals(WebSocketEnumerations.CHANNEL.OWN_TRADES))
-                    throw new RuntimeException(
-                        "The consolidateTaker parameter within the Subscription object is only used for subscriptions to the Own Trades channel"
-                    );
-                else
-                    this.consolidateTaker = consolidateTaker;
-            }
-            return this;
+            return new SubscriptionEmbeddedObject(
+                this.depth,
+                this.interval,
+                this.name,
+                this.rateCounter,
+                this.snapshot,
+                this.token,
+                this.consolidateTaker
+            );
         }
     }
 }
