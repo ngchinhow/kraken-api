@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT.PONG;
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT_TYPE.PONG;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -15,13 +15,13 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 @Jacksonized
 public class PongMessage extends AbstractInteractiveMessage implements IResponseMessage {
 
-    public PongMessage() {
+    {
         this.setEvent(PONG);
     }
 
     @Override
     public PingRequestIdentifier toRequestIdentifier() {
-        return new PingRequestIdentifier().toBuilder()
+        return PingRequestIdentifier.builder()
             .reqId(this.getReqId())
             .build();
     }

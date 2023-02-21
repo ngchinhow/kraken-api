@@ -6,6 +6,6 @@ import lombok.experimental.SuperBuilder;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 public class OpenOrdersMessage extends AbstractPublicationMessage {
 }

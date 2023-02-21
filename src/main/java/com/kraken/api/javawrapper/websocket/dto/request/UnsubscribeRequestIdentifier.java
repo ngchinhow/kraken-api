@@ -2,21 +2,23 @@ package com.kraken.api.javawrapper.websocket.dto.request;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT.UNSUBSCRIBE;
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT_TYPE.UNSUBSCRIBE;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
+@NoArgsConstructor
 public class UnsubscribeRequestIdentifier extends BaseSubscriptionRequestIdentifier {
 
-    public UnsubscribeRequestIdentifier() {
+    {
         this.setEvent(UNSUBSCRIBE);
     }
 
     public SubscribeRequestIdentifier toSubscribeRequestIdentifier() {
-        return new SubscribeRequestIdentifier().toBuilder()
+        return SubscribeRequestIdentifier.builder()
             .channel(this.getChannel())
             .pair(this.getPair())
             .depth(this.getDepth())

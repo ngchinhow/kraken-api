@@ -5,6 +5,7 @@ import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -15,13 +16,14 @@ import java.math.BigInteger;
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
+@NoArgsConstructor
 public class SystemStatusMessage extends AbstractEventMessage {
     @JsonProperty("connectionID")
     private BigInteger connectionId;
-    private WebSocketEnumerations.SYSTEM_STATUS status;
+    private WebSocketEnumerations.SYSTEM_STATUS_ENUM status;
     private String version;
 
-    public SystemStatusMessage() {
-        this.setEvent(WebSocketEnumerations.EVENT.SYSTEM_STATUS);
+    {
+        this.setEvent(WebSocketEnumerations.EVENT_TYPE.SYSTEM_STATUS);
     }
 }

@@ -18,7 +18,7 @@ import java.util.*;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookUpdateMessage extends BaseBookMessage {
@@ -34,7 +34,7 @@ public class BookUpdateMessage extends BaseBookMessage {
     }};
 
     public static BookUpdateMessage fromJsonNodeList(List<JsonNode> jsonNodeList, Integer depth) {
-        BookUpdateMessageBuilder<?, ?> messageBuilder = new BookUpdateMessage().toBuilder();
+        BookUpdateMessageBuilder<?, ?> messageBuilder = BookUpdateMessage.builder();
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayNode contentArray = objectMapper.createArrayNode();
         contentArray.add(jsonNodeList.get(1));

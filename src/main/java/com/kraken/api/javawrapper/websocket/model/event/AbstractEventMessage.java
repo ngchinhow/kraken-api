@@ -12,7 +12,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT.*;
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT;
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT_TYPE.*;
 
 @Data
 @SuperBuilder
@@ -34,13 +35,4 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 })
 public abstract class AbstractEventMessage {
     private String event;
-//    @SuppressWarnings("unused")
-//    public abstract static class AbstractEventMessageBuilder<
-//        C extends AbstractEventMessage,
-//        B extends AbstractEventMessageBuilder<C, B>
-//    > {
-//        private B event(String event) {
-//            return this.self();
-//        }
-//    }
 }

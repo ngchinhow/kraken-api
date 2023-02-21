@@ -6,6 +6,7 @@ import com.kraken.api.javawrapper.websocket.utils.DateTimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
@@ -14,8 +15,9 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @AllArgsConstructor
+@NoArgsConstructor
 public class SpreadMessage extends AbstractPublicationMessage {
     private BigDecimal bid;
     private BigDecimal ask;
@@ -23,7 +25,7 @@ public class SpreadMessage extends AbstractPublicationMessage {
     private BigDecimal bidVolume;
     private BigDecimal askVolume;
 
-    public SpreadMessage() {
+    {
         this.setChannelName(WebSocketEnumerations.CHANNEL.SPREAD);
     }
 
@@ -45,7 +47,7 @@ public class SpreadMessage extends AbstractPublicationMessage {
 
     @SuppressWarnings("unused")
     public static SpreadMessage fromJsonNodeList(List<JsonNode> jsonNodeList) {
-        return new SpreadMessage().toBuilder()
+        return SpreadMessage.builder()
             .channelId(jsonNodeList.get(0).asInt())
             .pair(jsonNodeList.get(2).asText())
             .bid(new BigDecimal(jsonNodeList.get(1).get(0).asText()))

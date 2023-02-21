@@ -10,8 +10,9 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @AllArgsConstructor
+@NoArgsConstructor
 public class TickerMessage extends AbstractPublicationMessage {
     private Price ask;
     private Price bid;
@@ -23,7 +24,7 @@ public class TickerMessage extends AbstractPublicationMessage {
     private Value high;
     private Value open;
 
-    public TickerMessage() {
+    {
         this.setChannelName(WebSocketEnumerations.CHANNEL.TICKER);
     }
 
@@ -48,7 +49,7 @@ public class TickerMessage extends AbstractPublicationMessage {
 
     @SuppressWarnings("unused")
     public static TickerMessage fromJsonNodeList(List<JsonNode> jsonNodeList) {
-        return new TickerMessage().toBuilder()
+        return TickerMessage.builder()
             .channelId(jsonNodeList.get(0).asInt())
             .pair(jsonNodeList.get(3).asText())
             .ask(Price.builder()

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class AbstractPublicationMessage {
@@ -17,7 +17,7 @@ public abstract class AbstractPublicationMessage {
     private String pair;
 
     public SubscribeRequestIdentifier toSubscribeRequestIdentifier() {
-        return new SubscribeRequestIdentifier().toBuilder()
+        return SubscribeRequestIdentifier.builder()
             .channel(this.channelName)
             .pair(this.pair)
             .build();

@@ -72,7 +72,8 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                 webSocketTrafficGateway.getSystemStatusMessages().onNext(systemStatusMessage);
             }
             // else:
-            // Heartbeat Messages are ignored.
+            //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of HeartbeatMessages
+            // to extend max time.
         } else {
             try {
                 publicationMessage = objectMapper.readValue(s, AbstractPublicationMessage.class);
@@ -99,7 +100,9 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     }
 
     public Single<PongMessage> ping() {
-        return ping(new PingMessage());
+        return ping(PingMessage.builder()
+            .reqId(this.generateRandomReqId())
+            .build());
     }
 
     public Single<PongMessage> ping(PingMessage pingMessage) {

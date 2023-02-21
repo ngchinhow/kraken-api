@@ -5,6 +5,7 @@ import com.kraken.api.javawrapper.websocket.dto.request.SubscribeRequestIdentifi
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -18,11 +19,12 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.C
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
+@NoArgsConstructor
 public class BaseBookMessage extends AbstractPublicationMessage {
     private Boolean isSnapshot;
     private Integer depth;
 
-    public BaseBookMessage() {
+    {
         this.setChannelName(BOOK);
     }
 

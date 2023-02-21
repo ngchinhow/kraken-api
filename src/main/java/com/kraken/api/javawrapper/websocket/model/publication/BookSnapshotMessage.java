@@ -15,7 +15,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookSnapshotMessage extends BaseBookMessage {
@@ -43,7 +43,7 @@ public class BookSnapshotMessage extends BaseBookMessage {
                 .timestamp(bidLevelNode.get(2).asText())
                 .build());
         }
-        return new BookSnapshotMessage().toBuilder()
+        return BookSnapshotMessage.builder()
             .isSnapshot(true)
             .channelId(jsonNodeList.get(0).asInt())
             .askLevels(askLevels)

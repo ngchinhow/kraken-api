@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WebSocketEnumerations {
-
-    public static class EVENT {
         public static final String EVENT = "event";
+
+    public static class EVENT_TYPE {
         public static final String PING = "ping";
         public static final String PONG = "pong";
         public static final String HEARTBEAT = "heartbeat";
@@ -73,7 +73,7 @@ public class WebSocketEnumerations {
         }
     }
 
-    public enum SYSTEM_STATUS {
+    public enum SYSTEM_STATUS_ENUM {
         ONLINE("online"),
         MAINTENANCE("maintenance"),
         CANCEL_ONLY("cancel_only"),
@@ -81,14 +81,14 @@ public class WebSocketEnumerations {
         POST_ONLY("post_only");
 
         private final String systemStatus;
-        private static final Map<String, SYSTEM_STATUS> SYSTEM_STATUS_MAP = new HashMap<>();
+        private static final Map<String, SYSTEM_STATUS_ENUM> SYSTEM_STATUS_MAP = new HashMap<>();
 
-        SYSTEM_STATUS(String systemStatus) {
+        SYSTEM_STATUS_ENUM(String systemStatus) {
             this.systemStatus = systemStatus;
         }
 
         static {
-            for (SYSTEM_STATUS e : SYSTEM_STATUS.values()) {
+            for (SYSTEM_STATUS_ENUM e : SYSTEM_STATUS_ENUM.values()) {
                 SYSTEM_STATUS_MAP.put(e.getVSystemStatus(), e);
             }
         }
@@ -98,7 +98,7 @@ public class WebSocketEnumerations {
             return this.systemStatus;
         }
 
-        public static SYSTEM_STATUS getESystemStatus(String systemStatus) {
+        public static SYSTEM_STATUS_ENUM getESystemStatus(String systemStatus) {
             return SYSTEM_STATUS_MAP.get(systemStatus);
         }
     }

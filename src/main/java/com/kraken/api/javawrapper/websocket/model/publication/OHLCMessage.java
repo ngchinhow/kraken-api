@@ -13,7 +13,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @AllArgsConstructor
 public class OHLCMessage extends AbstractPublicationMessage {
     private Integer interval;
@@ -27,7 +27,7 @@ public class OHLCMessage extends AbstractPublicationMessage {
     private BigDecimal volume;
     private Integer count;
 
-    public OHLCMessage() {
+    {
         this.setChannelName(WebSocketEnumerations.CHANNEL.OHLC);
     }
 
@@ -60,7 +60,7 @@ public class OHLCMessage extends AbstractPublicationMessage {
    @SuppressWarnings("unused")
     public static OHLCMessage fromJsonNodeList(List<JsonNode> jsonNodeList) {
         String[] channelInfo = jsonNodeList.get(2).asText().split("-");
-        return new OHLCMessage().toBuilder()
+        return OHLCMessage.builder()
             .channelId(jsonNodeList.get(0).asInt())
             .interval(Integer.parseInt(channelInfo[1]))
             .pair(jsonNodeList.get(3).asText())

@@ -2,30 +2,34 @@ package com.kraken.api.javawrapper.websocket.model.event.request;
 
 import com.kraken.api.javawrapper.websocket.dto.request.UnsubscribeRequestIdentifier;
 import com.kraken.api.javawrapper.websocket.model.event.BaseSubscriptionMessage;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT.UNSUBSCRIBE;
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT_TYPE.UNSUBSCRIBE;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
+@AllArgsConstructor
+@NoArgsConstructor
 public class UnsubscribeMessage extends BaseSubscriptionMessage {
     private List<String> pair;
 
-    public UnsubscribeMessage() {
+    {
         this.setEvent(UNSUBSCRIBE);
     }
 
     public List<UnsubscribeRequestIdentifier> toRequestIdentifier() {
         return this.pair.stream()
-            .map(p -> new UnsubscribeRequestIdentifier().toBuilder()
+            .map(p -> UnsubscribeRequestIdentifier.builder()
                 .reqId(this.getReqId())
                 .channel(this.getSubscription().getName())
                 .pair(p)

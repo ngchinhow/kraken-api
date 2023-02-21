@@ -9,16 +9,18 @@ import com.kraken.api.javawrapper.websocket.model.event.BaseSubscriptionMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT.*;
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT_TYPE.*;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
 @AllArgsConstructor
+@NoArgsConstructor
 public class SubscriptionStatusMessage extends BaseSubscriptionMessage implements IResponseMessage {
     @JsonProperty("channelID")
     private int channelId;
@@ -27,7 +29,7 @@ public class SubscriptionStatusMessage extends BaseSubscriptionMessage implement
     private WebSocketEnumerations.SUBSCRIPTION_STATUS status;
     private String errorMessage;
 
-    public SubscriptionStatusMessage() {
+    {
         this.setEvent(SUBSCRIPTION_STATUS);
     }
 
@@ -39,7 +41,7 @@ public class SubscriptionStatusMessage extends BaseSubscriptionMessage implement
         WebSocketEnumerations.CHANNEL channel = WebSocketEnumerations.CHANNEL.getEChannel(this.channelName.split("-")[0]);
         switch (requestEvent) {
             case SUBSCRIBE -> {
-                return new SubscribeRequestIdentifier().toBuilder()
+                return SubscribeRequestIdentifier.builder()
                     .reqId(this.getReqId())
                     .channel(channel)
                     .pair(this.pair)
@@ -48,7 +50,7 @@ public class SubscriptionStatusMessage extends BaseSubscriptionMessage implement
                     .build();
             }
             case UNSUBSCRIBE -> {
-                return new UnsubscribeRequestIdentifier().toBuilder()
+                return UnsubscribeRequestIdentifier.builder()
                     .reqId(this.getReqId())
                     .channel(channel)
                     .pair(this.pair)
@@ -56,7 +58,7 @@ public class SubscriptionStatusMessage extends BaseSubscriptionMessage implement
                     .interval(this.getSubscription().getInterval())
                     .build();
             }
+            default -> throw new RuntimeException("Unknown Request Event returned from the SubscriptionStatusMessage");
         }
-        return null;
     }
 }
