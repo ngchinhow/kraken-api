@@ -5,6 +5,8 @@ import com.kraken.api.javawrapper.rest.dto.KrakenResponse;
 import com.kraken.api.javawrapper.rest.dto.websocketsauthentication.WebSocketsTokenResult;
 import com.kraken.api.javawrapper.websocket.dto.response.SubscribedObject;
 import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
+import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
+import io.reactivex.rxjava3.core.Single;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -22,7 +24,7 @@ public class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClient {
     }
 
     @Override
-    public List<SubscribedObject> subscribe(SubscribeMessage subscribeMessage) {
+    public List<Single<SubscriptionStatusMessage>> subscribe(SubscribeMessage subscribeMessage) {
         KrakenResponse<WebSocketsTokenResult> tokenResponse = authenticationClient.getWebsocketsToken();
         if (Objects.nonNull(tokenResponse.getResult()))
             subscribeMessage.setSubscription(
