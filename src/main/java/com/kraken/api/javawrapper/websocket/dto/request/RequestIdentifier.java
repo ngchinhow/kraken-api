@@ -10,6 +10,7 @@ import java.math.BigInteger;
 @AllArgsConstructor
 @NoArgsConstructor
 public abstract class RequestIdentifier {
+    @EqualsAndHashCode.Exclude
     private BigInteger reqId;
 
     private String event;

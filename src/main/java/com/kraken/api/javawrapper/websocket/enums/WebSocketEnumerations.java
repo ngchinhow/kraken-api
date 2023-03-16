@@ -73,7 +73,7 @@ public class WebSocketEnumerations {
         }
     }
 
-    public enum SYSTEM_STATUS_ENUM {
+    public enum SYSTEM_STATUS_TYPE {
         ONLINE("online"),
         MAINTENANCE("maintenance"),
         CANCEL_ONLY("cancel_only"),
@@ -81,14 +81,14 @@ public class WebSocketEnumerations {
         POST_ONLY("post_only");
 
         private final String systemStatus;
-        private static final Map<String, SYSTEM_STATUS_ENUM> SYSTEM_STATUS_MAP = new HashMap<>();
+        private static final Map<String, SYSTEM_STATUS_TYPE> SYSTEM_STATUS_MAP = new HashMap<>();
 
-        SYSTEM_STATUS_ENUM(String systemStatus) {
+        SYSTEM_STATUS_TYPE(String systemStatus) {
             this.systemStatus = systemStatus;
         }
 
         static {
-            for (SYSTEM_STATUS_ENUM e : SYSTEM_STATUS_ENUM.values()) {
+            for (SYSTEM_STATUS_TYPE e : SYSTEM_STATUS_TYPE.values()) {
                 SYSTEM_STATUS_MAP.put(e.getVSystemStatus(), e);
             }
         }
@@ -98,25 +98,25 @@ public class WebSocketEnumerations {
             return this.systemStatus;
         }
 
-        public static SYSTEM_STATUS_ENUM getESystemStatus(String systemStatus) {
+        public static SYSTEM_STATUS_TYPE getESystemStatus(String systemStatus) {
             return SYSTEM_STATUS_MAP.get(systemStatus);
         }
     }
 
-    public enum SUBSCRIPTION_STATUS {
+    public enum SUBSCRIPTION_STATUS_TYPE {
         SUBSCRIBED("subscribed"),
         UNSUBSCRIBED("unsubscribed"),
         ERROR("error");
 
         private final String subscriptionStatus;
-        private static final Map<String, SUBSCRIPTION_STATUS> SUBSCRIPTION_STATUS_MAP = new HashMap<>();
+        private static final Map<String, SUBSCRIPTION_STATUS_TYPE> SUBSCRIPTION_STATUS_MAP = new HashMap<>();
 
-        SUBSCRIPTION_STATUS(String subscriptionStatus) {
+        SUBSCRIPTION_STATUS_TYPE(String subscriptionStatus) {
             this.subscriptionStatus = subscriptionStatus;
         }
 
         static {
-            for (SUBSCRIPTION_STATUS e : SUBSCRIPTION_STATUS.values()) {
+            for (SUBSCRIPTION_STATUS_TYPE e : SUBSCRIPTION_STATUS_TYPE.values()) {
                 SUBSCRIPTION_STATUS_MAP.put(e.getVSubscriptionStatus(), e);
             }
         }
@@ -126,7 +126,7 @@ public class WebSocketEnumerations {
             return this.subscriptionStatus;
         }
 
-        public static SUBSCRIPTION_STATUS getESubscriptionStatus(String subscriptionStatus) {
+        public static SUBSCRIPTION_STATUS_TYPE getESubscriptionStatus(String subscriptionStatus) {
             return SUBSCRIPTION_STATUS_MAP.get(subscriptionStatus);
         }
     }

@@ -73,6 +73,7 @@ public class BookUpdateMessage extends BaseBookMessage {
         }
 
         return messageBuilder
+            .isSnapshot(false)
             .channelId(jsonNodeList.get(0).asInt())
             .depth(depth)
             .pair(jsonNodeList.get(jsonNodeList.size() - 1).asText())

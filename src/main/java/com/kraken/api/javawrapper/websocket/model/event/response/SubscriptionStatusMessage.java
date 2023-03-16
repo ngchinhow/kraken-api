@@ -28,7 +28,7 @@ public class SubscriptionStatusMessage extends BaseSubscriptionMessage implement
     private int channelId;
     private String channelName;
     private String pair;
-    private WebSocketEnumerations.SUBSCRIPTION_STATUS status;
+    private WebSocketEnumerations.SUBSCRIPTION_STATUS_TYPE status;
     private String errorMessage;
     private ReplaySubject<AbstractPublicationMessage> publicationMessageReplaySubject;
 

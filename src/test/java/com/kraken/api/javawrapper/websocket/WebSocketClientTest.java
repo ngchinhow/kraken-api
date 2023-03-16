@@ -8,23 +8,30 @@ import com.kraken.api.javawrapper.websocket.model.event.request.PingMessage;
 import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.PongMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
+import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
+import com.kraken.api.javawrapper.websocket.model.publication.BaseBookMessage;
+import com.kraken.api.javawrapper.websocket.model.publication.BookSnapshotMessage;
+import com.kraken.api.javawrapper.websocket.model.publication.BookUpdateMessage;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.subjects.ReplaySubject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.List;
 
+import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.CHANNEL.BOOK;
 import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT_TYPE.PONG;
 
 public class WebSocketClientTest {
-    private static final KrakenPublicWebSocketClient WEB_SOCKET_CLIENT = new KrakenConnectionManager("", "")
-        .getKrakenPublicWebSocketClient();
+    private KrakenPublicWebSocketClient webSocketClient;
 
     @BeforeEach
     public void beforeEach() throws InterruptedException {
-        WEB_SOCKET_CLIENT.connectBlocking();
+        webSocketClient = new KrakenConnectionManager("", "").getKrakenPublicWebSocketClient();
+        webSocketClient.connectBlocking();
     }
 
     @Test
@@ -33,7 +40,7 @@ public class WebSocketClientTest {
         PingMessage pingMessage = PingMessage.builder()
             .reqId(reqId)
             .build();
-        PongMessage pongMessage = WEB_SOCKET_CLIENT.ping(pingMessage).blockingGet();
+        PongMessage pongMessage = webSocketClient.ping(pingMessage).blockingGet();
         Assertions.assertNotNull(pongMessage);
         Assertions.assertEquals(pongMessage.getEvent(), PONG);
         Assertions.assertEquals(pongMessage.getReqId(), reqId);
@@ -44,16 +51,36 @@ public class WebSocketClientTest {
         SubscribeMessage subscribeMessage = SubscribeMessage.builder()
             .pair(List.of("XBT/USD", "XBT/EUR"))
             .subscription(SubscriptionEmbeddedObject.builder()
-                .name(WebSocketEnumerations.CHANNEL.BOOK)
+                .name(BOOK)
                 .depth(10)
                 .build())
             .build();
-        List<Single<SubscriptionStatusMessage>> list = WEB_SOCKET_CLIENT.subscribe(subscribeMessage);
+        List<Single<SubscriptionStatusMessage>> list = webSocketClient.subscribe(subscribeMessage);
         list.stream()
             .map(Single::blockingGet)
-            .forEach(o -> {
-                System.out.println(o);
-                o.getPublicationMessageReplaySubject().forEach(System.out::println);
+            .forEach(message -> {
+                Assertions.assertNotNull(message);
+                Assertions.assertEquals(WebSocketEnumerations.EVENT_TYPE.SUBSCRIPTION_STATUS, message.getEvent());
+                Assertions.assertEquals(BOOK, message.getSubscription().getName());
+                Assertions.assertEquals(
+                    WebSocketEnumerations.SUBSCRIPTION_STATUS_TYPE.SUBSCRIBED,
+                    message.getStatus()
+                );
+                Assertions.assertEquals(10, message.getSubscription().getDepth());
+                String pair = message.getPair();
+                ReplaySubject<AbstractPublicationMessage> replaySubject = message.getPublicationMessageReplaySubject();
+                Assertions.assertNotNull(replaySubject);
+                Iterator<AbstractPublicationMessage> publicationMessageIterable = replaySubject.blockingIterable().iterator();
+                BaseBookMessage baseBookMessage = (BaseBookMessage) publicationMessageIterable.next();
+                Assertions.assertTrue(baseBookMessage instanceof BookSnapshotMessage);
+                Assertions.assertTrue(baseBookMessage.isSnapshot());
+                Assertions.assertEquals(pair, baseBookMessage.getPair());
+                Assertions.assertEquals(10, baseBookMessage.getDepth());
+                baseBookMessage = (BaseBookMessage) publicationMessageIterable.next();
+                Assertions.assertTrue(baseBookMessage instanceof BookUpdateMessage);
+                Assertions.assertFalse(baseBookMessage.isSnapshot());
+                Assertions.assertEquals(pair, baseBookMessage.getPair());
+                Assertions.assertEquals(10, baseBookMessage.getDepth());
             });
 
 //        this.send(subscribeAsJson);

@@ -32,13 +32,15 @@ import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_REQ_
 
 @Slf4j
 public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
-    private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(
-        JsonInclude.Include.NON_NULL
-    );
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final WebSocketTrafficGateway webSocketTrafficGateway = new WebSocketTrafficGateway();
 
     public KrakenBaseWebSocketClient(final URI krakenWebSocketUrl) {
         super(krakenWebSocketUrl);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addDeserializer(AbstractPublicationMessage.class, new PublicationMessageObjectDeserializer());
+        objectMapper.registerModule(simpleModule);
     }
 
     @Override
@@ -49,10 +51,6 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     @Override
     public void onMessage(String s) {
         log.trace("Received message: {}", s);
-        ObjectMapper objectMapper = new ObjectMapper();
-        SimpleModule simpleModule = new SimpleModule();
-        simpleModule.addDeserializer(AbstractPublicationMessage.class, new PublicationMessageObjectDeserializer());
-        objectMapper.registerModule(simpleModule);
         AbstractEventMessage abstractEventMessage = null;
         AbstractPublicationMessage publicationMessage = null;
         boolean isEventMessage = false;
@@ -70,9 +68,9 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             } else if (abstractEventMessage instanceof SystemStatusMessage systemStatusMessage) {
                 webSocketTrafficGateway.getSystemStatusMessages().onNext(systemStatusMessage);
             }
-            // else:
             //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of HeartbeatMessages
             // to extend max time.
+            // else:
         } else {
             try {
                 publicationMessage = objectMapper.readValue(s, AbstractPublicationMessage.class);
@@ -120,7 +118,8 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
 
     public List<Single<SubscriptionStatusMessage>> subscribe(SubscribeMessage subscribeMessage) {
         if (Objects.isNull(subscribeMessage.getReqId())) subscribeMessage.setReqId(this.generateRandomReqId());
-        List<SubscribeRequestIdentifier> subscribeRequestIdentifiers = subscribeMessage.toRequestIdentifier();
+
+        List<SubscribeRequestIdentifier> subscribeRequestIdentifiers = subscribeMessage.toRequestIdentifiers();
         List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
         for (SubscribeRequestIdentifier subscribeRequestIdentifier : subscribeRequestIdentifiers) {
             Single<SubscriptionStatusMessage> subscriptionStatusMessageSingle;

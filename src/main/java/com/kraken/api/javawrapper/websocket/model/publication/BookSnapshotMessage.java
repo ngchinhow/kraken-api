@@ -49,7 +49,7 @@ public class BookSnapshotMessage extends BaseBookMessage {
             .askLevels(askLevels)
             .bidLevels(bidLevels)
             .depth(depth)
-            .pair(jsonNodeList.get(3).asText())
+            .pair(jsonNodeList.get(jsonNodeList.size() - 1).asText())
             .build();
     }
 }

@@ -20,7 +20,7 @@ import java.math.BigInteger;
 public class SystemStatusMessage extends AbstractEventMessage {
     @JsonProperty("connectionID")
     private BigInteger connectionId;
-    private WebSocketEnumerations.SYSTEM_STATUS_ENUM status;
+    private WebSocketEnumerations.SYSTEM_STATUS_TYPE status;
     private String version;
 
     {

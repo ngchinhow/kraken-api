@@ -27,7 +27,7 @@ public class SubscribeMessage extends BaseSubscriptionMessage {
         this.setEvent(SUBSCRIBE);
     }
 
-    public List<SubscribeRequestIdentifier> toRequestIdentifier() {
+    public List<SubscribeRequestIdentifier> toRequestIdentifiers() {
         return this.pair.stream()
             .map(p -> new SubscribeRequestIdentifier().toBuilder()
                 .reqId(this.getReqId())

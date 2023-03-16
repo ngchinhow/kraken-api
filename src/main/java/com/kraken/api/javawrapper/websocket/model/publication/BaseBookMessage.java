@@ -21,7 +21,7 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.C
 @AllArgsConstructor
 @NoArgsConstructor
 public class BaseBookMessage extends AbstractPublicationMessage {
-    private Boolean isSnapshot;
+    private boolean isSnapshot;
     private Integer depth;
 
     {
