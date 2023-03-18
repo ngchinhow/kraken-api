@@ -131,7 +131,8 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                   is received, but not for all repeated subscriptions. Since the AbstractPublicationMessages have no
                   information that ties them to a particular SubscriptionStatusMessage, they cannot be directed to a
                   particular ReplaySubject. Therefore, these duplicate subscriptions will be disallowed to be performed
-                  in the first place; they are removed from the SubscribeMessage.
+                  in the first place; they are removed from the SubscribeMessage. User will be unaware of this; they
+                  will receive the SubscriptionStatusMessage received on the first subscription.
                  */
                 log.debug(
                     "The set of inputs " +
