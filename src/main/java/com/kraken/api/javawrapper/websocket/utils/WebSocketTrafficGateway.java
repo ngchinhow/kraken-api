@@ -9,70 +9,73 @@ import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicatio
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
-@NoArgsConstructor
+@Getter
 public class WebSocketTrafficGateway {
 
     public final PublishSubject<SystemStatusMessage> systemStatusMessages = PublishSubject.create();
 
     // This is strictly a Map of RequestIdentifiers to PublishSubjects of subclasses of IResponseMessage
     // But since Java is fussy about types this is the easiest way
-    private final Map<RequestIdentifier, Object> requestsToResponseMap = new HashMap<>();
+    private final Map<RequestIdentifier, Object> requestsToResponsesMap = new HashMap<>();
 
     // This is strictly a Map of SubscribeRequestIdentifiers to PublishSubjects of subclasses of
     // AbstractPublicationMessages. But since Java is fussy about types, this is the easiest way.
-    private final Map<SubscribeRequestIdentifier, Object> subscriptionsToPublicationMap = new HashMap<>();
+    private final Map<SubscribeRequestIdentifier, Object> subscriptionsToPublicationsMap = new HashMap<>();
     private final int PUBLICATION_BUFFER_SIZE = 100;
 
-    public <T extends RequestIdentifier, U extends IResponseMessage> void register(
+    public <T extends RequestIdentifier, U extends IResponseMessage> void registerRequest(
         T requestIdentifier,
         ReplaySubject<U> responseMessageReplaySubject
     ) {
-        requestsToResponseMap.put(requestIdentifier, responseMessageReplaySubject);
+        requestsToResponsesMap.put(requestIdentifier, responseMessageReplaySubject);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends IResponseMessage> void reply(T responseMessage) {
+    public <U extends IResponseMessage> void responseReply(U responseMessage) {
         RequestIdentifier requestIdentifier = responseMessage.toRequestIdentifier();
-        ReplaySubject<T> replaySubject = (ReplaySubject<T>) requestsToResponseMap.get(requestIdentifier);
+        ReplaySubject<U> replaySubject = (ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier);
         replaySubject.onNext(responseMessage);
     }
 
-    public <T extends IResponseMessage> void replyAndRemove(T responseMessage) {
-        this.reply(responseMessage);
+    public <U extends IResponseMessage> void responseReplyAndRemove(U responseMessage) {
+        this.responseReply(responseMessage);
         // For 1-to-1 messages, registration is removed when response is received.
         // Currently, this only applies for Ping/Pong Messages
-        requestsToResponseMap.remove(responseMessage.toRequestIdentifier());
+        requestsToResponsesMap.remove(responseMessage.toRequestIdentifier());
     }
 
-    public boolean isSubscribed(SubscribeRequestIdentifier requestIdentifier) {
-        return subscriptionsToPublicationMap.containsKey(requestIdentifier);
+    public boolean isRequestSubscribed(SubscribeRequestIdentifier requestIdentifier) {
+        return subscriptionsToPublicationsMap.containsKey(requestIdentifier);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends IResponseMessage> Single<T> retrieve(SubscribeRequestIdentifier requestIdentifier) {
-        return ((ReplaySubject<T>) requestsToResponseMap.get(requestIdentifier)).firstOrError();
+    public <U extends IResponseMessage> Single<U> retrieveResponse(SubscribeRequestIdentifier requestIdentifier) {
+        return ((ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier)).firstOrError();
     }
 
-    public ReplaySubject<AbstractPublicationMessage> subscribe(SubscribeRequestIdentifier requestIdentifier) {
+    public ReplaySubject<AbstractPublicationMessage> subscribeRequest(SubscribeRequestIdentifier requestIdentifier) {
         ReplaySubject<AbstractPublicationMessage> publicationMessageReplaySubject = ReplaySubject.createWithSize(PUBLICATION_BUFFER_SIZE);
-        subscriptionsToPublicationMap.put(requestIdentifier, publicationMessageReplaySubject);
+        subscriptionsToPublicationsMap.put(requestIdentifier, publicationMessageReplaySubject);
         return publicationMessageReplaySubject;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends AbstractPublicationMessage> void publish(T publicationMessage) {
-        SubscribeRequestIdentifier subscribeRequestIdentifier = publicationMessage.toSubscribeRequestIdentifier();
-        ((ReplaySubject<T>) subscriptionsToPublicationMap.get(subscribeRequestIdentifier)).onNext(publicationMessage);
+    public ReplaySubject<AbstractPublicationMessage> getSubscriptionSubject(SubscribeRequestIdentifier requestIdentifier) {
+        return (ReplaySubject<AbstractPublicationMessage>) subscriptionsToPublicationsMap.get(requestIdentifier);
     }
 
-    public void unsubscribe(UnsubscribeRequestIdentifier requestIdentifier) {
-        subscriptionsToPublicationMap.remove(requestIdentifier.toSubscribeRequestIdentifier());
+    @SuppressWarnings("unchecked")
+    public <P extends AbstractPublicationMessage> void publishMessage(P publicationMessage) {
+        SubscribeRequestIdentifier subscribeRequestIdentifier = publicationMessage.toSubscribeRequestIdentifier();
+        ((ReplaySubject<P>) subscriptionsToPublicationsMap.get(subscribeRequestIdentifier)).onNext(publicationMessage);
+    }
+
+    public void unsubscribeRequest(UnsubscribeRequestIdentifier requestIdentifier) {
+        subscriptionsToPublicationsMap.remove(requestIdentifier.toSubscribeRequestIdentifier());
     }
 }

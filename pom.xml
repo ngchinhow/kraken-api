@@ -9,7 +9,7 @@
 	<description>Java wrapper for Kraken's HTTP and Websocket APIs.</description>
 	<properties>
 		<java.version>19</java.version>
-		<openfeign.version>12.1</openfeign.version>
+		<openfeign.version>12.2</openfeign.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>

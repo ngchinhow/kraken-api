@@ -18,6 +18,7 @@ import com.kraken.api.javawrapper.websocket.utils.RandomUtils;
 import com.kraken.api.javawrapper.websocket.utils.WebSocketTrafficGateway;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -31,6 +32,7 @@ import java.util.Objects;
 import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_REQ_ID_MAX_LIMIT;
 
 @Slf4j
+@Getter
 public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final WebSocketTrafficGateway webSocketTrafficGateway = new WebSocketTrafficGateway();
@@ -62,9 +64,9 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         }
         if (isEventMessage) {
             if (abstractEventMessage instanceof PongMessage pongMessage) {
-                webSocketTrafficGateway.replyAndRemove(pongMessage);
+                webSocketTrafficGateway.responseReplyAndRemove(pongMessage);
             } else if (abstractEventMessage instanceof SubscriptionStatusMessage subscriptionStatusMessage) {
-                webSocketTrafficGateway.reply(subscriptionStatusMessage);
+                webSocketTrafficGateway.responseReply(subscriptionStatusMessage);
             } else if (abstractEventMessage instanceof SystemStatusMessage systemStatusMessage) {
                 webSocketTrafficGateway.getSystemStatusMessages().onNext(systemStatusMessage);
             }
@@ -74,7 +76,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         } else {
             try {
                 publicationMessage = objectMapper.readValue(s, AbstractPublicationMessage.class);
-                webSocketTrafficGateway.publish(publicationMessage);
+                webSocketTrafficGateway.publishMessage(publicationMessage);
             } catch (JsonProcessingException ex) {
                 throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
             }
@@ -97,15 +99,13 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     }
 
     public Single<PongMessage> ping() {
-        return ping(PingMessage.builder()
-            .reqId(this.generateRandomReqId())
-            .build());
+        return ping(new PingMessage());
     }
 
     public Single<PongMessage> ping(PingMessage pingMessage) {
         if (Objects.isNull(pingMessage.getReqId())) pingMessage.setReqId(this.generateRandomReqId());
         ReplaySubject<PongMessage> pongMessageReplaySubject = ReplaySubject.create();
-        webSocketTrafficGateway.register(pingMessage.toRequestIdentifier(), pongMessageReplaySubject);
+        webSocketTrafficGateway.registerRequest(pingMessage.toRequestIdentifier(), pongMessageReplaySubject);
         String pingAsJson;
         try {
             pingAsJson = objectMapper.writeValueAsString(pingMessage);
@@ -122,19 +122,49 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         List<SubscribeRequestIdentifier> subscribeRequestIdentifiers = subscribeMessage.toRequestIdentifiers();
         List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
         for (SubscribeRequestIdentifier subscribeRequestIdentifier : subscribeRequestIdentifiers) {
-            Single<SubscriptionStatusMessage> subscriptionStatusMessageSingle;
-            if (!webSocketTrafficGateway.isSubscribed(subscribeRequestIdentifier)) {
+            ReplaySubject<AbstractPublicationMessage> publicationMessageReplaySubject;
+            if (webSocketTrafficGateway.isRequestSubscribed(subscribeRequestIdentifier)) {
+                /*
+                  CRITICAL:
+                  Within the same connection, subscribing using the same payload is allowed, and a
+                  SubscriptionStatusMessage is returned. When subscribing to the BOOK channel, a BookSnapshotMessage
+                  is received, but not for all repeated subscriptions. Since the AbstractPublicationMessages have no
+                  information that ties them to a particular SubscriptionStatusMessage, they cannot be directed to a
+                  particular ReplaySubject. Therefore, these duplicate subscriptions will be disallowed to be performed
+                  in the first place; they are removed from the SubscribeMessage.
+                 */
+                log.debug(
+                    "The set of inputs " +
+                        "pair: {}, " +
+                        "channel: {}, " +
+                        "depth: {}, " +
+                        "interval: {}, " +
+                        "ratecounter: {}, " +
+                        "snapshot: {} and " +
+                        "consolidate_taker: {} " +
+                        "has already been subscribed to. Removing pair from SubscribeMessage",
+                    subscribeRequestIdentifier.getPair(),
+                    subscribeMessage.getSubscription().getName().getVChannel(),
+                    subscribeMessage.getSubscription().getDepth(),
+                    subscribeMessage.getSubscription().getInterval(),
+                    subscribeMessage.getSubscription().getRateCounter(),
+                    subscribeMessage.getSubscription().getSnapshot(),
+                    subscribeMessage.getSubscription().getConsolidateTaker()
+                );
+                List<String> removedSubscribed = new ArrayList<>(subscribeMessage.getPairs());
+                removedSubscribed.remove(subscribeRequestIdentifier.getPair());
+                subscribeMessage.setPairs(removedSubscribed);
+                publicationMessageReplaySubject = webSocketTrafficGateway.getSubscriptionSubject(subscribeRequestIdentifier);
+            } else {
                 ReplaySubject<SubscriptionStatusMessage> subscriptionStatusMessageReplaySubject = ReplaySubject.create();
-                webSocketTrafficGateway.register(subscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
-                ReplaySubject<AbstractPublicationMessage> publicationMessageReplaySubject = webSocketTrafficGateway
-                    .subscribe(subscribeRequestIdentifier);
-                subscriptionStatusMessageSingle = webSocketTrafficGateway.retrieve(subscribeRequestIdentifier);
-                subscriptionStatusMessageSingle = subscriptionStatusMessageSingle.map(e -> {
-                    e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
-                    return e;
-                });
-            } else
-                subscriptionStatusMessageSingle = webSocketTrafficGateway.retrieve(subscribeRequestIdentifier);
+                webSocketTrafficGateway.registerRequest(subscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
+                publicationMessageReplaySubject = webSocketTrafficGateway.subscribeRequest(subscribeRequestIdentifier);
+            }
+            Single<SubscriptionStatusMessage> subscriptionStatusMessageSingle = webSocketTrafficGateway.retrieveResponse(subscribeRequestIdentifier);
+            subscriptionStatusMessageSingle = subscriptionStatusMessageSingle.map(e -> {
+                e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
+                return e;
+            });
             list.add(subscriptionStatusMessageSingle);
         }
         String subscribeMessageAsJson;

@@ -1,5 +1,6 @@
 package com.kraken.api.javawrapper.websocket.model.event.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kraken.api.javawrapper.websocket.dto.request.UnsubscribeRequestIdentifier;
 import com.kraken.api.javawrapper.websocket.model.event.BaseSubscriptionMessage;
 import lombok.AllArgsConstructor;
@@ -21,14 +22,15 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 @AllArgsConstructor
 @NoArgsConstructor
 public class UnsubscribeMessage extends BaseSubscriptionMessage {
-    private List<String> pair;
+    @JsonProperty("pair")
+    private List<String> pairs;
 
     {
         this.setEvent(UNSUBSCRIBE);
     }
 
     public List<UnsubscribeRequestIdentifier> toRequestIdentifier() {
-        return this.pair.stream()
+        return this.pairs.stream()
             .map(p -> UnsubscribeRequestIdentifier.builder()
                 .reqId(this.getReqId())
                 .channel(this.getSubscription().getName())

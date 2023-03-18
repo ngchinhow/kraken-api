@@ -1,5 +1,6 @@
 package com.kraken.api.javawrapper.websocket.model.event.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kraken.api.javawrapper.websocket.dto.request.SubscribeRequestIdentifier;
 import com.kraken.api.javawrapper.websocket.model.event.BaseSubscriptionMessage;
 import lombok.AllArgsConstructor;
@@ -21,14 +22,15 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 @AllArgsConstructor
 @NoArgsConstructor
 public class SubscribeMessage extends BaseSubscriptionMessage {
-    private List<String> pair;
+    @JsonProperty("pair")
+    private List<String> pairs;
 
     {
         this.setEvent(SUBSCRIBE);
     }
 
     public List<SubscribeRequestIdentifier> toRequestIdentifiers() {
-        return this.pair.stream()
+        return this.pairs.stream()
             .map(p -> new SubscribeRequestIdentifier().toBuilder()
                 .reqId(this.getReqId())
                 .channel(this.getSubscription().getName())

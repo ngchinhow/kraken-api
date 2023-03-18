@@ -22,6 +22,7 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     property = EVENT,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
     visible = true
 )
 @JsonSubTypes({
