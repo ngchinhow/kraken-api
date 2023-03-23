@@ -22,4 +22,8 @@ public abstract class AbstractPublicationMessage {
             .pair(this.pair)
             .build();
     }
+
+    @SuppressWarnings("unused")
+    public static abstract class AbstractPublicationMessageBuilder<C, B> {
+    }
 }

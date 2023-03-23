@@ -82,10 +82,8 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                 throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
             }
         }
-        if (Objects.nonNull(abstractEventMessage))
-            log.trace("Event message class: {}", abstractEventMessage);
-        if (Objects.nonNull(publicationMessage))
-            log.trace("Publication message class: {}", publicationMessage);
+        if (Objects.nonNull(abstractEventMessage)) log.trace("Event message class: {}", abstractEventMessage);
+        if (Objects.nonNull(publicationMessage)) log.trace("Publication message class: {}", publicationMessage);
     }
 
     @Override
@@ -117,6 +115,46 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         return pongMessageReplaySubject.firstOrError();
     }
 
+    /**
+     * Subscription to a public or private channel via the Subscribe payload.
+     * <p>
+     * Behaviour caveats:
+     * <ol>
+     *   <li>
+     *     A RxJava PublishSubject is used for the messages of the subscription. This is due to its behaviour: only
+     *     messages after the retrieval request is sent, i.e. "get" related methods, are returned to the user. This
+     *     ensure the user always has the latest information of the subscribed channel.
+     *   </li>
+     *   <li>
+     *     If the same SubscribeMessage is sent twice or more to the same connection/client, the second and every
+     *     subsequent one is ignored **for the same input parameters**. This is true for payloads whereby the difference
+     *     is only the reqId as well. This is because of the ambiguous behaviour of messages returned from their
+     *     websockets:
+     *     <ul>
+     *       <li>
+     *         Subscriptions on the same parameters is allowed. Messages may or may not be repetitively pushed into the
+     *         same websocket.
+     *       </li>
+     *       <li>
+     *         A BookSnapshotMessage is sent on some but not all successful subscription to the BOOK channel, even for
+     *         repeated subscriptions.
+     *       </li>
+     *     </ul>
+     *     While it is not inherently wrong to allow multiple of the same subscription, the lack of information on these
+     *     messages mean they cannot be correlated back to the original SubscriptionStatusMessage, and therefore its
+     *     PublishSubject.
+     * <p>
+     *     Therefore, any repeated subscription payloads will be ignored; specifically, that pair will be removed from
+     *     the payload. A SubscriptionStatusMessage will still be returned to the user for that pair, but it will be
+     *     for when the first subscription happened.
+     *   </li>
+     * </ol>
+     *
+     * @param subscribeMessage The subscription payload from the user
+     * @return List of Single of SubscriptionStatusMessages
+     * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
+     * @see <a href="https://docs.kraken.com/websockets/#message-subscribe">Kraken Subscribe</a>
+     */
     public List<Single<SubscriptionStatusMessage>> subscribe(SubscribeMessage subscribeMessage) {
         if (Objects.isNull(subscribeMessage.getReqId())) subscribeMessage.setReqId(this.generateRandomReqId());
 
@@ -126,26 +164,16 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         for (SubscribeRequestIdentifier subscribeRequestIdentifier : subscribeRequestIdentifiers) {
             PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject;
             if (webSocketTrafficGateway.isRequestSubscribed(subscribeRequestIdentifier)) {
-                /*
-                  CRITICAL:
-                  Within the same connection, subscribing using the same payload is allowed, and a
-                  SubscriptionStatusMessage is returned. When subscribing to the BOOK channel, a BookSnapshotMessage
-                  is received, but not for all repeated subscriptions. Since the AbstractPublicationMessages have no
-                  information that ties them to a particular SubscriptionStatusMessage, they cannot be directed to a
-                  particular ReplaySubject. Therefore, these duplicate subscriptions will be disallowed to be performed
-                  in the first place; they are removed from the SubscribeMessage. User will be unaware of this; they
-                  will receive the SubscriptionStatusMessage received on the first subscription.
-                 */
                 log.debug(
                     "The set of inputs " +
-                        "pair: {}, " +
-                        "channel: {}, " +
-                        "depth: {}, " +
-                        "interval: {}, " +
-                        "ratecounter: {}, " +
-                        "snapshot: {} and " +
-                        "consolidate_taker: {} " +
-                        "has already been subscribed to. Removing pair from SubscribeMessage",
+                    "pair: {}, " +
+                    "channel: {}, " +
+                    "depth: {}, " +
+                    "interval: {}, " +
+                    "ratecounter: {}, " +
+                    "snapshot: {} and " +
+                    "consolidate_taker: {} " +
+                    "has already been subscribed to. Removing pair from SubscribeMessage",
                     subscribeRequestIdentifier.getPair(),
                     subscribeMessage.getSubscription().getName().getVChannel(),
                     subscribeMessage.getSubscription().getDepth(),
