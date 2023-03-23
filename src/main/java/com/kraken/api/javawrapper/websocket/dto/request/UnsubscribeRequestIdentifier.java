@@ -19,6 +19,7 @@ public class UnsubscribeRequestIdentifier extends BaseSubscriptionRequestIdentif
 
     public SubscribeRequestIdentifier toSubscribeRequestIdentifier() {
         return SubscribeRequestIdentifier.builder()
+            .reqId(this.getReqId())
             .channel(this.getChannel())
             .pair(this.getPair())
             .depth(this.getDepth())

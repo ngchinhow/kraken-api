@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.kraken.api.javawrapper.websocket.dto.request.SubscribeRequestIdentifier;
+import com.kraken.api.javawrapper.websocket.dto.request.UnsubscribeRequestIdentifier;
 import com.kraken.api.javawrapper.websocket.model.event.AbstractEventMessage;
 import com.kraken.api.javawrapper.websocket.model.event.SystemStatusMessage;
 import com.kraken.api.javawrapper.websocket.model.event.request.PingMessage;
@@ -189,7 +190,8 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                 webSocketTrafficGateway.registerRequest(subscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
                 publicationMessagePublishSubject = webSocketTrafficGateway.subscribeRequest(subscribeRequestIdentifier);
             }
-            Single<SubscriptionStatusMessage> subscriptionStatusMessageSingle = webSocketTrafficGateway.retrieveResponse(subscribeRequestIdentifier);
+            Single<SubscriptionStatusMessage> subscriptionStatusMessageSingle = webSocketTrafficGateway
+                .retrieveResponse(subscribeRequestIdentifier);
             subscriptionStatusMessageSingle = subscriptionStatusMessageSingle.map(e -> {
                 e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
                 return e;
@@ -208,9 +210,26 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         return list;
     }
 
-    public SubscriptionStatusMessage unsubscribe(UnsubscribeMessage unsubscribeMessage) {
+    public List<Single<SubscriptionStatusMessage>> unsubscribe(UnsubscribeMessage unsubscribeMessage) {
+        if (Objects.isNull(unsubscribeMessage.getReqId())) unsubscribeMessage.setReqId(this.generateRandomReqId());
 
-        return null;
+        List<UnsubscribeRequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeMessage.toRequestIdentifiers();
+        List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
+//        List<String> subscribedToBeRemoved = new ArrayList<>(unsubscribeMessage.getPairs());
+        for (UnsubscribeRequestIdentifier unsubscribeRequestIdentifier : unsubscribeRequestIdentifiers) {
+            ReplaySubject<SubscriptionStatusMessage> subscriptionStatusMessageReplaySubject = ReplaySubject.create();
+            webSocketTrafficGateway.registerRequest(unsubscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
+            list.add(webSocketTrafficGateway.retrieveResponse(unsubscribeRequestIdentifier));
+        }
+
+        String unsubscribeMessageAsJson;
+        try {
+            unsubscribeMessageAsJson = objectMapper.writeValueAsString(unsubscribeMessage);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        this.send(unsubscribeMessageAsJson);
+        return list;
     }
 
     public void addOrder() {

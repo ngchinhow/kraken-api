@@ -22,6 +22,10 @@ import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.E
 @AllArgsConstructor
 @NoArgsConstructor
 public class UnsubscribeMessage extends BaseSubscriptionMessage {
+
+    @JsonProperty("channelID")
+    private int channelId;
+
     @JsonProperty("pair")
     private List<String> pairs;
 
@@ -29,7 +33,7 @@ public class UnsubscribeMessage extends BaseSubscriptionMessage {
         this.setEvent(UNSUBSCRIBE);
     }
 
-    public List<UnsubscribeRequestIdentifier> toRequestIdentifier() {
+    public List<UnsubscribeRequestIdentifier> toRequestIdentifiers() {
         return this.pairs.stream()
             .map(p -> UnsubscribeRequestIdentifier.builder()
                 .reqId(this.getReqId())

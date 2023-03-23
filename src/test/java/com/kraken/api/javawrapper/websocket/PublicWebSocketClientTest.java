@@ -6,6 +6,7 @@ import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmbeddedObject;
 import com.kraken.api.javawrapper.websocket.model.event.request.PingMessage;
 import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
+import com.kraken.api.javawrapper.websocket.model.event.request.UnsubscribeMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.PongMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
 import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
@@ -114,6 +115,19 @@ public class PublicWebSocketClientTest {
                 Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
             });
         }
+    }
+
+    @Test
+    public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSuccess() {
+        SubscribeMessage subscribeMessage = buildStandardSubscribeMessage();
+        publicWebSocketClient.subscribe(subscribeMessage).stream().map(Single::blockingGet).forEach(System.out::println);
+        UnsubscribeMessage unsubscribeMessage = UnsubscribeMessage.builder()
+            .pairs(subscribeMessage.getPairs())
+            .reqId(subscribeMessage.getReqId())
+            .subscription(subscribeMessage.getSubscription())
+            .build();
+        publicWebSocketClient.unsubscribe(unsubscribeMessage);
+        while (true) {}
 
 //        this.send(subscribeAsJson);
 //        UnsubscribeMessage unsubscribeMessage = UnsubscribeMessage.builder()

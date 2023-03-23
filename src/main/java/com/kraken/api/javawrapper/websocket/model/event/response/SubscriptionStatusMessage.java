@@ -41,7 +41,7 @@ public class SubscriptionStatusMessage extends BaseSubscriptionMessage implement
         String statusValue = this.status.getVSubscriptionStatus();
         // convert from "subscribed" or "unsubscribed" to "subscribe" or "unsubscribe"
         String requestEvent = statusValue.substring(0, statusValue.length() - 1);
-        WebSocketEnumerations.CHANNEL channel = WebSocketEnumerations.CHANNEL.getEChannel(this.channelName.split("-")[0]);
+        WebSocketEnumerations.CHANNEL channel = this.getSubscription().getName();
         switch (requestEvent) {
             case SUBSCRIBE -> {
                 return SubscribeRequestIdentifier.builder()

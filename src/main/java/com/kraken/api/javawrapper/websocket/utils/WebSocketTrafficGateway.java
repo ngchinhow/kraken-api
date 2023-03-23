@@ -60,7 +60,7 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <U extends IResponseMessage> Single<U> retrieveResponse(SubscribeRequestIdentifier requestIdentifier) {
+    public <U extends IResponseMessage> Single<U> retrieveResponse(RequestIdentifier requestIdentifier) {
         return ((ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier)).firstOrError();
     }
 
