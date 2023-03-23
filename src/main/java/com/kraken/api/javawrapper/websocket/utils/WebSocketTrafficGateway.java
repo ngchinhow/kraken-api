@@ -26,13 +26,16 @@ public class WebSocketTrafficGateway {
     // This is strictly a Map of SubscribeRequestIdentifiers to PublishSubjects of subclasses of
     // AbstractPublicationMessages. But since Java is fussy about types, this is the easiest way.
     private final Map<SubscribeRequestIdentifier, Object> subscriptionsToPublicationsMap = new HashMap<>();
-    private final int PUBLICATION_BUFFER_SIZE = 100;
 
     public <T extends RequestIdentifier, U extends IResponseMessage> void registerRequest(
         T requestIdentifier,
         ReplaySubject<U> responseMessageReplaySubject
     ) {
         requestsToResponsesMap.put(requestIdentifier, responseMessageReplaySubject);
+    }
+
+    public void responseAnnounce(SystemStatusMessage systemStatusMessage) {
+        systemStatusMessages.onNext(systemStatusMessage);
     }
 
     @SuppressWarnings("unchecked")
@@ -42,11 +45,14 @@ public class WebSocketTrafficGateway {
         replaySubject.onNext(responseMessage);
     }
 
+    @SuppressWarnings("unchecked")
     public <U extends IResponseMessage> void responseReplyAndRemove(U responseMessage) {
         this.responseReply(responseMessage);
         // For 1-to-1 messages, registration is removed when response is received.
         // Currently, this only applies for Ping/Pong Messages
-        requestsToResponsesMap.remove(responseMessage.toRequestIdentifier());
+        ReplaySubject<U> responseMessageSubject = (ReplaySubject<U>) requestsToResponsesMap
+            .remove(responseMessage.toRequestIdentifier());
+        responseMessageSubject.onComplete();
     }
 
     public boolean isRequestSubscribed(SubscribeRequestIdentifier requestIdentifier) {
@@ -58,24 +64,27 @@ public class WebSocketTrafficGateway {
         return ((ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier)).firstOrError();
     }
 
-    public ReplaySubject<AbstractPublicationMessage> subscribeRequest(SubscribeRequestIdentifier requestIdentifier) {
-        ReplaySubject<AbstractPublicationMessage> publicationMessageReplaySubject = ReplaySubject.createWithSize(PUBLICATION_BUFFER_SIZE);
+    public PublishSubject<AbstractPublicationMessage> subscribeRequest(SubscribeRequestIdentifier requestIdentifier) {
+        PublishSubject<AbstractPublicationMessage> publicationMessageReplaySubject = PublishSubject.create();
         subscriptionsToPublicationsMap.put(requestIdentifier, publicationMessageReplaySubject);
         return publicationMessageReplaySubject;
     }
 
     @SuppressWarnings("unchecked")
-    public ReplaySubject<AbstractPublicationMessage> getSubscriptionSubject(SubscribeRequestIdentifier requestIdentifier) {
-        return (ReplaySubject<AbstractPublicationMessage>) subscriptionsToPublicationsMap.get(requestIdentifier);
+    public PublishSubject<AbstractPublicationMessage> getSubscriptionSubject(SubscribeRequestIdentifier requestIdentifier) {
+        return (PublishSubject<AbstractPublicationMessage>) subscriptionsToPublicationsMap.get(requestIdentifier);
     }
 
     @SuppressWarnings("unchecked")
     public <P extends AbstractPublicationMessage> void publishMessage(P publicationMessage) {
         SubscribeRequestIdentifier subscribeRequestIdentifier = publicationMessage.toSubscribeRequestIdentifier();
-        ((ReplaySubject<P>) subscriptionsToPublicationsMap.get(subscribeRequestIdentifier)).onNext(publicationMessage);
+        ((PublishSubject<P>) subscriptionsToPublicationsMap.get(subscribeRequestIdentifier)).onNext(publicationMessage);
     }
 
-    public void unsubscribeRequest(UnsubscribeRequestIdentifier requestIdentifier) {
-        subscriptionsToPublicationsMap.remove(requestIdentifier.toSubscribeRequestIdentifier());
+    @SuppressWarnings("unchecked")
+    public <P extends AbstractPublicationMessage> void unsubscribeRequest(UnsubscribeRequestIdentifier requestIdentifier) {
+        PublishSubject<P> abstractPublishMessageSubject = (PublishSubject<P>) subscriptionsToPublicationsMap
+            .remove(requestIdentifier.toSubscribeRequestIdentifier());
+        abstractPublishMessageSubject.onComplete();
     }
 }

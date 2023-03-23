@@ -7,7 +7,7 @@ import com.kraken.api.javawrapper.websocket.dto.request.UnsubscribeRequestIdenti
 import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
 import com.kraken.api.javawrapper.websocket.model.event.BaseSubscriptionMessage;
 import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
-import io.reactivex.rxjava3.subjects.ReplaySubject;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,7 +30,7 @@ public class SubscriptionStatusMessage extends BaseSubscriptionMessage implement
     private String pair;
     private WebSocketEnumerations.SUBSCRIPTION_STATUS_TYPE status;
     private String errorMessage;
-    private ReplaySubject<AbstractPublicationMessage> publicationMessageReplaySubject;
+    private PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject;
 
     {
         this.setEvent(SUBSCRIPTION_STATUS);

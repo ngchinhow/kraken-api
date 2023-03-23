@@ -17,6 +17,7 @@ import com.kraken.api.javawrapper.websocket.utils.PublicationMessageObjectDeseri
 import com.kraken.api.javawrapper.websocket.utils.RandomUtils;
 import com.kraken.api.javawrapper.websocket.utils.WebSocketTrafficGateway;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             } else if (abstractEventMessage instanceof SubscriptionStatusMessage subscriptionStatusMessage) {
                 webSocketTrafficGateway.responseReply(subscriptionStatusMessage);
             } else if (abstractEventMessage instanceof SystemStatusMessage systemStatusMessage) {
-                webSocketTrafficGateway.getSystemStatusMessages().onNext(systemStatusMessage);
+                webSocketTrafficGateway.responseAnnounce(systemStatusMessage);
             }
             //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of HeartbeatMessages
             // to extend max time.
@@ -121,8 +122,9 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
 
         List<SubscribeRequestIdentifier> subscribeRequestIdentifiers = subscribeMessage.toRequestIdentifiers();
         List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
+        List<String> subscribedToBeRemoved = new ArrayList<>(subscribeMessage.getPairs());
         for (SubscribeRequestIdentifier subscribeRequestIdentifier : subscribeRequestIdentifiers) {
-            ReplaySubject<AbstractPublicationMessage> publicationMessageReplaySubject;
+            PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject;
             if (webSocketTrafficGateway.isRequestSubscribed(subscribeRequestIdentifier)) {
                 /*
                   CRITICAL:
@@ -152,22 +154,21 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                     subscribeMessage.getSubscription().getSnapshot(),
                     subscribeMessage.getSubscription().getConsolidateTaker()
                 );
-                List<String> removedSubscribed = new ArrayList<>(subscribeMessage.getPairs());
-                removedSubscribed.remove(subscribeRequestIdentifier.getPair());
-                subscribeMessage.setPairs(removedSubscribed);
-                publicationMessageReplaySubject = webSocketTrafficGateway.getSubscriptionSubject(subscribeRequestIdentifier);
+                subscribedToBeRemoved.remove(subscribeRequestIdentifier.getPair());
+                publicationMessagePublishSubject = webSocketTrafficGateway.getSubscriptionSubject(subscribeRequestIdentifier);
             } else {
                 ReplaySubject<SubscriptionStatusMessage> subscriptionStatusMessageReplaySubject = ReplaySubject.create();
                 webSocketTrafficGateway.registerRequest(subscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
-                publicationMessageReplaySubject = webSocketTrafficGateway.subscribeRequest(subscribeRequestIdentifier);
+                publicationMessagePublishSubject = webSocketTrafficGateway.subscribeRequest(subscribeRequestIdentifier);
             }
             Single<SubscriptionStatusMessage> subscriptionStatusMessageSingle = webSocketTrafficGateway.retrieveResponse(subscribeRequestIdentifier);
             subscriptionStatusMessageSingle = subscriptionStatusMessageSingle.map(e -> {
-                e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
+                e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
                 return e;
             });
             list.add(subscriptionStatusMessageSingle);
         }
+        subscribeMessage.setPairs(subscribedToBeRemoved);
         String subscribeMessageAsJson;
         try {
             subscribeMessageAsJson = objectMapper.writeValueAsString(subscribeMessage);

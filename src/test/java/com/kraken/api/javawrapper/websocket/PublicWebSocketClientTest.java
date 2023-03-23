@@ -10,16 +10,13 @@ import com.kraken.api.javawrapper.websocket.model.event.response.PongMessage;
 import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
 import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
 import com.kraken.api.javawrapper.websocket.model.publication.BaseBookMessage;
-import com.kraken.api.javawrapper.websocket.model.publication.BookSnapshotMessage;
-import com.kraken.api.javawrapper.websocket.model.publication.BookUpdateMessage;
 import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.subjects.ReplaySubject;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.CHANNEL.BOOK;
@@ -50,6 +47,8 @@ public class PublicWebSocketClientTest {
 
     @Test
     public void givenPublicWebSocketClient_whenSubscribe_thenSuccess() {
+        long testSize = 10L;
+        int expectedDepth = 10;
         SubscribeMessage subscribeMessage = buildStandardSubscribeMessage();
         List<Single<SubscriptionStatusMessage>> list = publicWebSocketClient.subscribe(subscribeMessage);
         Assertions.assertEquals(
@@ -66,21 +65,15 @@ public class PublicWebSocketClientTest {
                     WebSocketEnumerations.SUBSCRIPTION_STATUS_TYPE.SUBSCRIBED,
                     message.getStatus()
                 );
-                Assertions.assertEquals(10, message.getSubscription().getDepth());
+                Assertions.assertEquals(expectedDepth, message.getSubscription().getDepth());
                 String pair = message.getPair();
-                ReplaySubject<AbstractPublicationMessage> replaySubject = message.getPublicationMessageReplaySubject();
-                Assertions.assertNotNull(replaySubject);
-                Iterator<AbstractPublicationMessage> publicationMessageIterator = replaySubject.blockingIterable().iterator();
-                BaseBookMessage baseBookMessage = (BaseBookMessage) publicationMessageIterator.next();
-                Assertions.assertTrue(baseBookMessage instanceof BookSnapshotMessage);
-                Assertions.assertTrue(baseBookMessage.isSnapshot());
-                Assertions.assertEquals(pair, baseBookMessage.getPair());
-                Assertions.assertEquals(10, baseBookMessage.getDepth());
-                baseBookMessage = (BaseBookMessage) publicationMessageIterator.next();
-                Assertions.assertTrue(baseBookMessage instanceof BookUpdateMessage);
-                Assertions.assertFalse(baseBookMessage.isSnapshot());
-                Assertions.assertEquals(pair, baseBookMessage.getPair());
-                Assertions.assertEquals(10, baseBookMessage.getDepth());
+                PublishSubject<AbstractPublicationMessage> publishSubject = message.getPublicationMessagePublishSubject();
+                Assertions.assertNotNull(publishSubject);
+                publishSubject.blockingStream().limit(testSize).forEach(m -> {
+                    BaseBookMessage baseBookMessage = (BaseBookMessage) m;
+                    Assertions.assertEquals(pair, baseBookMessage.getPair());
+                    Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
+                });
             });
 
         // Test subscribing using the same payload again
@@ -94,6 +87,12 @@ public class PublicWebSocketClientTest {
             SubscriptionStatusMessage original = list.get(i).blockingGet();
             SubscriptionStatusMessage duplicate = listResubscribe.get(i).blockingGet();
             Assertions.assertEquals(original, duplicate);
+            String pair = duplicate.getPair();
+            duplicate.getPublicationMessagePublishSubject().blockingStream().limit(testSize).forEach(m -> {
+                BaseBookMessage baseBookMessage = (BaseBookMessage) m;
+                Assertions.assertEquals(pair, baseBookMessage.getPair());
+                Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
+            });
         }
 
         // Test changing reqId will not affect the SubscriptionStatusMessage
@@ -108,6 +107,12 @@ public class PublicWebSocketClientTest {
             SubscriptionStatusMessage original = list.get(i).blockingGet();
             SubscriptionStatusMessage duplicate = listNewReqId.get(i).blockingGet();
             Assertions.assertEquals(original, duplicate);
+            String pair = duplicate.getPair();
+            duplicate.getPublicationMessagePublishSubject().blockingStream().limit(testSize).forEach(m -> {
+                BaseBookMessage baseBookMessage = (BaseBookMessage) m;
+                Assertions.assertEquals(pair, baseBookMessage.getPair());
+                Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
+            });
         }
 
 //        this.send(subscribeAsJson);
