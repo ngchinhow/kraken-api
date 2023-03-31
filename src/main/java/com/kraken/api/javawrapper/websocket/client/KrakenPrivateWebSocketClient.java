@@ -1,16 +1,7 @@
 package com.kraken.api.javawrapper.websocket.client;
 
 import com.kraken.api.javawrapper.rest.client.WebSocketsAuthenticationClient;
-import com.kraken.api.javawrapper.rest.dto.KrakenResponse;
-import com.kraken.api.javawrapper.rest.dto.websocketsauthentication.WebSocketsTokenResult;
-import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
-import com.kraken.api.javawrapper.websocket.model.event.request.UnsubscribeMessage;
-import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
-import io.reactivex.rxjava3.core.Single;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-import java.util.Objects;
 
 import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_WEBSOCKET_API_PRIVATE_URL;
 
@@ -23,43 +14,41 @@ public class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClient {
         this.authenticationClient = authenticationClient;
     }
 
-    @Override
-    public List<Single<SubscriptionStatusMessage>> subscribe(SubscribeMessage subscribeMessage) {
-        KrakenResponse<WebSocketsTokenResult> tokenResponse = authenticationClient.getWebsocketsToken();
-        if (Objects.nonNull(tokenResponse.getResult()))
-            subscribeMessage.setSubscription(
-                subscribeMessage.getSubscription()
-                    .toBuilder()
-                    .token(tokenResponse.getResult().getToken())
-                    .build()
-            );
-        else if (Objects.nonNull(tokenResponse.getError())) {
-            String message = "Unable to retrieve token for private WebSockets authentication. Errors are: \n" +
-                String.join("\n", tokenResponse.getError());
-            log.error(message);
-            throw new RuntimeException(message);
-        }
-        return super.subscribe(subscribeMessage);
-    }
+//    @Override
+//    public List<Single<SubscriptionStatusMessage>> subscribe(SubscribeRequestMessage subscribeRequestMessage) {
+//        KrakenResponse<WebSocketsTokenResult> tokenResponse = authenticationClient.getWebsocketsToken();
+//        if (Objects.nonNull(tokenResponse.getResult()))
+//            subscribeRequestMessage.setSubscription(
+//                subscribeRequestMessage.getSubscription()
+//                    .toBuilder()
+//                    .token(tokenResponse.getResult().getToken())
+//                    .build()
+//            );
+//        else if (Objects.nonNull(tokenResponse.getError())) {
+//            String message = "Unable to retrieve token for private WebSockets authentication. Errors are: \n" +
+//                String.join("\n", tokenResponse.getError());
+//            log.error(message);
+//            throw new RuntimeException(message);
+//        }
+//        return super.subscribe(subscribeRequestMessage);
+//    }
 
-    @Override
-    public List<Single<SubscriptionStatusMessage>> unsubscribe(UnsubscribeMessage unsubscribeMessage) {
-        KrakenResponse<WebSocketsTokenResult> tokenResponse = authenticationClient.getWebsocketsToken();
-        if (Objects.nonNull(tokenResponse.getResult()))
-            unsubscribeMessage.setSubscription(
-                unsubscribeMessage.getSubscription()
-                    .toBuilder()
-                    .token(tokenResponse.getResult().getToken())
-                    .build()
-            );
-        else if (Objects.nonNull(tokenResponse.getError())) {
-            String message = "Unable to retrieve token for private WebSockets authentication. Errors are: \n" +
-                String.join("\n", tokenResponse.getError());
-            log.error(message);
-            throw new RuntimeException(message);
-        }
-        return super.unsubscribe(unsubscribeMessage);
-    }
-
-
+//    @Override
+//    public List<Single<SubscriptionStatusMessage>> unsubscribe(UnsubscribeRequestMessage unsubscribeRequestMessage) {
+//        KrakenResponse<WebSocketsTokenResult> tokenResponse = authenticationClient.getWebsocketsToken();
+//        if (Objects.nonNull(tokenResponse.getResult()))
+//            unsubscribeRequestMessage.setSubscription(
+//                unsubscribeRequestMessage.getSubscription()
+//                    .toBuilder()
+//                    .token(tokenResponse.getResult().getToken())
+//                    .build()
+//            );
+//        else if (Objects.nonNull(tokenResponse.getError())) {
+//            String message = "Unable to retrieve token for private WebSockets authentication. Errors are: \n" +
+//                String.join("\n", tokenResponse.getError());
+//            log.error(message);
+//            throw new RuntimeException(message);
+//        }
+//        return super.unsubscribe(unsubscribeRequestMessage);
+//    }
 }

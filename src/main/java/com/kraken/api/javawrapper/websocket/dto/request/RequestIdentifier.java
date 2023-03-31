@@ -1,17 +1,17 @@
 package com.kraken.api.javawrapper.websocket.dto.request;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.math.BigInteger;
 
 @Data
-@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode
+@Builder(toBuilder = true, builderClassName = "Builder")
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class RequestIdentifier {
-    @EqualsAndHashCode.Exclude
-    private BigInteger reqId;
-
-    private String event;
+public class RequestIdentifier {
+    private String method;
+    private String channel;
+    private String symbol;
+    private BigInteger requestId;
 }

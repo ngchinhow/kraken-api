@@ -11,8 +11,8 @@ public class KrakenProperties {
 
     static {
         try {
-            KRAKEN_WEBSOCKET_API_PUBLIC_URL = new URI("wss://ws.kraken.com");
-            KRAKEN_WEBSOCKET_API_PRIVATE_URL = new URI("wss://ws-auth.kraken.com");
+            KRAKEN_WEBSOCKET_API_PUBLIC_URL = new URI("wss://ws.kraken.com/v2");
+            KRAKEN_WEBSOCKET_API_PRIVATE_URL = new URI("wss://ws-auth.kraken.com/v2");
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

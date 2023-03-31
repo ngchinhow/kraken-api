@@ -3,18 +3,16 @@ package com.kraken.api.javawrapper.websocket.client;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.kraken.api.javawrapper.websocket.dto.request.SubscribeRequestIdentifier;
-import com.kraken.api.javawrapper.websocket.dto.request.UnsubscribeRequestIdentifier;
-import com.kraken.api.javawrapper.websocket.model.event.AbstractEventMessage;
-import com.kraken.api.javawrapper.websocket.model.event.SystemStatusMessage;
-import com.kraken.api.javawrapper.websocket.model.event.request.PingMessage;
-import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
-import com.kraken.api.javawrapper.websocket.model.event.request.UnsubscribeMessage;
-import com.kraken.api.javawrapper.websocket.model.event.response.PongMessage;
-import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
-import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
-import com.kraken.api.javawrapper.websocket.utils.PublicationMessageObjectDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kraken.api.javawrapper.websocket.dto.request.RequestIdentifier;
+import com.kraken.api.javawrapper.websocket.model.message.AbstractMessage;
+import com.kraken.api.javawrapper.websocket.model.message.AbstractPublicationMessage;
+import com.kraken.api.javawrapper.websocket.model.message.HeartbeatMessage;
+import com.kraken.api.javawrapper.websocket.model.message.StatusMessage;
+import com.kraken.api.javawrapper.websocket.model.method.AbstractResponse;
+import com.kraken.api.javawrapper.websocket.model.method.Echo;
+import com.kraken.api.javawrapper.websocket.model.method.Interaction;
+import com.kraken.api.javawrapper.websocket.model.method.Subscription;
 import com.kraken.api.javawrapper.websocket.utils.RandomUtils;
 import com.kraken.api.javawrapper.websocket.utils.WebSocketTrafficGateway;
 import io.reactivex.rxjava3.core.Single;
@@ -41,10 +39,9 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
 
     public KrakenBaseWebSocketClient(final URI krakenWebSocketUrl) {
         super(krakenWebSocketUrl);
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        objectMapper.registerModule(javaTimeModule);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        SimpleModule simpleModule = new SimpleModule();
-        simpleModule.addDeserializer(AbstractPublicationMessage.class, new PublicationMessageObjectDeserializer());
-        objectMapper.registerModule(simpleModule);
     }
 
     @Override
@@ -55,36 +52,43 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     @Override
     public void onMessage(String s) {
         log.trace("Received message: {}", s);
-        AbstractEventMessage abstractEventMessage = null;
-        AbstractPublicationMessage publicationMessage = null;
-        boolean isEventMessage = false;
+        AbstractResponse abstractResponse = null;
+        AbstractMessage abstractMessage = null;
+        boolean isResponse = false;
+        boolean isMessage = false;
         try {
-            abstractEventMessage = objectMapper.readValue(s, AbstractEventMessage.class);
-            isEventMessage = true;
+            abstractResponse = objectMapper.readValue(s, AbstractResponse.class);
+            isResponse = true;
         } catch (JsonProcessingException e) {
-            log.trace("Received message is not an AbstractEventMessage. {}", e.getLocalizedMessage());
+            log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
         }
-        if (isEventMessage) {
-            if (abstractEventMessage instanceof PongMessage pongMessage) {
-                webSocketTrafficGateway.responseReplyAndRemove(pongMessage);
-            } else if (abstractEventMessage instanceof SubscriptionStatusMessage subscriptionStatusMessage) {
-                webSocketTrafficGateway.responseReply(subscriptionStatusMessage);
-            } else if (abstractEventMessage instanceof SystemStatusMessage systemStatusMessage) {
-                webSocketTrafficGateway.responseAnnounce(systemStatusMessage);
+        if (isResponse) {
+            if (abstractResponse instanceof Interaction.AbstractInteractionResponse interactionResponse &&
+                !interactionResponse.getSuccess()) {
+                log.error(interactionResponse.getError());
             }
-            //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of HeartbeatMessages
-            // to extend max time.
-            // else:
+            webSocketTrafficGateway.responseReply(abstractResponse);
         } else {
             try {
-                publicationMessage = objectMapper.readValue(s, AbstractPublicationMessage.class);
-                webSocketTrafficGateway.publishMessage(publicationMessage);
+                abstractMessage = objectMapper.readValue(s, AbstractMessage.class);
+                isMessage = true;
             } catch (JsonProcessingException ex) {
                 throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
             }
         }
-        if (Objects.nonNull(abstractEventMessage)) log.trace("Event message class: {}", abstractEventMessage);
-        if (Objects.nonNull(publicationMessage)) log.trace("Publication message class: {}", publicationMessage);
+        if (isMessage) {
+            if (abstractMessage instanceof HeartbeatMessage heartbeatMessage) {
+                //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of HeartbeatMessages
+                // to extend max time.
+            } else if (abstractMessage instanceof StatusMessage statusMessage) {
+                webSocketTrafficGateway.responseAnnounce(statusMessage);
+            } else {
+                AbstractPublicationMessage publicationMessage = (AbstractPublicationMessage) abstractMessage;
+                webSocketTrafficGateway.publishMessage(publicationMessage);
+            }
+        }
+        if (Objects.nonNull(abstractResponse)) log.trace("Response class: {}", abstractResponse);
+        if (Objects.nonNull(abstractMessage)) log.trace("Message class: {}", abstractMessage);
     }
 
     @Override
@@ -98,17 +102,19 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         throw new RuntimeException(e);
     }
 
-    public Single<PongMessage> ping() {
-        return ping(new PingMessage());
+    public Single<Echo.PongResponse> ping() {
+        return ping(new Echo.PingRequest());
     }
 
-    public Single<PongMessage> ping(PingMessage pingMessage) {
-        if (Objects.isNull(pingMessage.getReqId())) pingMessage.setReqId(this.generateRandomReqId());
-        ReplaySubject<PongMessage> pongMessageReplaySubject = ReplaySubject.create();
-        webSocketTrafficGateway.registerRequest(pingMessage.toRequestIdentifier(), pongMessageReplaySubject);
+    public Single<Echo.PongResponse> ping(Echo.PingRequest pingRequest) {
+        if (Objects.isNull(pingRequest.getRequestId())) pingRequest.setRequestId(this.generateRandomReqId());
+        // PingRequests do not have any symbols involved, so there is only one entry - the one associated with null
+        RequestIdentifier requestIdentifier = pingRequest.toRequestIdentifier();
+        ReplaySubject<Echo.PongResponse> pongMessageReplaySubject = ReplaySubject.create();
+        webSocketTrafficGateway.registerRequest(requestIdentifier, pongMessageReplaySubject);
         String pingAsJson;
         try {
-            pingAsJson = objectMapper.writeValueAsString(pingMessage);
+            pingAsJson = objectMapper.writeValueAsString(pingRequest);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -150,87 +156,65 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      *     for when the first subscription happened.
      *   </li>
      * </ol>
+     * <p>
+     * //     * @param subscribeRequest The subscription payload from the user
      *
-     * @param subscribeMessage The subscription payload from the user
      * @return List of Single of SubscriptionStatusMessages
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets/#message-subscribe">Kraken Subscribe</a>
      */
-    public List<Single<SubscriptionStatusMessage>> subscribe(SubscribeMessage subscribeMessage) {
-        if (Objects.isNull(subscribeMessage.getReqId())) subscribeMessage.setReqId(this.generateRandomReqId());
-
-        List<SubscribeRequestIdentifier> subscribeRequestIdentifiers = subscribeMessage.toRequestIdentifiers();
-        List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
-        List<String> subscribedToBeRemoved = new ArrayList<>(subscribeMessage.getPairs());
-        for (SubscribeRequestIdentifier subscribeRequestIdentifier : subscribeRequestIdentifiers) {
+    public List<Single<Subscription.SubscribeResponse>> subscribe(Subscription.SubscribeRequest subscribeRequest) {
+        if (Objects.isNull(subscribeRequest.getRequestId())) subscribeRequest.setRequestId(this.generateRandomReqId());
+        List<RequestIdentifier> requestIdentifiers = subscribeRequest.toRequestIdentifiers();
+        List<Single<Subscription.SubscribeResponse>> list = new ArrayList<>();
+        for (RequestIdentifier requestIdentifier : requestIdentifiers) {
             PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject;
-            if (webSocketTrafficGateway.isRequestSubscribed(subscribeRequestIdentifier)) {
-                log.debug(
-                    "The set of inputs " +
-                    "pair: {}, " +
-                    "channel: {}, " +
-                    "depth: {}, " +
-                    "interval: {}, " +
-                    "ratecounter: {}, " +
-                    "snapshot: {} and " +
-                    "consolidate_taker: {} " +
-                    "has already been subscribed to. Removing pair from SubscribeMessage",
-                    subscribeRequestIdentifier.getPair(),
-                    subscribeMessage.getSubscription().getName().getVChannel(),
-                    subscribeMessage.getSubscription().getDepth(),
-                    subscribeMessage.getSubscription().getInterval(),
-                    subscribeMessage.getSubscription().getRateCounter(),
-                    subscribeMessage.getSubscription().getSnapshot(),
-                    subscribeMessage.getSubscription().getConsolidateTaker()
-                );
-                subscribedToBeRemoved.remove(subscribeRequestIdentifier.getPair());
-                publicationMessagePublishSubject = webSocketTrafficGateway.getSubscriptionSubject(subscribeRequestIdentifier);
+            if (webSocketTrafficGateway.isRequestSubscribed(requestIdentifier)) {
+                publicationMessagePublishSubject = webSocketTrafficGateway.getSubscriptionSubject(requestIdentifier);
             } else {
-                ReplaySubject<SubscriptionStatusMessage> subscriptionStatusMessageReplaySubject = ReplaySubject.create();
-                webSocketTrafficGateway.registerRequest(subscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
-                publicationMessagePublishSubject = webSocketTrafficGateway.subscribeRequest(subscribeRequestIdentifier);
+                ReplaySubject<Subscription.SubscribeResponse> subscribeResponseReplaySubject = ReplaySubject.create(1);
+                webSocketTrafficGateway.registerRequest(requestIdentifier, subscribeResponseReplaySubject);
+                publicationMessagePublishSubject = webSocketTrafficGateway.subscribeRequest(requestIdentifier);
             }
-            Single<SubscriptionStatusMessage> subscriptionStatusMessageSingle = webSocketTrafficGateway
-                .retrieveResponse(subscribeRequestIdentifier);
-            subscriptionStatusMessageSingle = subscriptionStatusMessageSingle.map(e -> {
+            Single<Subscription.SubscribeResponse> subscribeResponseSingle = webSocketTrafficGateway
+                .retrieveResponse(requestIdentifier);
+            subscribeResponseSingle = subscribeResponseSingle.map(e -> {
                 e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
                 return e;
             });
-            list.add(subscriptionStatusMessageSingle);
+            list.add(subscribeResponseSingle);
         }
-        subscribeMessage.setPairs(subscribedToBeRemoved);
-        String subscribeMessageAsJson;
+        String subscribeRequestAsJson;
         try {
-            subscribeMessageAsJson = objectMapper.writeValueAsString(subscribeMessage);
+            subscribeRequestAsJson = objectMapper.writeValueAsString(subscribeRequest);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        this.send(subscribeMessageAsJson);
-
+        this.send(subscribeRequestAsJson);
         return list;
     }
 
-    public List<Single<SubscriptionStatusMessage>> unsubscribe(UnsubscribeMessage unsubscribeMessage) {
-        if (Objects.isNull(unsubscribeMessage.getReqId())) unsubscribeMessage.setReqId(this.generateRandomReqId());
-
-        List<UnsubscribeRequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeMessage.toRequestIdentifiers();
-        List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
-//        List<String> subscribedToBeRemoved = new ArrayList<>(unsubscribeMessage.getPairs());
-        for (UnsubscribeRequestIdentifier unsubscribeRequestIdentifier : unsubscribeRequestIdentifiers) {
-            ReplaySubject<SubscriptionStatusMessage> subscriptionStatusMessageReplaySubject = ReplaySubject.create();
-            webSocketTrafficGateway.registerRequest(unsubscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
-            list.add(webSocketTrafficGateway.retrieveResponse(unsubscribeRequestIdentifier));
-        }
-
-        String unsubscribeMessageAsJson;
-        try {
-            unsubscribeMessageAsJson = objectMapper.writeValueAsString(unsubscribeMessage);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        this.send(unsubscribeMessageAsJson);
-        return list;
-    }
+//    public List<Single<SubscriptionStatusMessage>> unsubscribe(UnsubscribeRequestMessage unsubscribeRequestMessage) {
+//        if (Objects.isNull(unsubscribeRequestMessage.getReqId())) unsubscribeRequestMessage.setReqId(this.generateRandomReqId());
+//
+//        List<UnsubscribeRequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeRequestMessage.toRequestIdentifiers();
+//        List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
+////        List<String> subscribedToBeRemoved = new ArrayList<>(unsubscribeMessage.getPairs());
+//        for (UnsubscribeRequestIdentifier unsubscribeRequestIdentifier : unsubscribeRequestIdentifiers) {
+//            ReplaySubject<SubscriptionStatusMessage> subscriptionStatusMessageReplaySubject = ReplaySubject.create();
+//            webSocketTrafficGateway.registerRequest(unsubscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
+//            list.add(webSocketTrafficGateway.retrieveResponse(unsubscribeRequestIdentifier));
+//        }
+//
+//        String unsubscribeMessageAsJson;
+//        try {
+//            unsubscribeMessageAsJson = objectMapper.writeValueAsString(unsubscribeRequestMessage);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
+//        this.send(unsubscribeMessageAsJson);
+//        return list;
+//    }
 
     public void addOrder() {
 

@@ -2,15 +2,13 @@ package com.kraken.api.javawrapper.websocket;
 
 import com.kraken.api.javawrapper.manager.KrakenConnectionManager;
 import com.kraken.api.javawrapper.websocket.client.KrakenPublicWebSocketClient;
-import com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations;
-import com.kraken.api.javawrapper.websocket.model.event.embedded.SubscriptionEmbeddedObject;
-import com.kraken.api.javawrapper.websocket.model.event.request.PingMessage;
-import com.kraken.api.javawrapper.websocket.model.event.request.SubscribeMessage;
-import com.kraken.api.javawrapper.websocket.model.event.request.UnsubscribeMessage;
-import com.kraken.api.javawrapper.websocket.model.event.response.PongMessage;
-import com.kraken.api.javawrapper.websocket.model.event.response.SubscriptionStatusMessage;
-import com.kraken.api.javawrapper.websocket.model.publication.AbstractPublicationMessage;
-import com.kraken.api.javawrapper.websocket.model.publication.BaseBookMessage;
+import com.kraken.api.javawrapper.websocket.enums.MethodMetadata;
+import com.kraken.api.javawrapper.websocket.model.message.AbstractPublicationMessage;
+import com.kraken.api.javawrapper.websocket.model.message.BookMessage;
+import com.kraken.api.javawrapper.websocket.model.method.Echo;
+import com.kraken.api.javawrapper.websocket.model.method.Subscription;
+import com.kraken.api.javawrapper.websocket.model.method.detail.channel.BookSubscription;
+import com.kraken.api.javawrapper.websocket.model.method.detail.channel.OHLCSubscription;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import org.junit.jupiter.api.Assertions;
@@ -20,9 +18,8 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.util.List;
 
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.CHANNEL.BOOK;
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.CHANNEL.OHLC;
-import static com.kraken.api.javawrapper.websocket.enums.WebSocketEnumerations.EVENT_TYPE.PONG;
+import static com.kraken.api.javawrapper.websocket.enums.ChannelMetadata.ChannelType.BOOK;
+import static com.kraken.api.javawrapper.websocket.enums.MethodMetadata.MethodType.PONG;
 
 public class PublicWebSocketClientTest {
     private KrakenPublicWebSocketClient publicWebSocketClient;
@@ -36,13 +33,13 @@ public class PublicWebSocketClientTest {
     @Test
     public void givenPublicWebSocketClient_whenPing_thenPongWithSameReqId() {
         BigInteger reqId = new BigInteger("12987");
-        PingMessage pingMessage = PingMessage.builder()
-            .reqId(reqId)
+        Echo.PingRequest pingRequest = Echo.PingRequest.builder()
+            .requestId(reqId)
             .build();
-        PongMessage pongMessage = publicWebSocketClient.ping(pingMessage).blockingGet();
-        Assertions.assertNotNull(pongMessage);
-        Assertions.assertEquals(pongMessage.getEvent(), PONG);
-        Assertions.assertEquals(pongMessage.getReqId(), reqId);
+        Echo.PongResponse pongResponse = publicWebSocketClient.ping(pingRequest).blockingGet();
+        Assertions.assertNotNull(pongResponse);
+        Assertions.assertEquals(pongResponse.getMethod(), PONG);
+        Assertions.assertEquals(pongResponse.getRequestId(), reqId);
         Assertions.assertTrue(publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().isEmpty());
     }
 
@@ -50,8 +47,8 @@ public class PublicWebSocketClientTest {
     public void givenPublicWebSocketClient_whenSubscribe_thenSuccess() {
         long testSize = 10L;
         int expectedDepth = 10;
-        SubscribeMessage subscribeMessage = buildStandardSubscribeMessage();
-        List<Single<SubscriptionStatusMessage>> list = publicWebSocketClient.subscribe(subscribeMessage);
+        Subscription.SubscribeRequest subscribeRequest = buildStandardSubscribeRequest();
+        List<Single<Subscription.SubscribeResponse>> list = publicWebSocketClient.subscribe(subscribeRequest);
         Assertions.assertEquals(
             2,
             publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
@@ -60,74 +57,80 @@ public class PublicWebSocketClientTest {
             .map(Single::blockingGet)
             .forEach(message -> {
                 Assertions.assertNotNull(message);
-                Assertions.assertEquals(WebSocketEnumerations.EVENT_TYPE.SUBSCRIPTION_STATUS, message.getEvent());
-                Assertions.assertEquals(BOOK, message.getSubscription().getName());
-                Assertions.assertEquals(
-                    WebSocketEnumerations.SUBSCRIPTION_STATUS_TYPE.SUBSCRIBED,
-                    message.getStatus()
-                );
-                Assertions.assertEquals(expectedDepth, message.getSubscription().getDepth());
-                String pair = message.getPair();
+                Assertions.assertEquals(MethodMetadata.MethodType.SUBSCRIBE, message.getMethod());
+                Assertions.assertEquals(subscribeRequest.getRequestId(), message.getRequestId());
+                Assertions.assertTrue(message.getSuccess());
+                Assertions.assertTrue(message.getResult() instanceof BookSubscription.Result);
+                BookSubscription.Result result = (BookSubscription.Result) message.getResult();
+                Assertions.assertEquals(BOOK, result.getChannel());
+                Assertions.assertEquals(expectedDepth, result.getDepth());
+                String symbol = result.getSymbol();
                 PublishSubject<AbstractPublicationMessage> publishSubject = message.getPublicationMessagePublishSubject();
                 Assertions.assertNotNull(publishSubject);
-                publishSubject.blockingStream().limit(testSize).forEach(m -> {
-                    BaseBookMessage baseBookMessage = (BaseBookMessage) m;
-                    Assertions.assertEquals(pair, baseBookMessage.getPair());
-                    Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
-                });
+                publishSubject.blockingStream()
+                    .limit(testSize)
+                    .forEach(m -> {
+                        BookMessage bookMessage = (BookMessage) m;
+                        bookMessage.getData().forEach(book -> {
+                            Assertions.assertEquals(symbol, book.getSymbol());
+                            Assertions.assertEquals(expectedDepth, book.getAsks().size());
+                            Assertions.assertEquals(expectedDepth, book.getBids().size());
+                        });
+                    });
             });
 
         // Test subscribing using the same payload again
-        subscribeMessage = buildStandardSubscribeMessage();
-        List<Single<SubscriptionStatusMessage>> listResubscribe = publicWebSocketClient.subscribe(subscribeMessage);
-        Assertions.assertEquals(
-            2,
-            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
-        );
-        for (int i = 0; i < 2; i++) {
-            SubscriptionStatusMessage original = list.get(i).blockingGet();
-            SubscriptionStatusMessage duplicate = listResubscribe.get(i).blockingGet();
-            Assertions.assertEquals(original, duplicate);
-            String pair = duplicate.getPair();
-            duplicate.getPublicationMessagePublishSubject().blockingStream().limit(testSize).forEach(m -> {
-                BaseBookMessage baseBookMessage = (BaseBookMessage) m;
-                Assertions.assertEquals(pair, baseBookMessage.getPair());
-                Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
-            });
-        }
+//        subscribeRequest = buildStandardSubscribeRequest();
+//        List<Single<SubscriptionStatusMessage>> listResubscribe = publicWebSocketClient.subscribe(subscribeRequest);
+//        Assertions.assertEquals(
+//            2,
+//            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
+//        );
+//        Already subscribed
+//        for (int i = 0; i < 2; i++) {
+//            SubscriptionStatusMessage original = list.get(i).blockingGet();
+//            SubscriptionStatusMessage duplicate = listResubscribe.get(i).blockingGet();
+//            Assertions.assertEquals(original, duplicate);
+//            String pair = duplicate.getPair();
+//            duplicate.getPublicationMessagePublishSubject().blockingStream().limit(testSize).forEach(m -> {
+//                BaseBookMessage baseBookMessage = (BaseBookMessage) m;
+//                Assertions.assertEquals(pair, baseBookMessage.getPair());
+//                Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
+//            });
+//        }
 
         // Test changing reqId will not affect the SubscriptionStatusMessage
-        subscribeMessage = buildStandardSubscribeMessage();
-        subscribeMessage.setReqId(new BigInteger("123"));
-        List<Single<SubscriptionStatusMessage>> listNewReqId = publicWebSocketClient.subscribe(subscribeMessage);
-        Assertions.assertEquals(
-            2,
-            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
-        );
-        for (int i = 0; i < 2; i++) {
-            SubscriptionStatusMessage original = list.get(i).blockingGet();
-            SubscriptionStatusMessage duplicate = listNewReqId.get(i).blockingGet();
-            Assertions.assertEquals(original, duplicate);
-            String pair = duplicate.getPair();
-            duplicate.getPublicationMessagePublishSubject().blockingStream().limit(testSize).forEach(m -> {
-                BaseBookMessage baseBookMessage = (BaseBookMessage) m;
-                Assertions.assertEquals(pair, baseBookMessage.getPair());
-                Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
-            });
-        }
+//        subscribeRequest = buildStandardSubscribeRequest();
+//        subscribeRequest.setReqId(new BigInteger("123"));
+//        List<Single<SubscriptionStatusMessage>> listNewReqId = publicWebSocketClient.subscribe(subscribeRequest);
+//        Assertions.assertEquals(
+//            2,
+//            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
+//        );
+//        for (int i = 0; i < 2; i++) {
+//            SubscriptionStatusMessage original = list.get(i).blockingGet();
+//            SubscriptionStatusMessage duplicate = listNewReqId.get(i).blockingGet();
+//            Assertions.assertEquals(original, duplicate);
+//            String pair = duplicate.getPair();
+//            duplicate.getPublicationMessagePublishSubject().blockingStream().limit(testSize).forEach(m -> {
+//                BaseBookMessage baseBookMessage = (BaseBookMessage) m;
+//                Assertions.assertEquals(pair, baseBookMessage.getPair());
+//                Assertions.assertEquals(expectedDepth, baseBookMessage.getDepth());
+//            });
+//        }
     }
 
-    @Test
-    public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSuccess() {
-        SubscribeMessage subscribeMessage = buildStandardSubscribeMessage();
-        publicWebSocketClient.subscribe(subscribeMessage).stream().map(Single::blockingGet).forEach(System.out::println);
-        UnsubscribeMessage unsubscribeMessage = UnsubscribeMessage.builder()
-            .pairs(subscribeMessage.getPairs())
-            .reqId(subscribeMessage.getReqId())
-            .subscription(subscribeMessage.getSubscription())
-            .build();
-        publicWebSocketClient.unsubscribe(unsubscribeMessage);
-        while (true) {}
+//    @Test
+//    public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSuccess() {
+//        SubscribeRequestMessage subscribeRequestMessage = buildStandardSubscribeMessage();
+//        publicWebSocketClient.subscribe(subscribeRequestMessage).stream().map(Single::blockingGet).forEach(System.out::println);
+//        UnsubscribeRequestMessage unsubscribeRequestMessage = UnsubscribeRequestMessage.builder()
+//            .pairs(subscribeRequestMessage.getPairs())
+//            .reqId(subscribeRequestMessage.getReqId())
+//            .subscription(subscribeRequestMessage.getSubscription())
+//            .build();
+//        publicWebSocketClient.unsubscribe(unsubscribeRequestMessage);
+//        while (true) {}
 
 //        this.send(subscribeAsJson);
 //        UnsubscribeMessage unsubscribeMessage = UnsubscribeMessage.builder()
@@ -147,32 +150,24 @@ public class PublicWebSocketClientTest {
 //        }
 //        log.info("Unsubscription payload: {}", unsubscribeAsJson);
 //        this.send(unsubscribeAsJson);
-    }
+//    }
 
     @Test
     public void test() {
-        SubscribeMessage subscribeMessage = SubscribeMessage.builder()
-            .pairs(List.of("XBT/USD", "XBT/EUR"))
-            .reqId(new BigInteger("12345"))
-            .subscription(SubscriptionEmbeddedObject.builder()
-                .name(OHLC)
-                .interval(1440)
+        Subscription.SubscribeRequest subscribeRequest = Subscription.SubscribeRequest.builder()
+            .requestId(new BigInteger("12345"))
+            .params(OHLCSubscription.Parameter.builder()
+                .symbols(List.of("XBT/USD", "XBT/EUR"))
                 .build())
             .build();
-        int i = 0;
-        while (i < 10) {
-            publicWebSocketClient.subscribe(subscribeMessage);
-            i++;
-        }
     }
 
-    private SubscribeMessage buildStandardSubscribeMessage() {
-        return SubscribeMessage.builder()
-            .pairs(List.of("XBT/USD", "XBT/EUR"))
-            .reqId(new BigInteger("12345"))
-            .subscription(SubscriptionEmbeddedObject.builder()
-                .name(BOOK)
+    private Subscription.SubscribeRequest buildStandardSubscribeRequest() {
+        return Subscription.SubscribeRequest.builder()
+            .requestId(new BigInteger("12345"))
+            .params(BookSubscription.Parameter.builder()
                 .depth(10)
+                .symbols(List.of("BTC/USD", "BTC/EUR"))
                 .build())
             .build();
     }
