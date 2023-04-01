@@ -12,10 +12,12 @@ public abstract class OHLCSubscription {
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     @AllArgsConstructor
-    @NoArgsConstructor
+    @NoArgsConstructor(force = true)
     public static class Parameter extends AbstractChannelSubscription.Parameter {
         @JsonProperty(value = "symbol", required = true)
         private List<String> symbols;
+        @NonNull
+        private Integer interval;
 
         {
             this.setChannel(ChannelMetadata.ChannelType.OHLC);
@@ -25,10 +27,12 @@ public abstract class OHLCSubscription {
     @Data
     @EqualsAndHashCode(callSuper = true)
     @AllArgsConstructor
-    @NoArgsConstructor
+    @NoArgsConstructor(force = true)
     public static class Result extends AbstractChannelSubscription.Result {
         @NonNull
         private String symbol;
+        @NonNull
+        private Integer interval;
 
         {
             this.setChannel(ChannelMetadata.ChannelType.OHLC);

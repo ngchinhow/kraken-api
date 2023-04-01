@@ -2,7 +2,6 @@ package com.kraken.api.javawrapper.websocket.model.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.kraken.api.javawrapper.websocket.dto.request.RequestIdentifier;
 import com.kraken.api.javawrapper.websocket.enums.ChannelMetadata;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,11 +27,6 @@ public class ExecutionsMessage extends AbstractPublicationMessage {
 
     {
         this.setChannel(ChannelMetadata.ChannelType.EXECUTIONS);
-    }
-
-    @Override
-    public RequestIdentifier toSubscribeRequestIdentifier() {
-        return null;
     }
 
     @Data

@@ -4,7 +4,7 @@ import com.kraken.api.javawrapper.manager.KrakenConnectionManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static com.kraken.api.javawrapper.rest.enums.RestEnumerations.ENDPOINT.*;
+import static com.kraken.api.javawrapper.rest.enums.RestEnumerations.Endpoint.*;
 
 public class WebsocketConnectionManagerTest {
     private static final KrakenConnectionManager KRAKEN_CONNECTION_MANAGER = new KrakenConnectionManager(

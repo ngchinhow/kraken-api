@@ -3,6 +3,7 @@ package com.kraken.api.javawrapper.websocket.dto.request;
 import lombok.*;
 
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 
 @Data
 @EqualsAndHashCode
@@ -14,4 +15,14 @@ public class RequestIdentifier {
     private String channel;
     private String symbol;
     private BigInteger requestId;
+    @EqualsAndHashCode.Exclude
+    private ZonedDateTime timestamp;
+
+    public RequestIdentifier duplicate() {
+        return RequestIdentifier.builder()
+            .method(method)
+            .channel(channel)
+            .symbol(symbol)
+            .build();
+    }
 }

@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public abstract class Interaction {
@@ -20,8 +21,8 @@ public abstract class Interaction {
     public static abstract class AbstractInteractionRequest extends AbstractRequest {
         private AbstractParameter params;
 
-        public List<RequestIdentifier> toRequestIdentifiers() {
-            RequestIdentifier.Builder builder = super.toRequestIdentifier().toBuilder();
+        public List<RequestIdentifier> toRequestIdentifiers(ZonedDateTime timestamp) {
+            RequestIdentifier.Builder builder = super.toRequestIdentifier(timestamp).toBuilder();
             return params.getSymbols()
                 .stream()
                 .map(e -> builder

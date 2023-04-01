@@ -33,6 +33,7 @@ public class KrakenRequestInterceptor implements RequestInterceptor {
         long nonce = System.currentTimeMillis();
         String nonceAsParam = "nonce=" + nonce;
         byte[] body = requestTemplate.body();
+        if (Objects.isNull(body)) return;
         Charset charset = requestTemplate.requestCharset();
         String bodyString = new String(body, charset);
         if (ObjectUtils.isEmpty(bodyString))

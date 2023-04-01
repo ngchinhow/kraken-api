@@ -26,11 +26,14 @@ public class OHLCMessage extends AbstractPublicationMessage {
     }
 
     @Override
-    public RequestIdentifier toSubscribeRequestIdentifier() {
-        return null;
+    public RequestIdentifier toRequestIdentifier() {
+        return super.toRequestIdentifier().toBuilder()
+            .symbol(data.get(0).symbol)
+            .build();
     }
 
     @Data
+    @NoArgsConstructor(force = true)
     public static class OHLC {
         @NonNull
         private BigDecimal close;
@@ -52,5 +55,7 @@ public class OHLCMessage extends AbstractPublicationMessage {
         private BigDecimal vwap;
         @NonNull
         private BigDecimal interval;
+        @NonNull
+        private ZonedDateTime timestamp;
     }
 }

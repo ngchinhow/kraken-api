@@ -1,12 +1,16 @@
 package com.kraken.api.javawrapper.rest.dto.marketdata;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.time.ZonedDateTime;
+
 @Data
 public class ServerTimeResult {
-    @JsonProperty("unixtime")
+    @JsonProperty(value = "unixtime", required = true)
     private int unixTime;
-
-    private String rfc1123;
+    @JsonProperty(value = "rfc1123",required = true)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "EEE',' dd MMM yy HH:mm:ss Z")
+    private ZonedDateTime isoTime;
 }

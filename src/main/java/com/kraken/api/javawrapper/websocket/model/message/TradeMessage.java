@@ -25,11 +25,14 @@ public class TradeMessage extends AbstractPublicationMessage {
     }
 
     @Override
-    public RequestIdentifier toSubscribeRequestIdentifier() {
-        return null;
+    public RequestIdentifier toRequestIdentifier() {
+        return super.toRequestIdentifier().toBuilder()
+            .symbol(data.get(0).symbol)
+            .build();
     }
 
     @Data
+    @NoArgsConstructor(force = true)
     public static class Trade {
         @JsonProperty(value = "ord_type", required = true)
         private String orderType;

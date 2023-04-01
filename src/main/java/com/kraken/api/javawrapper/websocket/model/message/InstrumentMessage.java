@@ -2,7 +2,6 @@ package com.kraken.api.javawrapper.websocket.model.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.kraken.api.javawrapper.websocket.dto.request.RequestIdentifier;
 import com.kraken.api.javawrapper.websocket.enums.ChannelMetadata;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -18,24 +17,22 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InstrumentMessage extends AbstractPublicationMessage {
-
     private InstrumentData data;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
     }
 
-    @Override
-    public RequestIdentifier toSubscribeRequestIdentifier() {
-        return null;
-    }
-
     @Data
+    @NoArgsConstructor(force = true)
     public static class InstrumentData {
+        @NonNull
         private List<Asset> assets;
+        @NonNull
         private List<Pair> pairs;
 
         @Data
+        @NoArgsConstructor(force = true)
         public static class Asset {
             @NonNull
             private Boolean borrowable;
@@ -75,6 +72,7 @@ public class InstrumentMessage extends AbstractPublicationMessage {
         }
 
         @Data
+        @NoArgsConstructor(force = true)
         public static class Pair {
             @NonNull
             private String base;

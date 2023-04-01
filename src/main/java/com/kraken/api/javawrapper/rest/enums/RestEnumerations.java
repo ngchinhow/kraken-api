@@ -3,9 +3,9 @@ package com.kraken.api.javawrapper.rest.enums;
 
 import com.kraken.api.javawrapper.rest.client.*;
 
-public class RestEnumerations {
+public abstract class RestEnumerations {
 
-    public static class ENDPOINT  {
+    public static class Endpoint {
         public static final Class<MarketDataClient> MARKET_DATA = MarketDataClient.class;
         public static final Class<UserDataClient> USER_DATA = UserDataClient.class;
         public static final Class<UserTradingClient> USER_TRADING = UserTradingClient.class;

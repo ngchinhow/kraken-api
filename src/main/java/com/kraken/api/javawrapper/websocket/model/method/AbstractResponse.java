@@ -39,8 +39,6 @@ public abstract class AbstractResponse extends AbstractMethod {
     private ZonedDateTime timeOut;
 
     public RequestIdentifier toRequestIdentifier() {
-        return RequestIdentifier.builder()
-            .requestId(this.getRequestId())
-            .build();
+        return super.toRequestIdentifier(timeIn);
     }
 }

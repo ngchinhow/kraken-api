@@ -1,13 +1,18 @@
 package com.kraken.api.javawrapper.properties;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class KrakenProperties {
+public abstract class KrakenProperties {
     public static final String KRAKEN_REST_API_BASE_URI = "https://api.kraken.com/0";
     public static final URI KRAKEN_WEBSOCKET_API_PUBLIC_URL;
     public static final URI KRAKEN_WEBSOCKET_API_PRIVATE_URL;
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
         try {
@@ -16,6 +21,12 @@ public class KrakenProperties {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    static {
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        OBJECT_MAPPER.registerModule(javaTimeModule);
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public static final BigInteger KRAKEN_REQ_ID_MAX_LIMIT = new BigInteger("18446744073709551616");

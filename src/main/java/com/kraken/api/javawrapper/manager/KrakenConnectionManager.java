@@ -1,8 +1,8 @@
 package com.kraken.api.javawrapper.manager;
 
+import com.kraken.api.javawrapper.rest.client.MarketDataClient;
 import com.kraken.api.javawrapper.rest.client.RestClient;
 import com.kraken.api.javawrapper.rest.client.WebSocketsAuthenticationClient;
-import com.kraken.api.javawrapper.rest.enums.RestEnumerations;
 import com.kraken.api.javawrapper.rest.requestinterceptor.KrakenRequestInterceptor;
 import com.kraken.api.javawrapper.websocket.client.KrakenPrivateWebSocketClient;
 import com.kraken.api.javawrapper.websocket.client.KrakenPublicWebSocketClient;
@@ -13,9 +13,12 @@ import feign.jackson.JacksonEncoder;
 import feign.okhttp.OkHttpClient;
 import feign.slf4j.Slf4jLogger;
 
-import static com.kraken.api.javawrapper.properties.KrakenProperties.*;
+import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_REST_API_BASE_URI;
+import static com.kraken.api.javawrapper.properties.KrakenProperties.OBJECT_MAPPER;
+import static com.kraken.api.javawrapper.rest.enums.RestEnumerations.Endpoint.MARKET_DATA;
+import static com.kraken.api.javawrapper.rest.enums.RestEnumerations.Endpoint.WEBSOCKETS_AUTHENTICATION;
 
-public class KrakenConnectionManager {
+public final class KrakenConnectionManager {
     private final String apiKey;
     private final String privateKey;
 
@@ -27,8 +30,8 @@ public class KrakenConnectionManager {
     public <T extends RestClient> T getRestClient(Class<T> tClass) {
         return Feign.builder()
             .client(new OkHttpClient())
-            .decoder(new JacksonDecoder())
-            .encoder(new JacksonEncoder())
+            .decoder(new JacksonDecoder(OBJECT_MAPPER))
+            .encoder(new JacksonEncoder(OBJECT_MAPPER))
             .logger(new Slf4jLogger())
             .logLevel(Logger.Level.FULL)
             .requestInterceptor(new KrakenRequestInterceptor(apiKey, privateKey))
@@ -36,11 +39,13 @@ public class KrakenConnectionManager {
     }
 
     public KrakenPrivateWebSocketClient getKrakenPrivateWebSocketClient() {
-        WebSocketsAuthenticationClient client = this.getRestClient(RestEnumerations.ENDPOINT.WEBSOCKETS_AUTHENTICATION);
-        return new KrakenPrivateWebSocketClient(client);
+        MarketDataClient marketDataClient = this.getRestClient(MARKET_DATA);
+        WebSocketsAuthenticationClient webSocketsAuthenticationClient = this.getRestClient(WEBSOCKETS_AUTHENTICATION);
+        return new KrakenPrivateWebSocketClient(marketDataClient, webSocketsAuthenticationClient);
     }
 
     public KrakenPublicWebSocketClient getKrakenPublicWebSocketClient() {
-        return new KrakenPublicWebSocketClient();
+        MarketDataClient marketDataClient = this.getRestClient(MARKET_DATA);
+        return new KrakenPublicWebSocketClient(marketDataClient);
     }
 }

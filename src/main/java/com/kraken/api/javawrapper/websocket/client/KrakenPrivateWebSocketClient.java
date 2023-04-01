@@ -1,16 +1,17 @@
 package com.kraken.api.javawrapper.websocket.client;
 
+import com.kraken.api.javawrapper.rest.client.MarketDataClient;
 import com.kraken.api.javawrapper.rest.client.WebSocketsAuthenticationClient;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_WEBSOCKET_API_PRIVATE_URL;
 
 @Slf4j
-public class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClient {
+public final class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClient {
     private final WebSocketsAuthenticationClient authenticationClient;
 
-    public KrakenPrivateWebSocketClient(WebSocketsAuthenticationClient authenticationClient) {
-        super(KRAKEN_WEBSOCKET_API_PRIVATE_URL);
+    public KrakenPrivateWebSocketClient(MarketDataClient marketDataClient, WebSocketsAuthenticationClient authenticationClient) {
+        super(KRAKEN_WEBSOCKET_API_PRIVATE_URL, marketDataClient);
         this.authenticationClient = authenticationClient;
     }
 

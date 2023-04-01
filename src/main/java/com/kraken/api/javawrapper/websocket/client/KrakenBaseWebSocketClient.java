@@ -1,18 +1,13 @@
 package com.kraken.api.javawrapper.websocket.client;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kraken.api.javawrapper.rest.client.MarketDataClient;
 import com.kraken.api.javawrapper.websocket.dto.request.RequestIdentifier;
 import com.kraken.api.javawrapper.websocket.model.message.AbstractMessage;
 import com.kraken.api.javawrapper.websocket.model.message.AbstractPublicationMessage;
 import com.kraken.api.javawrapper.websocket.model.message.HeartbeatMessage;
 import com.kraken.api.javawrapper.websocket.model.message.StatusMessage;
-import com.kraken.api.javawrapper.websocket.model.method.AbstractResponse;
-import com.kraken.api.javawrapper.websocket.model.method.Echo;
-import com.kraken.api.javawrapper.websocket.model.method.Interaction;
-import com.kraken.api.javawrapper.websocket.model.method.Subscription;
+import com.kraken.api.javawrapper.websocket.model.method.*;
 import com.kraken.api.javawrapper.websocket.utils.RandomUtils;
 import com.kraken.api.javawrapper.websocket.utils.WebSocketTrafficGateway;
 import io.reactivex.rxjava3.core.Single;
@@ -25,23 +20,23 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import static com.kraken.api.javawrapper.properties.KrakenProperties.KRAKEN_REQ_ID_MAX_LIMIT;
+import static com.kraken.api.javawrapper.properties.KrakenProperties.OBJECT_MAPPER;
 
 @Slf4j
 @Getter
 public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final WebSocketTrafficGateway webSocketTrafficGateway = new WebSocketTrafficGateway();
+    private final MarketDataClient marketDataClient;
 
-    public KrakenBaseWebSocketClient(final URI krakenWebSocketUrl) {
+    public KrakenBaseWebSocketClient(final URI krakenWebSocketUrl, MarketDataClient marketDataClient) {
         super(krakenWebSocketUrl);
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        objectMapper.registerModule(javaTimeModule);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        this.marketDataClient = marketDataClient;
     }
 
     @Override
@@ -57,7 +52,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         boolean isResponse = false;
         boolean isMessage = false;
         try {
-            abstractResponse = objectMapper.readValue(s, AbstractResponse.class);
+            abstractResponse = OBJECT_MAPPER.readValue(s, AbstractResponse.class);
             isResponse = true;
         } catch (JsonProcessingException e) {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
@@ -66,11 +61,12 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             if (abstractResponse instanceof Interaction.AbstractInteractionResponse interactionResponse &&
                 !interactionResponse.getSuccess()) {
                 log.error(interactionResponse.getError());
-            }
-            webSocketTrafficGateway.responseReply(abstractResponse);
+                webSocketTrafficGateway.removeErrorRequest(abstractResponse);
+            } else
+                webSocketTrafficGateway.responseReply(abstractResponse);
         } else {
             try {
-                abstractMessage = objectMapper.readValue(s, AbstractMessage.class);
+                abstractMessage = OBJECT_MAPPER.readValue(s, AbstractMessage.class);
                 isMessage = true;
             } catch (JsonProcessingException ex) {
                 throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
@@ -108,17 +104,12 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
 
     public Single<Echo.PongResponse> ping(Echo.PingRequest pingRequest) {
         if (Objects.isNull(pingRequest.getRequestId())) pingRequest.setRequestId(this.generateRandomReqId());
+        ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
         // PingRequests do not have any symbols involved, so there is only one entry - the one associated with null
-        RequestIdentifier requestIdentifier = pingRequest.toRequestIdentifier();
+        RequestIdentifier requestIdentifier = pingRequest.toRequestIdentifier(serverTime);
         ReplaySubject<Echo.PongResponse> pongMessageReplaySubject = ReplaySubject.create();
         webSocketTrafficGateway.registerRequest(requestIdentifier, pongMessageReplaySubject);
-        String pingAsJson;
-        try {
-            pingAsJson = objectMapper.writeValueAsString(pingRequest);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        this.send(pingAsJson);
+        this.sendPayload(pingRequest, serverTime);
         return pongMessageReplaySubject.firstOrError();
     }
 
@@ -165,17 +156,17 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      */
     public List<Single<Subscription.SubscribeResponse>> subscribe(Subscription.SubscribeRequest subscribeRequest) {
         if (Objects.isNull(subscribeRequest.getRequestId())) subscribeRequest.setRequestId(this.generateRandomReqId());
-        List<RequestIdentifier> requestIdentifiers = subscribeRequest.toRequestIdentifiers();
+        ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
+        List<RequestIdentifier> requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
         List<Single<Subscription.SubscribeResponse>> list = new ArrayList<>();
         for (RequestIdentifier requestIdentifier : requestIdentifiers) {
-            PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject;
-            if (webSocketTrafficGateway.isRequestSubscribed(requestIdentifier)) {
-                publicationMessagePublishSubject = webSocketTrafficGateway.getSubscriptionSubject(requestIdentifier);
-            } else {
-                ReplaySubject<Subscription.SubscribeResponse> subscribeResponseReplaySubject = ReplaySubject.create(1);
-                webSocketTrafficGateway.registerRequest(requestIdentifier, subscribeResponseReplaySubject);
-                publicationMessagePublishSubject = webSocketTrafficGateway.subscribeRequest(requestIdentifier);
-            }
+            ReplaySubject<Subscription.SubscribeResponse> subscribeResponseReplaySubject = ReplaySubject.create(1);
+            webSocketTrafficGateway.registerRequest(requestIdentifier, subscribeResponseReplaySubject);
+            // Publication messages do not have req_id or timestamp information, so they must be removed from the
+            // identifier
+            RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
+            PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject = webSocketTrafficGateway
+                .subscribePublication(publicationRequestIdentifier);
             Single<Subscription.SubscribeResponse> subscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             subscribeResponseSingle = subscribeResponseSingle.map(e -> {
@@ -184,13 +175,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             });
             list.add(subscribeResponseSingle);
         }
-        String subscribeRequestAsJson;
-        try {
-            subscribeRequestAsJson = objectMapper.writeValueAsString(subscribeRequest);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        this.send(subscribeRequestAsJson);
+        this.sendPayload(subscribeRequest, serverTime);
         return list;
     }
 
@@ -234,6 +219,17 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
 
     public void cancelAllOrdersAfter() {
 
+    }
+
+    private <T extends AbstractRequest> void sendPayload(T request, ZonedDateTime timestamp) {
+        String requestAsJson;
+        try {
+            requestAsJson = OBJECT_MAPPER.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        this.send(requestAsJson);
+        log.trace("Subscription payload sent at: {}", timestamp);
     }
 
     private BigInteger generateRandomReqId() {
