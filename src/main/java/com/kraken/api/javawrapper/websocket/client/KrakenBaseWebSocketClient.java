@@ -62,8 +62,11 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                 !interactionResponse.getSuccess()) {
                 log.error(interactionResponse.getError());
                 webSocketTrafficGateway.removeErrorRequest(abstractResponse);
-            } else
+            } else {
                 webSocketTrafficGateway.responseReply(abstractResponse);
+                if (abstractResponse instanceof Unsubscription.UnsubscribeResponse unsubscribeResponse)
+                    webSocketTrafficGateway.unsubscribeRequest(unsubscribeResponse);
+            }
         } else {
             try {
                 abstractMessage = OBJECT_MAPPER.readValue(s, AbstractMessage.class);
@@ -124,35 +127,17 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      *     ensure the user always has the latest information of the subscribed channel.
      *   </li>
      *   <li>
-     *     If the same SubscribeMessage is sent twice or more to the same connection/client, the second and every
-     *     subsequent one is ignored **for the same input parameters**. This is true for payloads whereby the difference
-     *     is only the reqId as well. This is because of the ambiguous behaviour of messages returned from their
-     *     websockets:
-     *     <ul>
-     *       <li>
-     *         Subscriptions on the same parameters is allowed. Messages may or may not be repetitively pushed into the
-     *         same websocket.
-     *       </li>
-     *       <li>
-     *         A BookSnapshotMessage is sent on some but not all successful subscription to the BOOK channel, even for
-     *         repeated subscriptions.
-     *       </li>
-     *     </ul>
-     *     While it is not inherently wrong to allow multiple of the same subscription, the lack of information on these
-     *     messages mean they cannot be correlated back to the original SubscriptionStatusMessage, and therefore its
-     *     PublishSubject.
-     * <p>
-     *     Therefore, any repeated subscription payloads will be ignored; specifically, that pair will be removed from
-     *     the payload. A SubscriptionStatusMessage will still be returned to the user for that pair, but it will be
-     *     for when the first subscription happened.
+     *     If the same SubscribeRequest is sent twice or more to the same connection/client, the error received within
+     *     the SubscribeResponse will be passed to the user. The PublishSubject originally created in the first request
+     *     will also be returned with the SubscribeResponse.
      *   </li>
      * </ol>
      * <p>
-     * //     * @param subscribeRequest The subscription payload from the user
+     * @param subscribeRequest The subscription payload from the user
      *
-     * @return List of Single of SubscriptionStatusMessages
+     * @return List of Single of SubscribeResponses
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
-     * @see <a href="https://docs.kraken.com/websockets/#message-subscribe">Kraken Subscribe</a>
+     * @see <a href="https://docs.kraken.com/websockets-v2/#subscribe">Kraken Subscribe</a>
      */
     public List<Single<Subscription.SubscribeResponse>> subscribe(Subscription.SubscribeRequest subscribeRequest) {
         if (Objects.isNull(subscribeRequest.getRequestId())) subscribeRequest.setRequestId(this.generateRandomReqId());
@@ -162,8 +147,8 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         for (RequestIdentifier requestIdentifier : requestIdentifiers) {
             ReplaySubject<Subscription.SubscribeResponse> subscribeResponseReplaySubject = ReplaySubject.create(1);
             webSocketTrafficGateway.registerRequest(requestIdentifier, subscribeResponseReplaySubject);
-            // Publication messages do not have req_id or timestamp information, so they must be removed from the
-            // identifier
+            // Publication messages do not have req_id or timestamp information, so the RequestIdentifier cannot have
+            // these field as keys in the map
             RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
             PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject = webSocketTrafficGateway
                 .subscribePublication(publicationRequestIdentifier);
@@ -179,27 +164,39 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         return list;
     }
 
-//    public List<Single<SubscriptionStatusMessage>> unsubscribe(UnsubscribeRequestMessage unsubscribeRequestMessage) {
-//        if (Objects.isNull(unsubscribeRequestMessage.getReqId())) unsubscribeRequestMessage.setReqId(this.generateRandomReqId());
-//
-//        List<UnsubscribeRequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeRequestMessage.toRequestIdentifiers();
-//        List<Single<SubscriptionStatusMessage>> list = new ArrayList<>();
-////        List<String> subscribedToBeRemoved = new ArrayList<>(unsubscribeMessage.getPairs());
-//        for (UnsubscribeRequestIdentifier unsubscribeRequestIdentifier : unsubscribeRequestIdentifiers) {
-//            ReplaySubject<SubscriptionStatusMessage> subscriptionStatusMessageReplaySubject = ReplaySubject.create();
-//            webSocketTrafficGateway.registerRequest(unsubscribeRequestIdentifier, subscriptionStatusMessageReplaySubject);
-//            list.add(webSocketTrafficGateway.retrieveResponse(unsubscribeRequestIdentifier));
-//        }
-//
-//        String unsubscribeMessageAsJson;
-//        try {
-//            unsubscribeMessageAsJson = objectMapper.writeValueAsString(unsubscribeRequestMessage);
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException(e);
-//        }
-//        this.send(unsubscribeMessageAsJson);
-//        return list;
-//    }
+    /**
+     * Unsubscription to a private or public channel via the Unsubscription payload.
+     * <p>
+     * While it is no longer necessary to the user, each UnsubscribeResponse will still contain the PublishSubject for
+     * the corresponding AbstractPublicationMessage.
+     *
+     * @param unsubscribeRequest The unsubscription payload from the user
+     * @return List of Single of UnsubscribeResponses
+     * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
+     * @see <a href="https://docs.kraken.com/websockets-v2/#unsubscribe">Kraken Unsubscribe</a>
+     */
+    public List<Single<Unsubscription.UnsubscribeResponse>> unsubscribe(Unsubscription.UnsubscribeRequest unsubscribeRequest) {
+        if (Objects.isNull(unsubscribeRequest.getRequestId())) unsubscribeRequest.setRequestId(this.generateRandomReqId());
+        ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
+        List<RequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
+        List<Single<Unsubscription.UnsubscribeResponse>> list = new ArrayList<>();
+        for (RequestIdentifier requestIdentifier : unsubscribeRequestIdentifiers) {
+            ReplaySubject<Unsubscription.UnsubscribeResponse> unsubscribeResponseSubject = ReplaySubject.create();
+            webSocketTrafficGateway.registerRequest(requestIdentifier, unsubscribeResponseSubject);
+            RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
+            PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject = webSocketTrafficGateway
+                .subscribePublication(publicationRequestIdentifier);
+            Single<Unsubscription.UnsubscribeResponse> unsubscribeResponseSingle = webSocketTrafficGateway
+                .retrieveResponse(requestIdentifier);
+            unsubscribeResponseSingle = unsubscribeResponseSingle.map(e -> {
+                e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
+                return e;
+            });
+            list.add(unsubscribeResponseSingle);
+        }
+        this.sendPayload(unsubscribeRequest, serverTime);
+        return list;
+    }
 
     public void addOrder() {
 

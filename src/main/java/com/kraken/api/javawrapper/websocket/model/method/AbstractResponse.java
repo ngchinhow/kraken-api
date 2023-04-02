@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.kraken.api.javawrapper.websocket.dto.request.RequestIdentifier;
-import com.kraken.api.javawrapper.websocket.model.method.request.UnsubscribeRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,7 +29,7 @@ import static com.kraken.api.javawrapper.websocket.enums.MethodMetadata.MethodTy
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Echo.PongResponse.class, name = PONG),
     @JsonSubTypes.Type(value = Subscription.SubscribeResponse.class, name = SUBSCRIBE),
-    @JsonSubTypes.Type(value = UnsubscribeRequest.class, name = UNSUBSCRIBE)
+    @JsonSubTypes.Type(value = Unsubscription.UnsubscribeResponse.class, name = UNSUBSCRIBE)
 })
 public abstract class AbstractResponse extends AbstractMethod {
     @JsonProperty("time_in")

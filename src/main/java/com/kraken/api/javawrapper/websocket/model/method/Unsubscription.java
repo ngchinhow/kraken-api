@@ -8,18 +8,17 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
-import static com.kraken.api.javawrapper.websocket.enums.MethodMetadata.MethodType.SUBSCRIBE;
+import static com.kraken.api.javawrapper.websocket.enums.MethodMetadata.MethodType.UNSUBSCRIBE;
 
-public abstract class Subscription {
+public abstract class Unsubscription {
     @Data
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     @Jacksonized
     @NoArgsConstructor
-    public static class SubscribeRequest extends Interaction.AbstractInteractionRequest {
-
+    public static class UnsubscribeRequest extends Interaction.AbstractInteractionRequest {
         {
-            this.setMethod(SUBSCRIBE);
+            this.setMethod(UNSUBSCRIBE);
         }
     }
 
@@ -28,10 +27,10 @@ public abstract class Subscription {
     @SuperBuilder
     @Jacksonized
     @NoArgsConstructor
-    public static class SubscribeResponse extends Interaction.AbstractInteractionResponse {
+    public static class UnsubscribeResponse extends Interaction.AbstractInteractionResponse {
         private PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject;
         {
-            this.setMethod(SUBSCRIBE);
+            this.setMethod(UNSUBSCRIBE);
         }
     }
 }

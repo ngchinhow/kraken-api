@@ -8,6 +8,7 @@ import com.kraken.api.javawrapper.websocket.model.message.AbstractPublicationMes
 import com.kraken.api.javawrapper.websocket.model.message.BookMessage;
 import com.kraken.api.javawrapper.websocket.model.method.Echo;
 import com.kraken.api.javawrapper.websocket.model.method.Subscription;
+import com.kraken.api.javawrapper.websocket.model.method.Unsubscription;
 import com.kraken.api.javawrapper.websocket.model.method.detail.channel.BookSubscription;
 import com.kraken.api.javawrapper.websocket.model.method.detail.channel.OHLCSubscription;
 import io.reactivex.rxjava3.core.Single;
@@ -114,37 +115,34 @@ public class PublicWebSocketClientTest {
         }
     }
 
-//    @Test
-//    public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSuccess() {
-//        SubscribeRequestMessage subscribeRequestMessage = buildStandardSubscribeMessage();
-//        publicWebSocketClient.subscribe(subscribeRequestMessage).stream().map(Single::blockingGet).forEach(System.out::println);
-//        UnsubscribeRequestMessage unsubscribeRequestMessage = UnsubscribeRequestMessage.builder()
-//            .pairs(subscribeRequestMessage.getPairs())
-//            .reqId(subscribeRequestMessage.getReqId())
-//            .subscription(subscribeRequestMessage.getSubscription())
-//            .build();
-//        publicWebSocketClient.unsubscribe(unsubscribeRequestMessage);
-//        while (true) {}
-
-//        this.send(subscribeAsJson);
-//        UnsubscribeMessage unsubscribeMessage = UnsubscribeMessage.builder()
-//            .subscription(subscriptionEmbeddedObject)
-//            .pair(pairs)
-//            .build();
-//        String unsubscribeAsJson;
-//        try {
-//            unsubscribeAsJson = objectMapper.writeValueAsString(unsubscribeMessage);
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException(e);
-//        }
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-//        log.info("Unsubscription payload: {}", unsubscribeAsJson);
-//        this.send(unsubscribeAsJson);
-//    }
+    @Test
+    public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSuccess() {
+        int expectedDepth = 10;
+        Subscription.SubscribeRequest subscribeRequest = buildStandardBookSubscribeRequest();
+        publicWebSocketClient.subscribe(subscribeRequest).stream().map(Single::blockingGet).forEach(System.out::println);
+        Unsubscription.UnsubscribeRequest unsubscribeRequest = buildStandardBookUnsubscribeRequest();
+        int numSymbols = unsubscribeRequest.getParams().getSymbols().size();
+        List<Single<Unsubscription.UnsubscribeResponse>> list = publicWebSocketClient.unsubscribe(unsubscribeRequest);
+        Assertions.assertEquals(
+            numSymbols,
+            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
+        );
+        list.stream()
+            .map(Single::blockingGet)
+            .forEach(response -> {
+                Assertions.assertNotNull(response);
+                Assertions.assertEquals(MethodMetadata.MethodType.UNSUBSCRIBE, response.getMethod());
+                Assertions.assertEquals(subscribeRequest.getRequestId(), response.getRequestId());
+                Assertions.assertTrue(response.getSuccess());
+                Assertions.assertTrue(response.getResult() instanceof BookSubscription.Result);
+                BookSubscription.Result result = (BookSubscription.Result) response.getResult();
+                Assertions.assertEquals(BOOK, result.getChannel());
+                Assertions.assertEquals(expectedDepth, result.getDepth());
+                PublishSubject<AbstractPublicationMessage> publishSubject = response.getPublicationMessagePublishSubject();
+                Assertions.assertNotNull(publishSubject);
+                Assertions.assertTrue(publishSubject.hasComplete());
+            });
+    }
 
     @Test
     public void givenPublicWebSocketClient_whenSubscribeTwoChannelSameReqId_thenFail() {
@@ -170,6 +168,16 @@ public class PublicWebSocketClientTest {
 
     private Subscription.SubscribeRequest buildStandardBookSubscribeRequest() {
         return Subscription.SubscribeRequest.builder()
+            .requestId(new BigInteger("12345"))
+            .params(BookSubscription.Parameter.builder()
+                .depth(10)
+                .symbols(List.of("BTC/USD", "BTC/EUR"))
+                .build())
+            .build();
+    }
+
+    private Unsubscription.UnsubscribeRequest buildStandardBookUnsubscribeRequest() {
+        return Unsubscription.UnsubscribeRequest.builder()
             .requestId(new BigInteger("12345"))
             .params(BookSubscription.Parameter.builder()
                 .depth(10)

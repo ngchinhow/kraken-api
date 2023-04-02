@@ -5,6 +5,7 @@ import com.kraken.api.javawrapper.websocket.model.message.AbstractPublicationMes
 import com.kraken.api.javawrapper.websocket.model.message.StatusMessage;
 import com.kraken.api.javawrapper.websocket.model.method.AbstractResponse;
 import com.kraken.api.javawrapper.websocket.model.method.Interaction;
+import com.kraken.api.javawrapper.websocket.model.method.Unsubscription;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
@@ -93,7 +94,9 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends AbstractPublicationMessage> void unsubscribeRequest(RequestIdentifier requestIdentifier) {
+    public <P extends AbstractPublicationMessage> void unsubscribeRequest(Unsubscription.UnsubscribeResponse unsubscribeResponse) {
+        RequestIdentifier requestIdentifier = unsubscribeResponse.toRequestIdentifier();
+        requestIdentifier.setRequestId(null);
         PublishSubject<P> abstractPublishMessageSubject = (PublishSubject<P>) subscriptionsToPublicationsMap
             .remove(requestIdentifier);
         abstractPublishMessageSubject.onComplete();
