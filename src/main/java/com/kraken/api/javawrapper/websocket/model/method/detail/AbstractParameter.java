@@ -7,6 +7,10 @@ import java.util.List;
 
 public interface AbstractParameter {
 
+    default void setToken(String token) {
+        // empty method to avoid warnings from implementing classes
+    }
+
     default String getChannel() {
         return null;
     }

@@ -26,7 +26,7 @@ public class TradeSubscription {
     @Data
     @EqualsAndHashCode(callSuper = true)
     @AllArgsConstructor
-    @NoArgsConstructor
+    @NoArgsConstructor(force = true)
     public static class Result extends AbstractChannelSubscription.Result {
         @NonNull
         private String symbol;

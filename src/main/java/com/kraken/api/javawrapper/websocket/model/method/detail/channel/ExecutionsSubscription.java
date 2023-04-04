@@ -11,7 +11,7 @@ public abstract class ExecutionsSubscription {
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     @AllArgsConstructor
-    @NoArgsConstructor
+    @NoArgsConstructor(force = true)
     public static class Parameter extends AbstractChannelSubscription.Parameter {
         @JsonProperty("snapshot_trades")
         private Boolean snapshotTrades;
@@ -30,7 +30,7 @@ public abstract class ExecutionsSubscription {
     @Data
     @EqualsAndHashCode(callSuper = true)
     @AllArgsConstructor
-    @NoArgsConstructor
+    @NoArgsConstructor(force = true)
     public static class Result extends AbstractChannelSubscription.Result {
         @JsonProperty("snapshot_trades")
         private Boolean snapshotTrades;

@@ -26,7 +26,7 @@ public abstract class BookSubscription {
     @Data
     @EqualsAndHashCode(callSuper = true)
     @AllArgsConstructor
-    @NoArgsConstructor
+    @NoArgsConstructor(force = true)
     public static class Result extends AbstractChannelSubscription.Result {
         private Integer depth;
         @NonNull

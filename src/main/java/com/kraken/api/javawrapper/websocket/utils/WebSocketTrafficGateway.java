@@ -40,10 +40,6 @@ public class WebSocketTrafficGateway {
         requestsToResponsesMap.put(requestIdentifier, responseMessageReplaySubject);
     }
 
-    public boolean isRequestSubscribed(RequestIdentifier requestIdentifier) {
-        return subscriptionsToPublicationsMap.containsKey(requestIdentifier);
-    }
-
     @SuppressWarnings("unchecked")
     public <U extends Interaction.AbstractInteractionResponse> Single<U> retrieveResponse(RequestIdentifier requestIdentifier) {
         return ((ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier)).firstOrError();
@@ -58,11 +54,6 @@ public class WebSocketTrafficGateway {
             );
         subscriptionsToPublicationsMap.putIfAbsent(requestIdentifier, publicationMessageReplaySubject);
         return publicationMessageReplaySubject;
-    }
-
-    @SuppressWarnings("unchecked")
-    public PublishSubject<AbstractPublicationMessage> getSubscriptionSubject(RequestIdentifier requestIdentifier) {
-        return (PublishSubject<AbstractPublicationMessage>) subscriptionsToPublicationsMap.get(requestIdentifier);
     }
 
     @SuppressWarnings("unchecked")
