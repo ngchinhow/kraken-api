@@ -6,10 +6,12 @@ import com.kraken.api.javawrapper.websocket.enums.ChannelMetadata;
 import com.kraken.api.javawrapper.websocket.enums.MethodMetadata;
 import com.kraken.api.javawrapper.websocket.model.message.AbstractPublicationMessage;
 import com.kraken.api.javawrapper.websocket.model.message.BookMessage;
+import com.kraken.api.javawrapper.websocket.model.message.InstrumentMessage;
 import com.kraken.api.javawrapper.websocket.model.method.Echo;
 import com.kraken.api.javawrapper.websocket.model.method.Subscription;
 import com.kraken.api.javawrapper.websocket.model.method.Unsubscription;
 import com.kraken.api.javawrapper.websocket.model.method.detail.channel.BookSubscription;
+import com.kraken.api.javawrapper.websocket.model.method.detail.channel.InstrumentSubscription;
 import com.kraken.api.javawrapper.websocket.model.method.detail.channel.OHLCSubscription;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.PublishSubject;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.kraken.api.javawrapper.websocket.enums.ChannelMetadata.ChannelType.BOOK;
@@ -47,7 +50,7 @@ public class PublicWebSocketClientTest {
     }
 
     @Test
-    public void givenPublicWebSocketClient_whenSubscribe_thenSuccess() {
+    public void givenPublicWebSocketClient_whenSubscribe_thenSucceed() {
         int testSize = 10;
         int expectedDepth = 10;
         Subscription.SubscribeRequest subscribeRequest = buildStandardBookSubscribeRequest();
@@ -116,7 +119,7 @@ public class PublicWebSocketClientTest {
     }
 
     @Test
-    public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSuccess() {
+    public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSucceed() {
         int expectedDepth = 10;
         Subscription.SubscribeRequest subscribeRequest = buildStandardBookSubscribeRequest();
         publicWebSocketClient.subscribe(subscribeRequest).stream().map(Single::blockingGet).forEach(System.out::println);
@@ -145,25 +148,52 @@ public class PublicWebSocketClientTest {
     }
 
     @Test
-    public void givenPublicWebSocketClient_whenSubscribeTwoChannelSameReqId_thenFail() {
+    public void givenPublicWebSocketClient_whenSubscribeTwoChannelSameReqId_thenSucceed() {
         Subscription.SubscribeRequest bookSubscribeRequest = this.buildStandardBookSubscribeRequest();
         Subscription.SubscribeRequest ohlcSubscribeRequest = this.buildStandardOHLCSubscribeRequest();
         List<Single<Subscription.SubscribeResponse>> bookResponses = publicWebSocketClient.subscribe(bookSubscribeRequest);
         List<Single<Subscription.SubscribeResponse>> ohlcResponses = publicWebSocketClient.subscribe(ohlcSubscribeRequest);
-        for (int i = 0; i < 2; i++) {
-            Subscription.SubscribeResponse bookResponse = bookResponses.get(i).blockingGet();
-            Subscription.SubscribeResponse ohlcResponse = ohlcResponses.get(i).blockingGet();
-        }
+        Assertions.assertEquals(
+            4,
+            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
+        );
+        bookResponses.stream()
+            .map(Single::blockingGet)
+            .forEach(r -> Assertions.assertTrue(r.getSuccess()));
+        ohlcResponses.stream()
+            .map(Single::blockingGet)
+            .forEach(r -> Assertions.assertTrue(r.getSuccess()));
     }
 
     @Test
-    public void test() {
-        Subscription.SubscribeRequest subscribeRequest = Subscription.SubscribeRequest.builder()
-            .requestId(new BigInteger("12345"))
-            .params(OHLCSubscription.Parameter.builder()
-                .symbols(List.of("XBT/USD", "XBT/EUR"))
-                .build())
-            .build();
+    public void givenPublicWebSocketClient_whenSubscribeChannelWithNoSymbol_thenSucceed() {
+        int responseSize = 1;
+        Subscription.SubscribeRequest instrumentSubscribeRequest = buildStandardInstrumentSubscribeRequest();
+        List<Single<Subscription.SubscribeResponse>> responses = publicWebSocketClient.subscribe(instrumentSubscribeRequest);
+        Assertions.assertEquals(responseSize, responses.size());
+        Assertions.assertEquals(
+            responseSize,
+            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
+        );
+        responses.stream()
+            .map(Single::blockingGet)
+            .forEach(r -> {
+                Assertions.assertTrue(Objects.nonNull(r));
+                Assertions.assertEquals(MethodMetadata.MethodType.SUBSCRIBE, r.getMethod());
+                Assertions.assertEquals(instrumentSubscribeRequest.getRequestId(), r.getRequestId());
+                Assertions.assertTrue(r.getSuccess());
+                Assertions.assertTrue(r.getResult() instanceof InstrumentSubscription.Result);
+                InstrumentSubscription.Result result = (InstrumentSubscription.Result) r.getResult();
+                Assertions.assertTrue(result.getSnapshot());
+                PublishSubject<AbstractPublicationMessage> publishSubject = r.getPublicationMessagePublishSubject();
+                Assertions.assertNotNull(publishSubject);
+                AbstractPublicationMessage message = publishSubject.blockingFirst();
+                Assertions.assertTrue(message instanceof InstrumentMessage);
+                InstrumentMessage instrumentMessage = (InstrumentMessage) message;
+                Assertions.assertEquals(ChannelMetadata.ChangeType.SNAPSHOT, instrumentMessage.getType());
+                instrumentMessage.getData().getAssets().forEach(a -> Assertions.assertNotNull(a.getId()));
+                instrumentMessage.getData().getPairs().forEach(a -> Assertions.assertNotNull(a.getSymbol()));
+            });
     }
 
     private Subscription.SubscribeRequest buildStandardBookSubscribeRequest() {
@@ -192,6 +222,15 @@ public class PublicWebSocketClientTest {
             .params(OHLCSubscription.Parameter.builder()
                 .interval(30)
                 .symbols(List.of("BTC/USD", "BTC/EUR"))
+                .build())
+            .build();
+    }
+
+    private Subscription.SubscribeRequest buildStandardInstrumentSubscribeRequest() {
+        return Subscription.SubscribeRequest.builder()
+            .requestId(new BigInteger("12345"))
+            .params(InstrumentSubscription.Parameter.builder()
+                .snapshot(true)
                 .build())
             .build();
     }

@@ -106,6 +106,8 @@ public class InstrumentMessage extends AbstractPublicationMessage {
             private Status status;
             @NonNull
             private String symbol;
+            @JsonProperty("tick_size")
+            private BigDecimal tickSize;
 
             @SuppressWarnings("unused")
             private enum Status {
