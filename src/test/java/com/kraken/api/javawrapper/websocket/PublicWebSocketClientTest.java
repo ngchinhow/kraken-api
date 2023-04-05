@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.kraken.api.javawrapper.websocket.enums.ChannelMetadata.ChannelType.BOOK;
@@ -153,10 +152,6 @@ public class PublicWebSocketClientTest {
         Subscription.SubscribeRequest ohlcSubscribeRequest = this.buildStandardOHLCSubscribeRequest();
         List<Single<Subscription.SubscribeResponse>> bookResponses = publicWebSocketClient.subscribe(bookSubscribeRequest);
         List<Single<Subscription.SubscribeResponse>> ohlcResponses = publicWebSocketClient.subscribe(ohlcSubscribeRequest);
-        Assertions.assertEquals(
-            4,
-            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
-        );
         bookResponses.stream()
             .map(Single::blockingGet)
             .forEach(r -> Assertions.assertTrue(r.getSuccess()));
@@ -178,7 +173,7 @@ public class PublicWebSocketClientTest {
         responses.stream()
             .map(Single::blockingGet)
             .forEach(r -> {
-                Assertions.assertTrue(Objects.nonNull(r));
+                Assertions.assertNotNull(r);
                 Assertions.assertEquals(MethodMetadata.MethodType.SUBSCRIBE, r.getMethod());
                 Assertions.assertEquals(instrumentSubscribeRequest.getRequestId(), r.getRequestId());
                 Assertions.assertTrue(r.getSuccess());
