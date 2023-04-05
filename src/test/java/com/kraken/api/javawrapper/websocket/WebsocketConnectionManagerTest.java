@@ -26,6 +26,7 @@ public class WebsocketConnectionManagerTest {
 
     @Test
     public void givenCredentials_whenGettingWebSocketsClient_thenSuccess() {
-//        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getKrakenWebSocketClient());
+        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getKrakenPublicWebSocketClient());
+        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getKrakenPrivateWebSocketClient());
     }
 }
