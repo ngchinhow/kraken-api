@@ -28,7 +28,7 @@ public class PublicWebSocketClientTest {
 
     @BeforeEach
     public void beforeEach() throws InterruptedException {
-        publicWebSocketClient = new KrakenConnectionManager("", "").getKrakenPublicWebSocketClient();
+        publicWebSocketClient = new KrakenConnectionManager(null, null).getKrakenPublicWebSocketClient();
         publicWebSocketClient.connectBlocking();
     }
 

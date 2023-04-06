@@ -30,16 +30,19 @@ public class KrakenRequestInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate requestTemplate) {
         if (Objects.isNull(apiKey) || Objects.isNull(privateKey)) return;
         // Step 1. Append nonce to urlencoded form payload
-        long nonce = System.currentTimeMillis();
+//        long nonce = System.currentTimeMillis();
+        long nonce = 0L;
         String nonceAsParam = "nonce=" + nonce;
         byte[] body = requestTemplate.body();
-        if (Objects.isNull(body)) return;
+        if (Objects.isNull(body))
+            body = new byte[0];
         Charset charset = requestTemplate.requestCharset();
         String bodyString = new String(body, charset);
         if (ObjectUtils.isEmpty(bodyString))
             bodyString = nonceAsParam;
         else
             bodyString = nonceAsParam  + "&" + bodyString;
+//        bodyString = URLEncoder.encode(bodyString, charset);
         requestTemplate.body(bodyString);
 
         MessageDigest digestSHA256;
