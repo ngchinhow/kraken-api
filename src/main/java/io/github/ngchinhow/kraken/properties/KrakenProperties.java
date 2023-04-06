@@ -9,7 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public abstract class KrakenProperties {
-    public static final String KRAKEN_REST_API_BASE_URI = "https://api.kraken.com/0";
+    public static final String KRAKEN_REST_API_HOST = "https://api.kraken.com";
     public static final URI KRAKEN_WEBSOCKET_API_PUBLIC_URL;
     public static final URI KRAKEN_WEBSOCKET_API_PRIVATE_URL;
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

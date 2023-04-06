@@ -25,5 +25,6 @@ public class WebsocketsAuthenticationClientTest {
         KrakenResponse<WebSocketsToken.Result> response = webSocketsAuthenticationClient.getWebsocketsToken();
         Assertions.assertNotNull(response);
         Assertions.assertTrue(response.getError().isEmpty());
+        Assertions.assertNotNull(response.getResult().getToken());
     }
 }

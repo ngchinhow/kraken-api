@@ -32,7 +32,7 @@ public final class KrakenConnectionManager {
             .logger(new Slf4jLogger())
             .logLevel(Logger.Level.FULL)
             .requestInterceptor(new KrakenRequestInterceptor(apiKey, privateKey))
-            .target(tClass, KrakenProperties.KRAKEN_REST_API_BASE_URI);
+            .target(tClass, KrakenProperties.KRAKEN_REST_API_HOST);
     }
 
     public KrakenPrivateWebSocketClient getKrakenPrivateWebSocketClient() {

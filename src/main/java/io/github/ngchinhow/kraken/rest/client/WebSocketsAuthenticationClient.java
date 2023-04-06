@@ -7,7 +7,7 @@ import feign.RequestLine;
 
 public interface WebSocketsAuthenticationClient extends RestClient {
 
-    @RequestLine("POST /private/GetWebSocketsToken")
+    @RequestLine("POST /0/private/GetWebSocketsToken")
     @Headers("Content-Type: application/x-www-form-urlencoded; charset=utf-8")
     KrakenResponse<WebSocketsToken.Result> getWebsocketsToken();
 }
