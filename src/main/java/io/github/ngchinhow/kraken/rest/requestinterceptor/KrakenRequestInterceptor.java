@@ -1,5 +1,6 @@
 package io.github.ngchinhow.kraken.rest.requestinterceptor;
 
+import feign.Request;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.apache.commons.codec.binary.Base64;
@@ -41,7 +42,8 @@ public class KrakenRequestInterceptor implements RequestInterceptor {
             bodyString = nonceAsParam;
         else
             bodyString = nonceAsParam  + "&" + bodyString;
-        requestTemplate.body(bodyString);
+        if (!requestTemplate.method().equals(Request.HttpMethod.GET.name()))
+            requestTemplate.body(bodyString);
 
         MessageDigest digestSHA256;
         String signature;
