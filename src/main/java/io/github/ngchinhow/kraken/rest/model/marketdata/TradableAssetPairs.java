@@ -5,13 +5,18 @@ import feign.Param;
 import io.github.ngchinhow.kraken.rest.model.AbstractRequest;
 import io.github.ngchinhow.kraken.rest.model.AbstractResult;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class TradableAssetPairs {
 
     @Data
+    @SuperBuilder
+    @NoArgsConstructor
     public static class Request implements AbstractRequest {
         @Param("pair")
         private List<String> pairs;
@@ -49,7 +54,7 @@ public abstract class TradableAssetPairs {
         }
 
         @Data
-        private static class AssetPair {
+        public static class AssetPair {
             private String assetPairName;
             @JsonProperty("altname")
             private String alternateName;
@@ -61,6 +66,7 @@ public abstract class TradableAssetPairs {
             @JsonProperty("aclass_quote")
             private String quoteAssetClass;
             private String quote;
+            private String lot;
             @JsonProperty("pair_decimals")
             private int pairDecimals;
             @JsonProperty("cost_decimals")
@@ -84,11 +90,11 @@ public abstract class TradableAssetPairs {
             @JsonProperty("margin_stop")
             private int marginStop;
             @JsonProperty("ordermin")
-            private int minOrder;
+            private BigDecimal minOrder;
             @JsonProperty("costmin")
-            private int minCost;
+            private BigDecimal minCost;
             @JsonProperty("tick_size")
-            private int tickSize;
+            private BigDecimal tickSize;
             private Status status;
             @JsonProperty("long_position_limit")
             private int longPositionLimit;
@@ -118,7 +124,7 @@ public abstract class TradableAssetPairs {
             @Data
             @JsonFormat(shape = JsonFormat.Shape.ARRAY)
             @JsonPropertyOrder({"volume", "percentFee"})
-            private static class Fee {
+            public static class Fee {
                 private int volume;
                 private int percentFee;
             }

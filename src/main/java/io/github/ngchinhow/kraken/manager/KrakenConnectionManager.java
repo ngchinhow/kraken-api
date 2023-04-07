@@ -3,6 +3,7 @@ package io.github.ngchinhow.kraken.manager;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.RestClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
+import io.github.ngchinhow.kraken.rest.encoder.ListJoinQueryMapEncoder;
 import io.github.ngchinhow.kraken.rest.requestinterceptor.KrakenRequestInterceptor;
 import io.github.ngchinhow.kraken.websocket.client.KrakenPrivateWebSocketClient;
 import io.github.ngchinhow.kraken.websocket.client.KrakenPublicWebSocketClient;
@@ -32,6 +33,7 @@ public final class KrakenConnectionManager {
             .logger(new Slf4jLogger())
             .logLevel(Logger.Level.FULL)
             .requestInterceptor(new KrakenRequestInterceptor(apiKey, privateKey))
+            .queryMapEncoder(new ListJoinQueryMapEncoder())
             .target(tClass, KrakenProperties.KRAKEN_REST_API_HOST);
     }
 
