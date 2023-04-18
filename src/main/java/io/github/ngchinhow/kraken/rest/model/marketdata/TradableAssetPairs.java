@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class TradableAssetPairs {
 
@@ -44,18 +45,16 @@ public abstract class TradableAssetPairs {
 
     @Data
     public static class Result implements AbstractResult {
-        private List<AssetPair> assetPairs = new ArrayList<>();
+        private Map<String, AssetPair> assetPairs = new HashMap<>();
 
         @SuppressWarnings("unused")
         @JsonAnySetter
         public void setAssetPairs(String assetPairName, AssetPair assetPair) {
-            assetPair.setAssetPairName(assetPairName);
-            assetPairs.add(assetPair);
+            assetPairs.put(assetPairName, assetPair);
         }
 
         @Data
         public static class AssetPair {
-            private String assetPairName;
             @JsonProperty("altname")
             private String alternateName;
             @JsonProperty("wsname")
@@ -123,9 +122,9 @@ public abstract class TradableAssetPairs {
 
             @Data
             @JsonFormat(shape = JsonFormat.Shape.ARRAY)
-            @JsonPropertyOrder({"volume", "percentFee"})
+            @JsonPropertyOrder({"minVolume", "percentFee"})
             public static class Fee {
-                private int volume;
+                private int minVolume;
                 private int percentFee;
             }
         }

@@ -3,6 +3,7 @@ package io.github.ngchinhow.kraken.rest;
 import io.github.ngchinhow.kraken.manager.KrakenConnectionManager;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.model.KrakenResponse;
+import io.github.ngchinhow.kraken.rest.model.marketdata.Assets;
 import io.github.ngchinhow.kraken.rest.model.marketdata.OHLCData;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ServerTime;
 import io.github.ngchinhow.kraken.rest.model.marketdata.TradableAssetPairs;
@@ -25,18 +26,37 @@ public class MarketDataClientTest {
     }
 
     @Test
+    public void givenMarketDataClient_whenGetAssetInformation_thenSucceed() {
+        List<String> pairs = List.of("XXBT", "ZUSD", "XETH");
+        Assets.Request request = Assets.Request.builder()
+            .pairs(pairs)
+            .build();
+        KrakenResponse<Assets.Result> response = MARKET_DATA_CLIENT.getAssetInformation(request);
+        Assertions.assertNotNull(response);
+        Assertions.assertTrue(response.getError().isEmpty());
+        Assets.Result result = response.getResult();
+        Assertions.assertEquals(3, result.getAssets().size());
+        result.getAssets().forEach((pairName, asset) -> {
+            Assertions.assertTrue(pairs.contains(pairName));
+            Assertions.assertNotNull(asset);
+        });
+    }
+
+    @Test
     public void givenMarketDataClient_whenGetTradableAssetPairs_thenSucceed() {
+        List<String> pairs = List.of("XXBTZUSD", "XETHXXBT");
         TradableAssetPairs.Request request = TradableAssetPairs.Request.builder()
-            .pairs(List.of("XXBTZUSD", "XETHXXBT"))
+            .pairs(pairs)
             .build();
         KrakenResponse<TradableAssetPairs.Result> response = MARKET_DATA_CLIENT.getTradeableAssetPairs(request);
         Assertions.assertNotNull(response);
         Assertions.assertTrue(response.getError().isEmpty());
         TradableAssetPairs.Result result = response.getResult();
         Assertions.assertEquals(2, result.getAssetPairs().size());
-        result.getAssetPairs().forEach(p -> {
-            Assertions.assertNotNull(p.getAssetPairName());
-            Assertions.assertFalse(p.getTakerFees().isEmpty());
+        result.getAssetPairs().forEach((pairName, assetPair) -> {
+            Assertions.assertTrue(pairs.contains(pairName));
+            Assertions.assertNotNull(assetPair);
+            Assertions.assertFalse(assetPair.getTakerFees().isEmpty());
         });
     }
 
