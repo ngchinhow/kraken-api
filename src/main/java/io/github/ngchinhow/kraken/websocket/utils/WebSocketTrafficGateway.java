@@ -46,9 +46,9 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public PublishSubject<AbstractPublicationMessage> subscribePublication(RequestIdentifier requestIdentifier) {
-        PublishSubject<AbstractPublicationMessage> publicationMessageReplaySubject =
-            (PublishSubject<AbstractPublicationMessage>) subscriptionsToPublicationsMap.getOrDefault(
+    public <P extends AbstractPublicationMessage> PublishSubject<P> subscribePublication(RequestIdentifier requestIdentifier) {
+        PublishSubject<P> publicationMessageReplaySubject =
+            (PublishSubject<P>) subscriptionsToPublicationsMap.getOrDefault(
                 requestIdentifier,
                 PublishSubject.create()
             );
