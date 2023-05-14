@@ -2,10 +2,10 @@ package io.github.ngchinhow.kraken.websocket.utils;
 
 import io.github.ngchinhow.kraken.websocket.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMessage;
-import io.github.ngchinhow.kraken.websocket.model.message.StatusMessage;
+import io.github.ngchinhow.kraken.websocket.model.message.status.StatusMessage;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResponse;
-import io.github.ngchinhow.kraken.websocket.model.method.Interaction;
-import io.github.ngchinhow.kraken.websocket.model.method.Unsubscription;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
@@ -41,7 +41,7 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <U extends Interaction.AbstractInteractionResponse> Single<U> retrieveResponse(RequestIdentifier requestIdentifier) {
+    public <U extends AbstractInteractionResponse> Single<U> retrieveResponse(RequestIdentifier requestIdentifier) {
         return ((ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier)).firstOrError();
     }
 
@@ -85,7 +85,7 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends AbstractPublicationMessage> void unsubscribeRequest(Unsubscription.UnsubscribeResponse unsubscribeResponse) {
+    public <P extends AbstractPublicationMessage> void unsubscribeRequest(UnsubscribeResponse unsubscribeResponse) {
         RequestIdentifier requestIdentifier = unsubscribeResponse.toRequestIdentifier();
         requestIdentifier.setRequestId(null);
         PublishSubject<P> abstractPublishMessageSubject = (PublishSubject<P>) subscriptionsToPublicationsMap

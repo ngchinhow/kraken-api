@@ -6,8 +6,16 @@ import io.github.ngchinhow.kraken.websocket.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.HeartbeatMessage;
-import io.github.ngchinhow.kraken.websocket.model.message.StatusMessage;
-import io.github.ngchinhow.kraken.websocket.model.method.*;
+import io.github.ngchinhow.kraken.websocket.model.message.status.StatusMessage;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.echo.PingRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.echo.PongResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
 import io.github.ngchinhow.kraken.websocket.utils.RandomUtils;
 import io.github.ngchinhow.kraken.websocket.utils.WebSocketTrafficGateway;
 import io.reactivex.rxjava3.core.Single;
@@ -63,13 +71,13 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
         }
         if (isResponse) {
-            if (abstractResponse instanceof Interaction.AbstractInteractionResponse interactionResponse &&
+            if (abstractResponse instanceof AbstractInteractionResponse interactionResponse &&
                 !interactionResponse.getSuccess()) {
                 log.error(interactionResponse.getError());
                 webSocketTrafficGateway.removeErrorRequest(abstractResponse);
             } else {
                 webSocketTrafficGateway.responseReply(abstractResponse);
-                if (abstractResponse instanceof Unsubscription.UnsubscribeResponse unsubscribeResponse)
+                if (abstractResponse instanceof UnsubscribeResponse unsubscribeResponse)
                     webSocketTrafficGateway.unsubscribeRequest(unsubscribeResponse);
             }
         } else {
@@ -106,16 +114,16 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         throw new RuntimeException(e);
     }
 
-    public Single<Echo.PongResponse> ping() {
-        return ping(new Echo.PingRequest());
+    public Single<PongResponse> ping() {
+        return ping(new PingRequest());
     }
 
-    public Single<Echo.PongResponse> ping(Echo.PingRequest pingRequest) {
+    public Single<PongResponse> ping(PingRequest pingRequest) {
         if (Objects.isNull(pingRequest.getRequestId())) pingRequest.setRequestId(this.generateRandomReqId());
         ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
         // PingRequests do not have any symbols involved, so there is only one entry - the one associated with null
         RequestIdentifier requestIdentifier = pingRequest.toRequestIdentifier(serverTime);
-        ReplaySubject<Echo.PongResponse> pongMessageReplaySubject = ReplaySubject.create();
+        ReplaySubject<PongResponse> pongMessageReplaySubject = ReplaySubject.create();
         webSocketTrafficGateway.registerRequest(requestIdentifier, pongMessageReplaySubject);
         this.sendPayload(pingRequest, serverTime);
         return pongMessageReplaySubject.firstOrError();
@@ -144,20 +152,20 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#subscribe">Kraken Subscribe</a>
      */
-    public List<Single<Subscription.SubscribeResponse>> subscribe(Subscription.SubscribeRequest subscribeRequest) {
+    public List<Single<SubscribeResponse>> subscribe(SubscribeRequest subscribeRequest) {
         if (Objects.isNull(subscribeRequest.getRequestId())) subscribeRequest.setRequestId(this.generateRandomReqId());
         ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
         List<RequestIdentifier> requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
-        List<Single<Subscription.SubscribeResponse>> list = new ArrayList<>();
+        List<Single<SubscribeResponse>> list = new ArrayList<>();
         for (RequestIdentifier requestIdentifier : requestIdentifiers) {
-            ReplaySubject<Subscription.SubscribeResponse> subscribeResponseReplaySubject = ReplaySubject.create(1);
+            ReplaySubject<SubscribeResponse> subscribeResponseReplaySubject = ReplaySubject.create(1);
             webSocketTrafficGateway.registerRequest(requestIdentifier, subscribeResponseReplaySubject);
             // Publication messages do not have req_id or timestamp information, so the RequestIdentifier cannot have
             // these field as keys in the map
             RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
             PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject = webSocketTrafficGateway
                 .subscribePublication(publicationRequestIdentifier);
-            Single<Subscription.SubscribeResponse> subscribeResponseSingle = webSocketTrafficGateway
+            Single<SubscribeResponse> subscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             subscribeResponseSingle = subscribeResponseSingle.map(e -> {
                 e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
@@ -180,18 +188,18 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#unsubscribe">Kraken Unsubscribe</a>
      */
-    public List<Single<Unsubscription.UnsubscribeResponse>> unsubscribe(Unsubscription.UnsubscribeRequest unsubscribeRequest) {
+    public List<Single<UnsubscribeResponse>> unsubscribe(UnsubscribeRequest unsubscribeRequest) {
         if (Objects.isNull(unsubscribeRequest.getRequestId())) unsubscribeRequest.setRequestId(this.generateRandomReqId());
         ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
         List<RequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
-        List<Single<Unsubscription.UnsubscribeResponse>> list = new ArrayList<>();
+        List<Single<UnsubscribeResponse>> list = new ArrayList<>();
         for (RequestIdentifier requestIdentifier : unsubscribeRequestIdentifiers) {
-            ReplaySubject<Unsubscription.UnsubscribeResponse> unsubscribeResponseSubject = ReplaySubject.create();
+            ReplaySubject<UnsubscribeResponse> unsubscribeResponseSubject = ReplaySubject.create();
             webSocketTrafficGateway.registerRequest(requestIdentifier, unsubscribeResponseSubject);
             RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
             PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject = webSocketTrafficGateway
                 .subscribePublication(publicationRequestIdentifier);
-            Single<Unsubscription.UnsubscribeResponse> unsubscribeResponseSingle = webSocketTrafficGateway
+            Single<UnsubscribeResponse> unsubscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             unsubscribeResponseSingle = unsubscribeResponseSingle.map(e -> {
                 e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);

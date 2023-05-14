@@ -1,0 +1,41 @@
+package io.github.ngchinhow.kraken.websocket.model.message.instrument;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.*;
+import lombok.Data;
+
+import java.math.BigDecimal;
+
+@Data
+@NoArgsConstructor(force = true)
+public class Asset {
+
+    @NonNull
+    private Boolean borrowable;
+    @JsonProperty(value = "collateral_value", required = true)
+    private BigDecimal collateralValue;
+    @NonNull
+    private String id;
+    @JsonProperty("margin_rate")
+    private BigDecimal marginRate;
+    @NonNull
+    private Integer precision;
+    @JsonProperty(value = "precision_display", required = true)
+    private Integer precisionDisplay;
+    @NonNull
+    private Status status;
+
+    @Getter(onMethod = @__({@JsonValue}))
+    @RequiredArgsConstructor
+    public enum Status {
+        DEPOSIT_ONLY("depositonly"),
+        DISABLED("disabled"),
+        ENABLED("enabled"),
+        FUNDING_TEMPORARILY_DISABLED("fundingtemporarilydisabled"),
+        WITHDRAWAL_ONLY("withdrawalonly"),
+        WORK_IN_PROGRESS("workinprogress");
+
+        private final String status;
+    }
+}

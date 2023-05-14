@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.github.ngchinhow.kraken.websocket.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websocket.enums.MethodMetadata;
+import io.github.ngchinhow.kraken.websocket.model.method.echo.PongResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,8 +19,8 @@ import java.time.ZonedDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     property = MethodMetadata.METHOD,
@@ -25,9 +28,9 @@ import java.time.ZonedDateTime;
     visible = true
 )
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = Echo.PongResponse.class, name = MethodMetadata.MethodType.PONG),
-    @JsonSubTypes.Type(value = Subscription.SubscribeResponse.class, name = MethodMetadata.MethodType.SUBSCRIBE),
-    @JsonSubTypes.Type(value = Unsubscription.UnsubscribeResponse.class, name = MethodMetadata.MethodType.UNSUBSCRIBE)
+    @JsonSubTypes.Type(value = PongResponse.class, name = MethodMetadata.MethodType.PONG),
+    @JsonSubTypes.Type(value = SubscribeResponse.class, name = MethodMetadata.MethodType.SUBSCRIBE),
+    @JsonSubTypes.Type(value = UnsubscribeResponse.class, name = MethodMetadata.MethodType.UNSUBSCRIBE)
 })
 public abstract class AbstractResponse extends AbstractMethod {
     @JsonProperty("time_in")

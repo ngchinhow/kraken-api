@@ -4,9 +4,11 @@ import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
 import io.github.ngchinhow.kraken.rest.model.KrakenResponse;
 import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.WebSocketsToken;
-import io.github.ngchinhow.kraken.websocket.model.method.Subscription;
-import io.github.ngchinhow.kraken.websocket.model.method.Unsubscription;
-import io.github.ngchinhow.kraken.websocket.model.method.detail.AbstractParameter;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractParameter;
+import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
 import io.reactivex.rxjava3.core.Single;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +27,7 @@ public final class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClien
     }
 
     @Override
-    public List<Single<Subscription.SubscribeResponse>> subscribe(Subscription.SubscribeRequest subscribeRequest) {
+    public List<Single<SubscribeResponse>> subscribe(SubscribeRequest subscribeRequest) {
         KrakenResponse<WebSocketsToken.Result> tokenResponse = authenticationClient.getWebsocketsToken();
         if (Objects.nonNull(tokenResponse.getResult())) {
             AbstractParameter param = subscribeRequest.getParams();
@@ -41,7 +43,7 @@ public final class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClien
     }
 
     @Override
-    public List<Single<Unsubscription.UnsubscribeResponse>> unsubscribe(Unsubscription.UnsubscribeRequest unsubscribeRequest) {
+    public List<Single<UnsubscribeResponse>> unsubscribe(UnsubscribeRequest unsubscribeRequest) {
         KrakenResponse<WebSocketsToken.Result> tokenResponse = authenticationClient.getWebsocketsToken();
         if (Objects.nonNull(tokenResponse.getResult())) {
             AbstractParameter param = unsubscribeRequest.getParams();
