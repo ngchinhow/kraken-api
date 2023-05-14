@@ -80,7 +80,7 @@ public class Execution {
     @JsonProperty("triggered_price")
     private BigDecimal triggeredPrice;
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum ExecutionType {
         PENDING_NEW("pending_new"),
@@ -93,7 +93,7 @@ public class Execution {
         private final String executionType;
     }
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum FeeCurrencyPreference {
         FCIB("fcib"),
@@ -102,7 +102,7 @@ public class Execution {
         private final String feePreference;
     }
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum LiquidityIndicator {
         TAKER("t"),
@@ -111,7 +111,7 @@ public class Execution {
         private final String liquidityIndicator;
     }
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum OrderStatus {
         PENDING_NEW("pending_new"),
@@ -125,7 +125,7 @@ public class Execution {
         private final String orderStatus;
     }
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum OrderType {
         MARKET("market"),
@@ -146,7 +146,7 @@ public class Execution {
         private final String orderType;
     }
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum Side {
         BUY("buy"),
@@ -162,7 +162,7 @@ public class Execution {
         GTC
     }
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum Trigger {
         INDEX("index");

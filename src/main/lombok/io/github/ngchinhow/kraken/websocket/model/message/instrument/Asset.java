@@ -26,7 +26,7 @@ public class Asset {
     @NonNull
     private Status status;
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum Status {
         DEPOSIT_ONLY("depositonly"),

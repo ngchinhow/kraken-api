@@ -45,7 +45,7 @@ public class Pair {
     @JsonProperty("tick_size")
     private BigDecimal tickSize;
 
-    @Getter(onMethod = @__({@JsonValue}))
+    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum Status {
         CANCEL_ONLY("cancel_only"),
