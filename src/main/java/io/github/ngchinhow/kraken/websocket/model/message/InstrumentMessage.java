@@ -50,7 +50,7 @@ public class InstrumentMessage extends AbstractPublicationMessage {
             private Status status;
 
             @SuppressWarnings("unused")
-            private enum Status {
+            public enum Status {
                 DEPOSIT_ONLY("depositonly"),
                 DISABLED("disabled"),
                 ENABLED("enabled"),
@@ -110,7 +110,7 @@ public class InstrumentMessage extends AbstractPublicationMessage {
             private BigDecimal tickSize;
 
             @SuppressWarnings("unused")
-            private enum Status {
+            public enum Status {
                 CANCEL_ONLY("cancel_only"),
                 DELISTED("delisted"),
                 LIMIT_ONLY("limit_only"),
