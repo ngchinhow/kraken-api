@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.requestinterceptor;
+package io.github.ngchinhow.kraken.rest.interceptor;
 
 import feign.Request;
 import feign.RequestInterceptor;

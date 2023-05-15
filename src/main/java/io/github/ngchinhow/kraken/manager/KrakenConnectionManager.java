@@ -4,7 +4,8 @@ import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.RestClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
 import io.github.ngchinhow.kraken.rest.encoder.ListJoinQueryMapEncoder;
-import io.github.ngchinhow.kraken.rest.requestinterceptor.KrakenRequestInterceptor;
+import io.github.ngchinhow.kraken.rest.interceptor.KrakenRequestInterceptor;
+import io.github.ngchinhow.kraken.rest.interceptor.KrakenResponseInterceptor;
 import io.github.ngchinhow.kraken.websocket.client.KrakenPrivateWebSocketClient;
 import io.github.ngchinhow.kraken.websocket.client.KrakenPublicWebSocketClient;
 import feign.Feign;
@@ -28,11 +29,12 @@ public final class KrakenConnectionManager {
     public <T extends RestClient> T getRestClient(Class<T> tClass) {
         return Feign.builder()
             .client(new OkHttpClient())
-            .decoder(new JacksonDecoder(KrakenProperties.OBJECT_MAPPER))
-            .encoder(new JacksonEncoder(KrakenProperties.OBJECT_MAPPER))
+            .decoder(new JacksonDecoder(KrakenProperties.REST_OBJECT_MAPPER))
+            .encoder(new JacksonEncoder(KrakenProperties.REST_OBJECT_MAPPER))
             .logger(new Slf4jLogger())
             .logLevel(Logger.Level.FULL)
             .requestInterceptor(new KrakenRequestInterceptor(apiKey, privateKey))
+            .responseInterceptor(new KrakenResponseInterceptor())
             .queryMapEncoder(new ListJoinQueryMapEncoder())
             .target(tClass, KrakenProperties.KRAKEN_REST_API_HOST);
     }

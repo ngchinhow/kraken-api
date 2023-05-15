@@ -2,8 +2,7 @@ package io.github.ngchinhow.kraken.rest;
 
 import io.github.ngchinhow.kraken.manager.KrakenConnectionManager;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
-import io.github.ngchinhow.kraken.rest.model.KrakenResponse;
-import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.WebSocketsToken;
+import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.token.WebSocketsTokenResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -16,9 +15,8 @@ public class WebsocketsAuthenticationClientTest {
 
     @Test
     public void givenAPICredentials_whenGetWebSocketsToken_thenSucceed() {
-        KrakenResponse<WebSocketsToken.Result> response = WEB_SOCKETS_AUTHENTICATION_CLIENT.getWebsocketsToken();
+        WebSocketsTokenResult response = WEB_SOCKETS_AUTHENTICATION_CLIENT.getWebsocketsToken();
         Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.getError().isEmpty());
-        Assertions.assertNotNull(response.getResult().getToken());
+        Assertions.assertNotNull(response.getToken());
     }
 }

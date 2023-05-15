@@ -1,12 +1,15 @@
 package io.github.ngchinhow.kraken.rest;
 
+import feign.FeignException;
 import io.github.ngchinhow.kraken.manager.KrakenConnectionManager;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
-import io.github.ngchinhow.kraken.rest.model.KrakenResponse;
-import io.github.ngchinhow.kraken.rest.model.marketdata.Assets;
-import io.github.ngchinhow.kraken.rest.model.marketdata.OHLCData;
-import io.github.ngchinhow.kraken.rest.model.marketdata.ServerTime;
-import io.github.ngchinhow.kraken.rest.model.marketdata.TradableAssetPairs;
+import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -19,22 +22,19 @@ public class MarketDataClientTest {
 
     @Test
     public void givenMarketDataClient_whenGetServerTime_thenSucceed() {
-        KrakenResponse<ServerTime.Result> response = MARKET_DATA_CLIENT.getServerTime();
+        ServerTimeResult response = MARKET_DATA_CLIENT.getServerTime();
         Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.getError().isEmpty());
-        Assertions.assertNotNull(response.getResult().getIsoTime());
+        Assertions.assertNotNull(response.getIsoTime());
     }
 
     @Test
     public void givenMarketDataClient_whenGetAssetInformation_thenSucceed() {
         List<String> pairs = List.of("XXBT", "ZUSD", "XETH");
-        Assets.Request request = Assets.Request.builder()
+        AssetRequest request = AssetRequest.builder()
             .pairs(pairs)
             .build();
-        KrakenResponse<Assets.Result> response = MARKET_DATA_CLIENT.getAssetInformation(request);
-        Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.getError().isEmpty());
-        Assets.Result result = response.getResult();
+        AssetResult result = MARKET_DATA_CLIENT.getAssetInformation(request);
+        Assertions.assertNotNull(result);
         Assertions.assertEquals(3, result.getAssets().size());
         result.getAssets().forEach((pairName, asset) -> {
             Assertions.assertTrue(pairs.contains(pairName));
@@ -43,15 +43,26 @@ public class MarketDataClientTest {
     }
 
     @Test
-    public void givenMarketDataClient_whenGetTradableAssetPairs_thenSucceed() {
-        List<String> pairs = List.of("XXBTZUSD", "XETHXXBT");
-        TradableAssetPairs.Request request = TradableAssetPairs.Request.builder()
+    public void givenMarketDataClient_whenGetAssetInformationWithInvalidAsset_thenFail() {
+        List<String> pairs = List.of("ABC123");
+        AssetRequest request = AssetRequest.builder()
             .pairs(pairs)
             .build();
-        KrakenResponse<TradableAssetPairs.Result> response = MARKET_DATA_CLIENT.getTradeableAssetPairs(request);
-        Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.getError().isEmpty());
-        TradableAssetPairs.Result result = response.getResult();
+        Assertions.assertThrows(
+            FeignException.BadRequest.class,
+            () -> MARKET_DATA_CLIENT.getAssetInformation(request),
+            "EQuery:Unknown asset"
+        );
+    }
+
+    @Test
+    public void givenMarketDataClient_whenGetTradableAssetPairs_thenSucceed() {
+        List<String> pairs = List.of("XXBTZUSD", "XETHXXBT");
+        TradableAssetPairRequest request = TradableAssetPairRequest.builder()
+            .pairs(pairs)
+            .build();
+        TradableAssetPairResult result = MARKET_DATA_CLIENT.getTradeableAssetPairs(request);
+        Assertions.assertNotNull(result);
         Assertions.assertEquals(2, result.getAssetPairs().size());
         result.getAssetPairs().forEach((pairName, assetPair) -> {
             Assertions.assertTrue(pairs.contains(pairName));
@@ -61,16 +72,38 @@ public class MarketDataClientTest {
     }
 
     @Test
+    public void givenMarketDataClient_whenGetTradableAssetPairsWithInvalidPair_thenFail() {
+        List<String> pairs = List.of("ABC/123");
+        TradableAssetPairRequest request = TradableAssetPairRequest.builder()
+            .pairs(pairs)
+            .build();
+        Assertions.assertThrows(
+            FeignException.BadRequest.class,
+            () -> MARKET_DATA_CLIENT.getTradeableAssetPairs(request),
+            "EQuery:Unknown asset pair"
+        );
+    }
+
+    @Test
     public void givenMarketDataClient_whenGetOHLCData_thenSucceed() {
-        OHLCData.Request request = OHLCData.Request.builder()
+        OHLCRequest request = OHLCRequest.builder()
             .pair("XXBTZUSD")
             .build();
-        KrakenResponse<OHLCData.Result> response = MARKET_DATA_CLIENT.getOHLCData(request);
-        Assertions.assertNotNull(response);
-        Assertions.assertTrue(response.getError().isEmpty());
-        OHLCData.Result result = response.getResult();
+        OHLCResult result = MARKET_DATA_CLIENT.getOHLCData(request);
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getAssetPairName());
         Assertions.assertFalse(result.getTicks().isEmpty());
+    }
+
+    @Test
+    public void givenMarketDataClient_whenGetOHLCDataWithInvalidPair_thenFail() {
+        OHLCRequest request = OHLCRequest.builder()
+            .pair("ABC/123")
+            .build();
+        Assertions.assertThrows(
+            FeignException.BadRequest.class,
+            () -> MARKET_DATA_CLIENT.getOHLCData(request),
+            "EQuery:Unknown asset pair"
+        );
     }
 }

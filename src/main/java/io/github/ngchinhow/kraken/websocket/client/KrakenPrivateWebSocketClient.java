@@ -2,8 +2,7 @@ package io.github.ngchinhow.kraken.websocket.client;
 
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
-import io.github.ngchinhow.kraken.rest.model.KrakenResponse;
-import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.WebSocketsToken;
+import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.token.WebSocketsTokenResult;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractParameter;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeRequest;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
@@ -13,7 +12,6 @@ import io.reactivex.rxjava3.core.Single;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.Objects;
 
 import static io.github.ngchinhow.kraken.properties.KrakenProperties.KRAKEN_WEBSOCKET_API_PRIVATE_URL;
 
@@ -28,33 +26,19 @@ public final class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClien
 
     @Override
     public List<Single<SubscribeResponse>> subscribe(SubscribeRequest subscribeRequest) {
-        KrakenResponse<WebSocketsToken.Result> tokenResponse = authenticationClient.getWebsocketsToken();
-        if (Objects.nonNull(tokenResponse.getResult())) {
-            AbstractParameter param = subscribeRequest.getParams();
-            param.setToken(tokenResponse.getResult().getToken());
-            subscribeRequest.setParams(param);
-        } else if (Objects.nonNull(tokenResponse.getError())) {
-            String message = "Unable to retrieve token for private WebSockets authentication. Errors are: \n" +
-                String.join("\n", tokenResponse.getError());
-            log.error(message);
-            throw new RuntimeException(message);
-        }
+        WebSocketsTokenResult tokenResponse = authenticationClient.getWebsocketsToken();
+        AbstractParameter param = subscribeRequest.getParams();
+        param.setToken(tokenResponse.getToken());
+        subscribeRequest.setParams(param);
         return super.subscribe(subscribeRequest);
     }
 
     @Override
     public List<Single<UnsubscribeResponse>> unsubscribe(UnsubscribeRequest unsubscribeRequest) {
-        KrakenResponse<WebSocketsToken.Result> tokenResponse = authenticationClient.getWebsocketsToken();
-        if (Objects.nonNull(tokenResponse.getResult())) {
-            AbstractParameter param = unsubscribeRequest.getParams();
-            param.setToken(tokenResponse.getResult().getToken());
-            unsubscribeRequest.setParams(param);
-        } else if (Objects.nonNull(tokenResponse.getError())) {
-            String message = "Unable to retrieve token for private WebSockets authentication. Errors are: \n" +
-                String.join("\n", tokenResponse.getError());
-            log.error(message);
-            throw new RuntimeException(message);
-        }
+        WebSocketsTokenResult tokenResponse = authenticationClient.getWebsocketsToken();
+        AbstractParameter param = unsubscribeRequest.getParams();
+        param.setToken(tokenResponse.getToken());
+        unsubscribeRequest.setParams(param);
         return super.unsubscribe(unsubscribeRequest);
     }
 }

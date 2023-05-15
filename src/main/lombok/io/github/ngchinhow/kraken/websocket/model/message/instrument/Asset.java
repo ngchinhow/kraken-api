@@ -29,11 +29,11 @@ public class Asset {
     @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum Status {
-        DEPOSIT_ONLY("depositonly"),
-        DISABLED("disabled"),
         ENABLED("enabled"),
-        FUNDING_TEMPORARILY_DISABLED("fundingtemporarilydisabled"),
+        DEPOSIT_ONLY("depositonly"),
         WITHDRAWAL_ONLY("withdrawalonly"),
+        FUNDING_TEMPORARILY_DISABLED("fundingtemporarilydisabled"),
+        DISABLED("disabled"),
         WORK_IN_PROGRESS("workinprogress");
 
         private final String status;

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.github.ngchinhow.kraken.properties.KrakenProperties.KRAKEN_REQ_ID_MAX_LIMIT;
-import static io.github.ngchinhow.kraken.properties.KrakenProperties.OBJECT_MAPPER;
+import static io.github.ngchinhow.kraken.properties.KrakenProperties.WEBSOCKET_OBJECT_MAPPER;
 
 /**
  * Basal class handling logic against Kraken's WebSockets V2 API
@@ -65,7 +65,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         boolean isResponse = false;
         boolean isMessage = false;
         try {
-            abstractResponse = OBJECT_MAPPER.readValue(s, AbstractResponse.class);
+            abstractResponse = WEBSOCKET_OBJECT_MAPPER.readValue(s, AbstractResponse.class);
             isResponse = true;
         } catch (JsonProcessingException e) {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
@@ -82,7 +82,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             }
         } else {
             try {
-                abstractMessage = OBJECT_MAPPER.readValue(s, AbstractMessage.class);
+                abstractMessage = WEBSOCKET_OBJECT_MAPPER.readValue(s, AbstractMessage.class);
                 isMessage = true;
             } catch (JsonProcessingException ex) {
                 throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
@@ -120,7 +120,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
 
     public Single<PongResponse> ping(PingRequest pingRequest) {
         if (Objects.isNull(pingRequest.getRequestId())) pingRequest.setRequestId(this.generateRandomReqId());
-        ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
+        ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
         // PingRequests do not have any symbols involved, so there is only one entry - the one associated with null
         RequestIdentifier requestIdentifier = pingRequest.toRequestIdentifier(serverTime);
         ReplaySubject<PongResponse> pongMessageReplaySubject = ReplaySubject.create();
@@ -154,7 +154,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      */
     public List<Single<SubscribeResponse>> subscribe(SubscribeRequest subscribeRequest) {
         if (Objects.isNull(subscribeRequest.getRequestId())) subscribeRequest.setRequestId(this.generateRandomReqId());
-        ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
+        ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
         List<RequestIdentifier> requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
         List<Single<SubscribeResponse>> list = new ArrayList<>();
         for (RequestIdentifier requestIdentifier : requestIdentifiers) {
@@ -190,7 +190,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      */
     public List<Single<UnsubscribeResponse>> unsubscribe(UnsubscribeRequest unsubscribeRequest) {
         if (Objects.isNull(unsubscribeRequest.getRequestId())) unsubscribeRequest.setRequestId(this.generateRandomReqId());
-        ZonedDateTime serverTime = marketDataClient.getServerTime().getResult().getIsoTime();
+        ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
         List<RequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
         List<Single<UnsubscribeResponse>> list = new ArrayList<>();
         for (RequestIdentifier requestIdentifier : unsubscribeRequestIdentifiers) {
@@ -234,7 +234,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     private <T extends AbstractRequest> void sendPayload(T request, ZonedDateTime timestamp) {
         String requestAsJson;
         try {
-            requestAsJson = OBJECT_MAPPER.writeValueAsString(request);
+            requestAsJson = WEBSOCKET_OBJECT_MAPPER.writeValueAsString(request);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
