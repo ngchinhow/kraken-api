@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor(force = true)
-public class Pair {
+public class AssetPair {
     @NonNull
     private String base;
     @JsonProperty(value = "cost_min", required = true)

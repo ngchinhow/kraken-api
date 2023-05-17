@@ -11,5 +11,5 @@ public class Data {
     @NonNull
     private List<Asset> assets;
     @NonNull
-    private List<Pair> pairs;
+    private List<AssetPair> pairs;
 }
