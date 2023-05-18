@@ -92,7 +92,7 @@ public class MarketDataClientTest {
         OHLCResult result = MARKET_DATA_CLIENT.getOHLCData(request);
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getAssetPairName());
-        Assertions.assertFalse(result.getTicks().isEmpty());
+        Assertions.assertFalse(result.getOhlcList().isEmpty());
     }
 
     @Test
