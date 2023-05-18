@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor(force = true)
-public class OHLC {
+public class WebSocketsOHLC {
     @NonNull
     private BigDecimal close;
     @NonNull

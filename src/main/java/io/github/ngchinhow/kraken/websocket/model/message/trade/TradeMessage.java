@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TradeMessage extends AbstractPublicationMessage {
-    private List<Trade> data;
+    private List<WebSocketsTrade> data;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.TRADE);

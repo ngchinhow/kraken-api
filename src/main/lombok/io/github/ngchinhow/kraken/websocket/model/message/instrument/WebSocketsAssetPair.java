@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor(force = true)
-public class AssetPair {
+public class WebSocketsAssetPair {
     @NonNull
     private String base;
     @JsonProperty(value = "cost_min", required = true)

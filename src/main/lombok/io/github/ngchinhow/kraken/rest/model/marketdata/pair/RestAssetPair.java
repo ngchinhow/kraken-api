@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class AssetPair {
+public class RestAssetPair {
     @JsonProperty("altname")
     private String alternateName;
     @JsonProperty("wsname")

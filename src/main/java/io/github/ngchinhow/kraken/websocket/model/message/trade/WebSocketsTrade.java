@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 
 @Data
 @NoArgsConstructor(force = true)
-public class Trade {
+public class WebSocketsTrade {
     @JsonProperty(value = "ord_type", required = true)
     private String orderType;
     @NonNull

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
-public class Asset {
+public class RestAsset {
     @JsonProperty("aclass")
     private String assetClass;
     @JsonProperty("altname")

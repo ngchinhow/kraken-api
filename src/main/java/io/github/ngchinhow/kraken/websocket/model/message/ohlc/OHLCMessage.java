@@ -20,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OHLCMessage extends AbstractPublicationMessage {
-    private List<OHLC> data;
+    private List<WebSocketsOHLC> data;
     private ZonedDateTime timestamp;
 
     {

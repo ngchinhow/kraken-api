@@ -9,11 +9,11 @@ import java.util.Map;
 
 @Data
 public class AssetResult implements AbstractResult {
-    private Map<String, Asset> assets = new HashMap<>();
+    private Map<String, RestAsset> assets = new HashMap<>();
 
     @SuppressWarnings("unused")
     @JsonAnySetter
-    public void setAssets(String assetName, Asset asset) {
+    public void setAssets(String assetName, RestAsset asset) {
         assets.put(assetName, asset);
     }
 }

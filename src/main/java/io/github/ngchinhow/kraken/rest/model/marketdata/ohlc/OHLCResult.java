@@ -10,12 +10,12 @@ import java.util.List;
 public class OHLCResult implements AbstractResult {
     private Long last;
     private String assetPairName;
-    private List<Tick> ticks;
+    private List<RestOHLC> ohlc;
 
     @SuppressWarnings("unused")
     @JsonAnySetter
-    public void setOHLCData(String assetPairName, List<Tick> ticks) {
+    public void setOHLCData(String assetPairName, List<RestOHLC> ohlc) {
         this.assetPairName = assetPairName;
-        this.ticks = ticks;
+        this.ohlc = ohlc;
     }
 }

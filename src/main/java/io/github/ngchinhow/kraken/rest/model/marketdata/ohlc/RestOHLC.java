@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Data
 @JsonFormat(shape = JsonFormat.Shape.ARRAY)
 @JsonPropertyOrder({"time", "open", "high", "low", "close", "vwap", "volume", "count"})
-public class Tick {
+public class RestOHLC {
     private Long time;
     private BigDecimal open;
     private BigDecimal high;

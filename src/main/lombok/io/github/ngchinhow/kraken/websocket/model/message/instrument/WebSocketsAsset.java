@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor(force = true)
-public class Asset {
+public class WebSocketsAsset {
 
     @NonNull
     private Boolean borrowable;

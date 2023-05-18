@@ -9,7 +9,7 @@ import java.util.List;
 @NoArgsConstructor(force = true)
 public class Data {
     @NonNull
-    private List<Asset> assets;
+    private List<WebSocketsAsset> assets;
     @NonNull
-    private List<AssetPair> pairs;
+    private List<WebSocketsAssetPair> pairs;
 }
