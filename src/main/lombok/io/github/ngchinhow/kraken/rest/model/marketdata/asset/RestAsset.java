@@ -2,16 +2,18 @@ package io.github.ngchinhow.kraken.rest.model.marketdata.asset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter(value = AccessLevel.PACKAGE)
+@EqualsAndHashCode
+@ToString
 @NoArgsConstructor
+@AllArgsConstructor
 public class RestAsset {
+    private String name;
     @JsonProperty("aclass")
     private String assetClass;
     @JsonProperty("altname")
