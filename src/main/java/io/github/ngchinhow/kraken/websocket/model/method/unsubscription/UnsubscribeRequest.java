@@ -2,6 +2,7 @@ package io.github.ngchinhow.kraken.websocket.model.method.unsubscription;
 
 import io.github.ngchinhow.kraken.websocket.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractParameter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized
 @NoArgsConstructor
-public class UnsubscribeRequest extends AbstractInteractionRequest {
+public class UnsubscribeRequest<T extends AbstractParameter> extends AbstractInteractionRequest<T> {
     {
         this.setMethod(MethodMetadata.MethodType.UNSUBSCRIBE);
     }

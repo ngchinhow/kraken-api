@@ -6,6 +6,7 @@ import feign.RequestTemplate;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -29,7 +30,7 @@ public class KrakenRequestInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate requestTemplate) {
-        if (Objects.isNull(apiKey) || Objects.isNull(privateKey)) return;
+        if (StringUtils.isBlank(apiKey) || StringUtils.isBlank(privateKey)) return;
         // Step 1. Append nonce to urlencoded form payload
         long nonce = System.currentTimeMillis();
         String nonceAsParam = "nonce=" + nonce;

@@ -5,6 +5,7 @@ import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMes
 import io.github.ngchinhow.kraken.websocket.model.message.status.StatusMessage;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
 import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.PublishSubject;
@@ -41,7 +42,7 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <U extends AbstractInteractionResponse> Single<U> retrieveResponse(RequestIdentifier requestIdentifier) {
+    public <R extends AbstractResult, U extends AbstractInteractionResponse<R>> Single<U> retrieveResponse(RequestIdentifier requestIdentifier) {
         return ((ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier)).firstOrError();
     }
 
@@ -85,7 +86,8 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends AbstractPublicationMessage> void unsubscribeRequest(UnsubscribeResponse unsubscribeResponse) {
+    public <R extends AbstractResult, P extends AbstractPublicationMessage>
+    void unsubscribeRequest(UnsubscribeResponse<R, P> unsubscribeResponse) {
         RequestIdentifier requestIdentifier = unsubscribeResponse.toRequestIdentifier();
         requestIdentifier.setRequestId(null);
         PublishSubject<P> abstractPublishMessageSubject = (PublishSubject<P>) subscriptionsToPublicationsMap

@@ -7,11 +7,9 @@ import io.github.ngchinhow.kraken.websocket.model.message.AbstractMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.HeartbeatMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.status.StatusMessage;
-import io.github.ngchinhow.kraken.websocket.model.method.AbstractRequest;
-import io.github.ngchinhow.kraken.websocket.model.method.AbstractResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.*;
 import io.github.ngchinhow.kraken.websocket.model.method.echo.PingRequest;
 import io.github.ngchinhow.kraken.websocket.model.method.echo.PongResponse;
-import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeRequest;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeRequest;
@@ -71,13 +69,13 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
         }
         if (isResponse) {
-            if (abstractResponse instanceof AbstractInteractionResponse interactionResponse &&
+            if (abstractResponse instanceof AbstractInteractionResponse<?> interactionResponse &&
                 !interactionResponse.getSuccess()) {
                 log.error(interactionResponse.getError());
                 webSocketTrafficGateway.removeErrorRequest(abstractResponse);
             } else {
                 webSocketTrafficGateway.responseReply(abstractResponse);
-                if (abstractResponse instanceof UnsubscribeResponse unsubscribeResponse)
+                if (abstractResponse instanceof UnsubscribeResponse<?, ?> unsubscribeResponse)
                     webSocketTrafficGateway.unsubscribeRequest(unsubscribeResponse);
             }
         } else {
@@ -90,13 +88,15 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         }
         if (isMessage) {
             if (abstractMessage instanceof HeartbeatMessage heartbeatMessage) {
-                //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of HeartbeatMessages
-                // to extend max time.
+                //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of
+                // HeartbeatMessages to extend max time.
             } else if (abstractMessage instanceof StatusMessage statusMessage) {
                 webSocketTrafficGateway.responseAnnounce(statusMessage);
-            } else {
-                AbstractPublicationMessage publicationMessage = (AbstractPublicationMessage) abstractMessage;
+            } else if (abstractMessage instanceof AbstractPublicationMessage publicationMessage) {
                 webSocketTrafficGateway.publishMessage(publicationMessage);
+            } else {
+                log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
+                    "Received class is {}", abstractMessage.getClass());
             }
         }
         if (Objects.nonNull(abstractResponse)) log.trace("Response class: {}", abstractResponse);
@@ -146,26 +146,27 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      *   </li>
      * </ol>
      * <p>
-     * @param subscribeRequest The subscription payload from the user
      *
+     * @param subscribeRequest The subscription payload from the user
      * @return List of Single of SubscribeResponses
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#subscribe">Kraken Subscribe</a>
      */
-    public List<Single<SubscribeResponse>> subscribe(SubscribeRequest subscribeRequest) {
+    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    List<Single<SubscribeResponse<R, P>>> subscribe(SubscribeRequest<T> subscribeRequest) {
         if (Objects.isNull(subscribeRequest.getRequestId())) subscribeRequest.setRequestId(this.generateRandomReqId());
         ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
         List<RequestIdentifier> requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
-        List<Single<SubscribeResponse>> list = new ArrayList<>();
+        List<Single<SubscribeResponse<R, P>>> list = new ArrayList<>();
         for (RequestIdentifier requestIdentifier : requestIdentifiers) {
-            ReplaySubject<SubscribeResponse> subscribeResponseReplaySubject = ReplaySubject.create(1);
+            ReplaySubject<SubscribeResponse<R, P>> subscribeResponseReplaySubject = ReplaySubject.create(1);
             webSocketTrafficGateway.registerRequest(requestIdentifier, subscribeResponseReplaySubject);
             // Publication messages do not have req_id or timestamp information, so the RequestIdentifier cannot have
             // these field as keys in the map
             RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
-            PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject = webSocketTrafficGateway
+            PublishSubject<P> publicationMessagePublishSubject = webSocketTrafficGateway
                 .subscribePublication(publicationRequestIdentifier);
-            Single<SubscribeResponse> subscribeResponseSingle = webSocketTrafficGateway
+            Single<SubscribeResponse<R, P>> subscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             subscribeResponseSingle = subscribeResponseSingle.map(e -> {
                 e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
@@ -188,18 +189,20 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#unsubscribe">Kraken Unsubscribe</a>
      */
-    public List<Single<UnsubscribeResponse>> unsubscribe(UnsubscribeRequest unsubscribeRequest) {
-        if (Objects.isNull(unsubscribeRequest.getRequestId())) unsubscribeRequest.setRequestId(this.generateRandomReqId());
+    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    List<Single<UnsubscribeResponse<R, P>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
+        if (Objects.isNull(unsubscribeRequest.getRequestId()))
+            unsubscribeRequest.setRequestId(this.generateRandomReqId());
         ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
         List<RequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
-        List<Single<UnsubscribeResponse>> list = new ArrayList<>();
+        List<Single<UnsubscribeResponse<R, P>>> list = new ArrayList<>();
         for (RequestIdentifier requestIdentifier : unsubscribeRequestIdentifiers) {
-            ReplaySubject<UnsubscribeResponse> unsubscribeResponseSubject = ReplaySubject.create();
+            ReplaySubject<UnsubscribeResponse<R, P>> unsubscribeResponseSubject = ReplaySubject.create();
             webSocketTrafficGateway.registerRequest(requestIdentifier, unsubscribeResponseSubject);
             RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
-            PublishSubject<AbstractPublicationMessage> publicationMessagePublishSubject = webSocketTrafficGateway
+            PublishSubject<P> publicationMessagePublishSubject = webSocketTrafficGateway
                 .subscribePublication(publicationRequestIdentifier);
-            Single<UnsubscribeResponse> unsubscribeResponseSingle = webSocketTrafficGateway
+            Single<UnsubscribeResponse<R, P>> unsubscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             unsubscribeResponseSingle = unsubscribeResponseSingle.map(e -> {
                 e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);

@@ -15,8 +15,8 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class AbstractInteractionRequest extends AbstractRequest {
-    private AbstractParameter params;
+public abstract class AbstractInteractionRequest<T extends AbstractParameter> extends AbstractRequest {
+    private T params;
 
     public List<RequestIdentifier> toRequestIdentifiers(ZonedDateTime timestamp) {
         RequestIdentifier.Builder builder = super.toRequestIdentifier(timestamp).toBuilder();

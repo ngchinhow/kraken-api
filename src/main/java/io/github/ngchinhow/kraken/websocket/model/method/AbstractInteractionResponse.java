@@ -12,8 +12,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class AbstractInteractionResponse extends AbstractResponse {
-    private AbstractResult result;
+public abstract class AbstractInteractionResponse<T extends AbstractResult> extends AbstractResponse {
+    private T result;
     private Boolean success;
     private String error;
 

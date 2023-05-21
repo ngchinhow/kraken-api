@@ -3,7 +3,9 @@ package io.github.ngchinhow.kraken.websocket.client;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
 import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.token.WebSocketsTokenResult;
+import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMessage;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractParameter;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeRequest;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeRequest;
@@ -25,18 +27,20 @@ public final class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClien
     }
 
     @Override
-    public List<Single<SubscribeResponse>> subscribe(SubscribeRequest subscribeRequest) {
+    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    List<Single<SubscribeResponse<R, P>>> subscribe(SubscribeRequest<T> subscribeRequest) {
         WebSocketsTokenResult tokenResponse = authenticationClient.getWebsocketsToken();
-        AbstractParameter param = subscribeRequest.getParams();
+        T param = subscribeRequest.getParams();
         param.setToken(tokenResponse.getToken());
         subscribeRequest.setParams(param);
         return super.subscribe(subscribeRequest);
     }
 
     @Override
-    public List<Single<UnsubscribeResponse>> unsubscribe(UnsubscribeRequest unsubscribeRequest) {
+    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    List<Single<UnsubscribeResponse<R, P>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
         WebSocketsTokenResult tokenResponse = authenticationClient.getWebsocketsToken();
-        AbstractParameter param = unsubscribeRequest.getParams();
+        T param = unsubscribeRequest.getParams();
         param.setToken(tokenResponse.getToken());
         unsubscribeRequest.setParams(param);
         return super.unsubscribe(unsubscribeRequest);
