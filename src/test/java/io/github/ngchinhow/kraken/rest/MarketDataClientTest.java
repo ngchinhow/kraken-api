@@ -36,9 +36,9 @@ public class MarketDataClientTest {
         AssetResult result = MARKET_DATA_CLIENT.getAssetInformation(request);
         Assertions.assertNotNull(result);
         Assertions.assertEquals(3, result.getAssets().size());
-        result.getAssets().forEach(asset -> {
+        result.getAssets().forEach((name, asset) -> {
             Assertions.assertNotNull(asset);
-            Assertions.assertTrue(pairs.contains(asset.getName()) || pairs.contains(asset.getAlternateName()));
+            Assertions.assertTrue(pairs.contains(name) || pairs.contains(asset.getAlternateName()));
         });
     }
 
