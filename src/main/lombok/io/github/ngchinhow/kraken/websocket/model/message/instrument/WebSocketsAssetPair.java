@@ -2,10 +2,14 @@ package io.github.ngchinhow.kraken.websocket.model.message.instrument;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.*;
 import lombok.Data;
+import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor(force = true)
@@ -45,7 +49,6 @@ public class WebSocketsAssetPair {
     @JsonProperty("tick_size")
     private BigDecimal tickSize;
 
-    @Getter(onMethod = @__(@JsonValue))
     @RequiredArgsConstructor
     public enum Status {
         CANCEL_ONLY("cancel_only"),
@@ -57,6 +60,18 @@ public class WebSocketsAssetPair {
         REDUCE_ONLY("reduce_only"),
         WORK_IN_PROGRESS("work_in_progress");
 
+        @Getter(onMethod = @__(@JsonValue))
         private final String status;
+
+        private static final Map<String, Status> STATUS_MAP;
+
+        static {
+            STATUS_MAP = Arrays.stream(Status.values())
+                .collect(Collectors.toMap(Status::getStatus, Function.identity()));
+        }
+
+        public static Status fromString(String str) {
+            return STATUS_MAP.get(str);
+        }
     }
 }

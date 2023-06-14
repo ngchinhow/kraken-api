@@ -13,7 +13,7 @@ public class TradableAssetPairResult implements AbstractResult {
 
     @SuppressWarnings("unused")
     @JsonAnySetter
-    public void setAssetPairs(String assetPairName, RestAssetPair assetPair) {
+    public void addAssetPair(String assetPairName, RestAssetPair assetPair) {
         assetPairs.put(assetPairName, assetPair);
     }
 }
