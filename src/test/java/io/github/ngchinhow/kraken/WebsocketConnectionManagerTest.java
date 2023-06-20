@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.websocket;
+package io.github.ngchinhow.kraken;
 
 import io.github.ngchinhow.kraken.manager.KrakenConnectionManager;
 import org.junit.jupiter.api.Assertions;

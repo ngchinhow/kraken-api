@@ -8,7 +8,6 @@ import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResp
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
 import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
 import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
 import lombok.Getter;
 
@@ -20,7 +19,7 @@ import java.util.Map;
 @Getter
 public class WebSocketTrafficGateway {
 
-    public final PublishSubject<StatusMessage> statusMessages = PublishSubject.create();
+    public final ReplaySubject<StatusMessage> statusMessages = ReplaySubject.create();
 
     // This is strictly a Map of RequestIdentifiers to PublishSubjects of subclasses of AbstractResponse
     // But since Java is fussy about types this is the easiest way
@@ -47,11 +46,11 @@ public class WebSocketTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends AbstractPublicationMessage> PublishSubject<P> subscribePublication(RequestIdentifier requestIdentifier) {
-        PublishSubject<P> publicationMessageReplaySubject =
-            (PublishSubject<P>) subscriptionsToPublicationsMap.getOrDefault(
+    public <P extends AbstractPublicationMessage> ReplaySubject<P> subscribePublication(RequestIdentifier requestIdentifier) {
+        ReplaySubject<P> publicationMessageReplaySubject =
+            (ReplaySubject<P>) subscriptionsToPublicationsMap.getOrDefault(
                 requestIdentifier,
-                PublishSubject.create()
+                ReplaySubject.create()
             );
         subscriptionsToPublicationsMap.putIfAbsent(requestIdentifier, publicationMessageReplaySubject);
         return publicationMessageReplaySubject;
@@ -82,7 +81,7 @@ public class WebSocketTrafficGateway {
     @SuppressWarnings("unchecked")
     public <P extends AbstractPublicationMessage> void publishMessage(P publicationMessage) {
         RequestIdentifier subscribeRequestIdentifier = publicationMessage.toRequestIdentifier();
-        ((PublishSubject<P>) subscriptionsToPublicationsMap.get(subscribeRequestIdentifier)).onNext(publicationMessage);
+        ((ReplaySubject<P>) subscriptionsToPublicationsMap.get(subscribeRequestIdentifier)).onNext(publicationMessage);
     }
 
     @SuppressWarnings("unchecked")
@@ -90,7 +89,7 @@ public class WebSocketTrafficGateway {
     void unsubscribeRequest(UnsubscribeResponse<R, P> unsubscribeResponse) {
         RequestIdentifier requestIdentifier = unsubscribeResponse.toRequestIdentifier();
         requestIdentifier.setRequestId(null);
-        PublishSubject<P> abstractPublishMessageSubject = (PublishSubject<P>) subscriptionsToPublicationsMap
+        ReplaySubject<P> abstractPublishMessageSubject = (ReplaySubject<P>) subscriptionsToPublicationsMap
             .remove(requestIdentifier);
         abstractPublishMessageSubject.onComplete();
     }

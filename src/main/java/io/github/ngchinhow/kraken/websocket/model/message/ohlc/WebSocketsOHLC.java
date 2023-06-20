@@ -30,7 +30,7 @@ public class WebSocketsOHLC {
     @NonNull
     private BigDecimal vwap;
     @NonNull
-    private BigDecimal interval;
+    private Integer interval;
     @NonNull
     private ZonedDateTime timestamp;
 }

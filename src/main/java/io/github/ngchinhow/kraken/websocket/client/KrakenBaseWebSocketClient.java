@@ -17,7 +17,6 @@ import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.Unsubscr
 import io.github.ngchinhow.kraken.websocket.utils.RandomUtils;
 import io.github.ngchinhow.kraken.websocket.utils.WebSocketTrafficGateway;
 import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -164,12 +163,12 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             // Publication messages do not have req_id or timestamp information, so the RequestIdentifier cannot have
             // these field as keys in the map
             RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
-            PublishSubject<P> publicationMessagePublishSubject = webSocketTrafficGateway
+            ReplaySubject<P> publicationMessageReplaySubject = webSocketTrafficGateway
                 .subscribePublication(publicationRequestIdentifier);
             Single<SubscribeResponse<R, P>> subscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             subscribeResponseSingle = subscribeResponseSingle.map(e -> {
-                e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
+                e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
                 return e;
             });
             list.add(subscribeResponseSingle);
@@ -200,12 +199,12 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             ReplaySubject<UnsubscribeResponse<R, P>> unsubscribeResponseSubject = ReplaySubject.create();
             webSocketTrafficGateway.registerRequest(requestIdentifier, unsubscribeResponseSubject);
             RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
-            PublishSubject<P> publicationMessagePublishSubject = webSocketTrafficGateway
+            ReplaySubject<P> publicationMessageReplaySubject = webSocketTrafficGateway
                 .subscribePublication(publicationRequestIdentifier);
             Single<UnsubscribeResponse<R, P>> unsubscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             unsubscribeResponseSingle = unsubscribeResponseSingle.map(e -> {
-                e.setPublicationMessagePublishSubject(publicationMessagePublishSubject);
+                e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
                 return e;
             });
             list.add(unsubscribeResponseSingle);

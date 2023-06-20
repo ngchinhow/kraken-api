@@ -4,7 +4,7 @@ import io.github.ngchinhow.kraken.websocket.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMessage;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
-import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.ReplaySubject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
@@ -16,7 +16,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class UnsubscribeResponse<R extends AbstractResult, P extends AbstractPublicationMessage>
         extends AbstractInteractionResponse<R> {
-    private PublishSubject<P> publicationMessagePublishSubject;
+    private ReplaySubject<P> publicationMessageReplaySubject;
 
     {
         this.setMethod(MethodMetadata.MethodType.UNSUBSCRIBE);
