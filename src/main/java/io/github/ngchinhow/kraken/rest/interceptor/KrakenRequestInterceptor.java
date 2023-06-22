@@ -5,7 +5,6 @@ import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.crypto.Mac;
@@ -39,7 +38,7 @@ public class KrakenRequestInterceptor implements RequestInterceptor {
             body = new byte[0];
         Charset charset = requestTemplate.requestCharset();
         String bodyString = new String(body, charset);
-        if (ObjectUtils.isEmpty(bodyString))
+        if (StringUtils.isBlank(bodyString))
             bodyString = nonceAsParam;
         else
             bodyString = nonceAsParam  + "&" + bodyString;

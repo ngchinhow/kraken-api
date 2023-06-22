@@ -1,5 +1,6 @@
 package io.github.ngchinhow.kraken.manager;
 
+import feign.form.FormEncoder;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.RestClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
@@ -30,7 +31,7 @@ public final class KrakenConnectionManager {
         return Feign.builder()
             .client(new OkHttpClient())
             .decoder(new JacksonDecoder(KrakenProperties.REST_OBJECT_MAPPER))
-            .encoder(new JacksonEncoder(KrakenProperties.REST_OBJECT_MAPPER))
+            .encoder(new FormEncoder(new JacksonEncoder(KrakenProperties.REST_OBJECT_MAPPER)))
             .logger(new Slf4jLogger())
             .logLevel(Logger.Level.FULL)
             .requestInterceptor(new KrakenRequestInterceptor(apiKey, privateKey))

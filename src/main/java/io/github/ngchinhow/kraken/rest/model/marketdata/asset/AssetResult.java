@@ -11,7 +11,6 @@ import java.util.Map;
 public class AssetResult implements AbstractResult {
     private Map<String, RestAsset> assets = new HashMap<>();
 
-    @SuppressWarnings("unused")
     @JsonAnySetter
     public void addAsset(String assetName, RestAsset asset) {
         assets.put(assetName, asset);

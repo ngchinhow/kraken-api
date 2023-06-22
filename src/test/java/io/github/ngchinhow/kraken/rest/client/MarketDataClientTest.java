@@ -1,8 +1,6 @@
-package io.github.ngchinhow.kraken.rest;
+package io.github.ngchinhow.kraken.rest.client;
 
 import feign.FeignException;
-import io.github.ngchinhow.kraken.manager.KrakenConnectionManager;
-import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCRequest;
@@ -11,18 +9,22 @@ import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRe
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-public class MarketDataClientTest {
+public class MarketDataClientTest extends PublicClientTest {
+    private static MarketDataClient CLIENT;
 
-    private static final MarketDataClient MARKET_DATA_CLIENT = new KrakenConnectionManager(null, null)
-        .getRestClient(MarketDataClient.class);
+    @BeforeAll
+    public static void beforeAll() {
+        CLIENT = KRAKEN_CONNECTION_MANAGER.getRestClient(MarketDataClient.class);
+    }
 
     @Test
     public void givenMarketDataClient_whenGetServerTime_thenSucceed() {
-        ServerTimeResult response = MARKET_DATA_CLIENT.getServerTime();
+        ServerTimeResult response = CLIENT.getServerTime();
         Assertions.assertNotNull(response);
         Assertions.assertNotNull(response.getIsoTime());
     }
@@ -33,7 +35,7 @@ public class MarketDataClientTest {
         AssetRequest request = AssetRequest.builder()
             .pairs(pairs)
             .build();
-        AssetResult result = MARKET_DATA_CLIENT.getAssetInformation(request);
+        AssetResult result = CLIENT.getAssetInformation(request);
         Assertions.assertNotNull(result);
         Assertions.assertEquals(3, result.getAssets().size());
         result.getAssets().forEach((name, asset) -> {
@@ -50,7 +52,7 @@ public class MarketDataClientTest {
             .build();
         Assertions.assertThrows(
             FeignException.BadRequest.class,
-            () -> MARKET_DATA_CLIENT.getAssetInformation(request),
+            () -> CLIENT.getAssetInformation(request),
             "EQuery:Unknown asset"
         );
     }
@@ -61,7 +63,7 @@ public class MarketDataClientTest {
         TradableAssetPairRequest request = TradableAssetPairRequest.builder()
             .pairs(pairs)
             .build();
-        TradableAssetPairResult result = MARKET_DATA_CLIENT.getTradeableAssetPairs(request);
+        TradableAssetPairResult result = CLIENT.getTradableAssetPairs(request);
         Assertions.assertNotNull(result);
         Assertions.assertEquals(2, result.getAssetPairs().size());
         result.getAssetPairs().forEach((pairName, assetPair) -> {
@@ -79,7 +81,7 @@ public class MarketDataClientTest {
             .build();
         Assertions.assertThrows(
             FeignException.BadRequest.class,
-            () -> MARKET_DATA_CLIENT.getTradeableAssetPairs(request),
+            () -> CLIENT.getTradableAssetPairs(request),
             "EQuery:Unknown asset pair"
         );
     }
@@ -89,7 +91,7 @@ public class MarketDataClientTest {
         OHLCRequest request = OHLCRequest.builder()
             .pair("XXBTZUSD")
             .build();
-        OHLCResult result = MARKET_DATA_CLIENT.getOHLCData(request);
+        OHLCResult result = CLIENT.getOHLCData(request);
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getAssetPairName());
         Assertions.assertFalse(result.getOhlcList().isEmpty());
@@ -102,7 +104,7 @@ public class MarketDataClientTest {
             .build();
         Assertions.assertThrows(
             FeignException.BadRequest.class,
-            () -> MARKET_DATA_CLIENT.getOHLCData(request),
+            () -> CLIENT.getOHLCData(request),
             "EQuery:Unknown asset pair"
         );
     }

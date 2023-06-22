@@ -18,7 +18,7 @@ public interface MarketDataClient extends RestClient {
     AssetResult getAssetInformation(@QueryMap AssetRequest request);
 
     @RequestLine("GET /0/public/AssetPairs")
-    TradableAssetPairResult getTradeableAssetPairs(@QueryMap TradableAssetPairRequest request);
+    TradableAssetPairResult getTradableAssetPairs(@QueryMap TradableAssetPairRequest request);
 
     @RequestLine("GET /0/public/OHLC")
     OHLCResult getOHLCData(@QueryMap OHLCRequest request);
