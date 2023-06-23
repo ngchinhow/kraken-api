@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.ngchinhow</groupId>
     <artifactId>kraken-api</artifactId>
-    <version>1.0.9</version>
+    <version>1.0.10</version>
     <name>kraken-api</name>
     <description>Java wrapper for Kraken's HTTP and Websocket APIs.</description>
     <url>https://github.com/ngchinhow/kraken-api</url>
