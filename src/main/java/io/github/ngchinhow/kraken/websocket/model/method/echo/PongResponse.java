@@ -14,7 +14,7 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized
 @NoArgsConstructor
-public class PongResponse extends AbstractResponse {
+public final class PongResponse extends AbstractResponse {
     {
         this.setMethod(MethodMetadata.MethodType.PONG);
     }

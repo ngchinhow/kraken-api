@@ -5,19 +5,20 @@ import io.github.ngchinhow.kraken.websocket.enums.ChannelMetadata;
 import io.github.ngchinhow.kraken.websocket.model.method.channel.AbstractChannelResult;
 import lombok.*;
 
-@Data
+@ToString
+@Getter
+@Setter(value = AccessLevel.PACKAGE)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(force = true)
-@AllArgsConstructor
-public class ExecutionsResult extends AbstractChannelResult {
+public final class ExecutionsResult extends AbstractChannelResult {
     @JsonProperty("snapshot_trades")
-    private Boolean snapshotTrades;
+    private final Boolean snapshotTrades;
     @JsonProperty("order_status")
-    private Boolean orderStatus;
+    private final Boolean orderStatus;
     @JsonProperty("ratecounter")
-    private Boolean rateCounter;
+    private final Boolean rateCounter;
     @NonNull
-    private String token;
+    private final String token;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.EXECUTIONS);

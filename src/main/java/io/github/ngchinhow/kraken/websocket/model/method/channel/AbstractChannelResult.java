@@ -1,12 +1,10 @@
 package io.github.ngchinhow.kraken.websocket.model.method.channel;
 
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter(value = AccessLevel.PROTECTED)
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor

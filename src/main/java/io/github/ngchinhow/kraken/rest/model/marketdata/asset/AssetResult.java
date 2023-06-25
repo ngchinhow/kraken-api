@@ -2,12 +2,15 @@ package io.github.ngchinhow.kraken.rest.model.marketdata.asset;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import io.github.ngchinhow.kraken.rest.model.AbstractResult;
-import lombok.Data;
+import lombok.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
+@ToString
+@Getter
+@Setter(AccessLevel.PACKAGE)
+@EqualsAndHashCode
 public class AssetResult implements AbstractResult {
     private Map<String, RestAsset> assets = new HashMap<>();
 

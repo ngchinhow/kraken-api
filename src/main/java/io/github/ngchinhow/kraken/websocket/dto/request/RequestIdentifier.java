@@ -1,15 +1,14 @@
 package io.github.ngchinhow.kraken.websocket.dto.request;
 
+
 import lombok.*;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
 @Data
-@EqualsAndHashCode
 @Builder(toBuilder = true, builderClassName = "Builder")
 @AllArgsConstructor
-@NoArgsConstructor
 public class RequestIdentifier {
     private String method;
     private String channel;

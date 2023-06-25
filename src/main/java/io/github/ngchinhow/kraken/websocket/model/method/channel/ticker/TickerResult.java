@@ -2,17 +2,16 @@ package io.github.ngchinhow.kraken.websocket.model.method.channel.ticker;
 
 import io.github.ngchinhow.kraken.websocket.enums.ChannelMetadata;
 import io.github.ngchinhow.kraken.websocket.model.method.channel.AbstractChannelResult;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 
-@Data
+@ToString
+@Getter
+@Setter(value = AccessLevel.PACKAGE)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(force = true)
-public class TickerResult extends AbstractChannelResult {
+public final class TickerResult extends AbstractChannelResult {
     @NonNull
-    private String symbol;
+    private final String symbol;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.TICKER);

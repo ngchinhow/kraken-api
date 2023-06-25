@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.ngchinhow.kraken.websocket.dto.request.RequestIdentifier;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
@@ -12,10 +11,9 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
 @Data
-@EqualsAndHashCode
 @SuperBuilder
+@NoArgsConstructor(force = true)
 @AllArgsConstructor
-@NoArgsConstructor
 public abstract class AbstractMethod {
     private String method;
     @JsonProperty("req_id")

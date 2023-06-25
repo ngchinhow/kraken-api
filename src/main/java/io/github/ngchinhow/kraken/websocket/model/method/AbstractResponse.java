@@ -8,19 +8,17 @@ import io.github.ngchinhow.kraken.websocket.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websocket.model.method.echo.PongResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.ZonedDateTime;
 
-@Data
+@ToString
+@Getter
+@Setter(value = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(force = true)
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     property = MethodMetadata.METHOD,
@@ -34,9 +32,9 @@ import java.time.ZonedDateTime;
 })
 public abstract class AbstractResponse extends AbstractMethod {
     @JsonProperty("time_in")
-    private ZonedDateTime timeIn;
+    private final ZonedDateTime timeIn;
     @JsonProperty("time_out")
-    private ZonedDateTime timeOut;
+    private final ZonedDateTime timeOut;
 
     public RequestIdentifier toRequestIdentifier() {
         return super.toRequestIdentifier(timeIn);

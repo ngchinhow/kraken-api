@@ -2,19 +2,18 @@ package io.github.ngchinhow.kraken.websocket.model.method.channel.ohlc;
 
 import io.github.ngchinhow.kraken.websocket.enums.ChannelMetadata;
 import io.github.ngchinhow.kraken.websocket.model.method.channel.AbstractChannelResult;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 
-@Data
+@ToString
+@Getter
+@Setter(value = AccessLevel.PACKAGE)
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(force = true)
-public class OHLCResult extends AbstractChannelResult {
+public final class OHLCResult extends AbstractChannelResult {
     @NonNull
-    private String symbol;
+    private final String symbol;
     @NonNull
-    private Integer interval;
+    private final Integer interval;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.OHLC);

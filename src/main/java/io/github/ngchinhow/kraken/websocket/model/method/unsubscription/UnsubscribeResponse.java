@@ -5,8 +5,7 @@ import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMes
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -14,7 +13,9 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
-public class UnsubscribeResponse<R extends AbstractResult, P extends AbstractPublicationMessage>
+@NoArgsConstructor(force = true)
+@AllArgsConstructor
+public final class UnsubscribeResponse<R extends AbstractResult, P extends AbstractPublicationMessage>
         extends AbstractInteractionResponse<R> {
     private ReplaySubject<P> publicationMessageReplaySubject;
 
