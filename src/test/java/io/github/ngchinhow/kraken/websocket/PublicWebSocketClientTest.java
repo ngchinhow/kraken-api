@@ -23,7 +23,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PublicWebSocketClientTest {
     private KrakenPublicWebSocketClient publicWebSocketClient;
@@ -197,13 +197,16 @@ public class PublicWebSocketClientTest {
     }
 
     @Test
-    @Disabled
     public void test_OHLCData() {
         SubscribeRequest<OHLCParameter> request = this.buildStandardOHLCSubscribeRequest();
         List<Single<SubscribeResponse<OHLCResult, OHLCMessage>>> responses = publicWebSocketClient.subscribe(request);
         responses.stream()
             .map(Single::blockingGet)
             .forEach(r -> {
+                var result = r.getResult();
+                assertNotNull(r);
+                assertNotNull(result.getInterval());
+                assertNotNull(result.getSymbol());
                 ReplaySubject<OHLCMessage> publishSubject = r.getPublicationMessageReplaySubject();
                 try (Stream<OHLCMessage> stream = publishSubject.blockingStream()) {
                     stream.limit(5)
