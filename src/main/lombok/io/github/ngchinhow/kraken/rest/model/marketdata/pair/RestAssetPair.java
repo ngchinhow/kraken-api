@@ -11,6 +11,7 @@ import java.util.List;
 
 @Data
 public class RestAssetPair {
+    private String name;
     @JsonProperty("altname")
     private String alternateName;
     @JsonProperty("wsname")

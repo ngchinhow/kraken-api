@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RestAsset {
+    private String name;
     @JsonProperty("aclass")
     private String assetClass;
     @JsonProperty("altname")

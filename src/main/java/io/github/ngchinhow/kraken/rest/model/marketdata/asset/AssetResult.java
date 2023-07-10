@@ -16,6 +16,7 @@ public class AssetResult implements AbstractResult {
 
     @JsonAnySetter
     public void addAsset(String assetName, RestAsset asset) {
+        asset.setName(assetName);
         assets.put(assetName, asset);
     }
 }
