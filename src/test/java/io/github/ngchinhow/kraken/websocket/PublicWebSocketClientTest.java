@@ -1,6 +1,7 @@
 package io.github.ngchinhow.kraken.websocket;
 
 import io.github.ngchinhow.kraken.manager.KrakenConnectionManager;
+import io.github.ngchinhow.kraken.util.Helper;
 import io.github.ngchinhow.kraken.websocket.client.KrakenPublicWebSocketClient;
 import io.github.ngchinhow.kraken.websocket.enums.ChannelMetadata;
 import io.github.ngchinhow.kraken.websocket.enums.MethodMetadata;
@@ -30,7 +31,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class PublicWebSocketClientTest {
     private KrakenPublicWebSocketClient publicWebSocketClient;
@@ -58,7 +58,7 @@ public class PublicWebSocketClientTest {
     public void givenPublicWebSocketClient_whenSubscribe_thenSucceed() {
         int testSize = 10;
         int expectedDepth = 10;
-        SubscribeRequest<BookParameter> subscribeRequest = buildStandardBookSubscribeRequest();
+        SubscribeRequest<BookParameter> subscribeRequest = Helper.buildStandardBookSubscribeRequest();
         int numSymbols = subscribeRequest.getParams().getSymbols().size();
         List<Single<SubscribeResponse<BookResult, BookMessage>>> list = publicWebSocketClient.subscribe(subscribeRequest);
         assertEquals(
@@ -123,9 +123,9 @@ public class PublicWebSocketClientTest {
     @Test
     public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSucceed() {
         int expectedDepth = 10;
-        SubscribeRequest<BookParameter> subscribeRequest = buildStandardBookSubscribeRequest();
+        SubscribeRequest<BookParameter> subscribeRequest = Helper.buildStandardBookSubscribeRequest();
         publicWebSocketClient.subscribe(subscribeRequest).stream().map(Single::blockingGet).forEach(System.out::println);
-        UnsubscribeRequest<BookParameter> unsubscribeRequest = buildStandardBookUnsubscribeRequest();
+        UnsubscribeRequest<BookParameter> unsubscribeRequest = Helper.buildStandardBookUnsubscribeRequest();
         int numSymbols = unsubscribeRequest.getParams().getSymbols().size();
         List<Single<UnsubscribeResponse<BookResult, BookMessage>>> list = publicWebSocketClient.unsubscribe(unsubscribeRequest);
         assertEquals(
@@ -152,8 +152,8 @@ public class PublicWebSocketClientTest {
     @Test
     public void givenPublicWebSocketClient_whenSubscribeTwoChannelSameReqId_thenSucceed() {
         int testSize = 10;
-        SubscribeRequest<BookParameter> bookSubscribeRequest = this.buildStandardBookSubscribeRequest();
-        SubscribeRequest<OHLCParameter> ohlcSubscribeRequest = this.buildStandardOHLCSubscribeRequest();
+        SubscribeRequest<BookParameter> bookSubscribeRequest = Helper.buildStandardBookSubscribeRequest();
+        SubscribeRequest<OHLCParameter> ohlcSubscribeRequest = Helper.buildStandardOHLCSubscribeRequest();
         List<Single<SubscribeResponse<BookResult, BookMessage>>> bookResponses = publicWebSocketClient.subscribe(bookSubscribeRequest);
         List<Single<SubscribeResponse<OHLCResult, OHLCMessage>>> ohlcResponses = publicWebSocketClient.subscribe(ohlcSubscribeRequest);
         bookResponses.stream()
@@ -169,7 +169,7 @@ public class PublicWebSocketClientTest {
     @Test
     public void givenPublicWebSocketClient_whenSubscribeChannelWithNoSymbol_thenSucceed() {
         int responseSize = 1;
-        SubscribeRequest<InstrumentParameter> instrumentSubscribeRequest = buildStandardInstrumentSubscribeRequest();
+        SubscribeRequest<InstrumentParameter> instrumentSubscribeRequest = Helper.buildStandardInstrumentSubscribeRequest();
         List<Single<SubscribeResponse<InstrumentResult, InstrumentMessage>>> responses = publicWebSocketClient
             .subscribe(instrumentSubscribeRequest);
         assertEquals(responseSize, responses.size());
@@ -194,64 +194,5 @@ public class PublicWebSocketClientTest {
                 instrumentMessage.getData().getAssets().forEach(a -> Assertions.assertNotNull(a.getId()));
                 instrumentMessage.getData().getPairs().forEach(a -> Assertions.assertNotNull(a.getSymbol()));
             });
-    }
-
-    @Test
-    public void test_OHLCData() {
-        SubscribeRequest<OHLCParameter> request = this.buildStandardOHLCSubscribeRequest();
-        List<Single<SubscribeResponse<OHLCResult, OHLCMessage>>> responses = publicWebSocketClient.subscribe(request);
-        responses.stream()
-            .map(Single::blockingGet)
-            .forEach(r -> {
-                var result = r.getResult();
-                assertNotNull(r);
-                assertNotNull(result.getInterval());
-                assertNotNull(result.getSymbol());
-                ReplaySubject<OHLCMessage> publishSubject = r.getPublicationMessageReplaySubject();
-                try (Stream<OHLCMessage> stream = publishSubject.blockingStream()) {
-                    stream.limit(5)
-                        .filter(m -> m.getType().equals(ChannelMetadata.ChangeType.SNAPSHOT))
-                        .forEach(System.out::println);
-                }
-            });
-    }
-
-    private SubscribeRequest<BookParameter> buildStandardBookSubscribeRequest() {
-        return SubscribeRequest.<BookParameter>builder()
-            .requestId(new BigInteger("12345"))
-            .params(BookParameter.builder()
-                .depth(10)
-                .symbols(List.of("BTC/USD", "BTC/EUR"))
-                .build())
-            .build();
-    }
-
-    private UnsubscribeRequest<BookParameter> buildStandardBookUnsubscribeRequest() {
-        return UnsubscribeRequest.<BookParameter>builder()
-            .requestId(new BigInteger("12345"))
-            .params(BookParameter.builder()
-                .depth(10)
-                .symbols(List.of("BTC/USD", "BTC/EUR"))
-                .build())
-            .build();
-    }
-
-    private SubscribeRequest<OHLCParameter> buildStandardOHLCSubscribeRequest() {
-        return SubscribeRequest.<OHLCParameter>builder()
-            .requestId(new BigInteger("12345"))
-            .params(OHLCParameter.builder()
-                .interval(30)
-                .symbols(List.of("BTC/USD", "BTC/EUR"))
-                .build())
-            .build();
-    }
-
-    private SubscribeRequest<InstrumentParameter> buildStandardInstrumentSubscribeRequest() {
-        return SubscribeRequest.<InstrumentParameter>builder()
-            .requestId(new BigInteger("12345"))
-            .params(InstrumentParameter.builder()
-                .snapshot(true)
-                .build())
-            .build();
     }
 }
