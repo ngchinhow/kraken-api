@@ -13,10 +13,11 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 @AllArgsConstructor
 public final class UnsubscribeResponse<R extends AbstractResult, P extends AbstractPublicationMessage>
         extends AbstractInteractionResponse<R> {
+    private String symbol;
     private ReplaySubject<P> publicationMessageReplaySubject;
 
     {

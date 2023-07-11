@@ -30,7 +30,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PublicWebSocketClientTest {
     private KrakenPublicWebSocketClient publicWebSocketClient;
@@ -48,10 +48,10 @@ public class PublicWebSocketClientTest {
             .requestId(reqId)
             .build();
         PongResponse pongResponseMessage = publicWebSocketClient.ping(pingRequest).blockingGet();
-        Assertions.assertNotNull(pongResponseMessage);
+        assertNotNull(pongResponseMessage);
         assertEquals(pongResponseMessage.getMethod(), MethodMetadata.MethodType.PONG);
         assertEquals(pongResponseMessage.getRequestId(), reqId);
-        Assertions.assertTrue(publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().isEmpty());
+        assertTrue(publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().isEmpty());
     }
 
     @Test
@@ -68,17 +68,17 @@ public class PublicWebSocketClientTest {
         list.stream()
             .map(Single::blockingGet)
             .forEach(message -> {
-                Assertions.assertNotNull(message);
+                assertNotNull(message);
                 assertEquals(MethodMetadata.MethodType.SUBSCRIBE, message.getMethod());
                 assertEquals(subscribeRequest.getRequestId(), message.getRequestId());
-                Assertions.assertTrue(message.getSuccess());
+                assertTrue(message.getSuccess());
                 BookResult result = message.getResult();
-                Assertions.assertNotNull(result);
+                assertNotNull(result);
                 assertEquals(ChannelMetadata.ChannelType.BOOK, result.getChannel());
                 assertEquals(expectedDepth, result.getDepth());
                 String symbol = result.getSymbol();
                 ReplaySubject<BookMessage> publishSubject = message.getPublicationMessageReplaySubject();
-                Assertions.assertNotNull(publishSubject);
+                assertNotNull(publishSubject);
                 try (Stream<BookMessage> stream = publishSubject.blockingStream()) {
                     stream.limit(testSize).forEach(m -> m.getData().forEach(book -> {
                         assertEquals(symbol, book.getSymbol());
@@ -121,6 +121,27 @@ public class PublicWebSocketClientTest {
     }
 
     @Test
+    public void givenPublicWebSocketClient_whenUnsubscribe_thenFail() {
+        UnsubscribeRequest<BookParameter> unsubscribeRequest = Helper.buildStandardBookUnsubscribeRequest();
+        int numSymbols = unsubscribeRequest.getParams().getSymbols().size();
+        List<Single<UnsubscribeResponse<BookResult, BookMessage>>> list = publicWebSocketClient.unsubscribe(unsubscribeRequest);
+        assertEquals(
+            numSymbols,
+            publicWebSocketClient.getWebSocketTrafficGateway().getRequestsToResponsesMap().size()
+        );
+        list.stream()
+            .map(Single::blockingGet)
+            .forEach(response -> {
+                assertNotNull(response);
+                assertNotNull(response.getSymbol());
+                assertEquals(unsubscribeRequest.getRequestId(), response.getRequestId());
+                assertEquals(MethodMetadata.MethodType.UNSUBSCRIBE, response.getMethod());
+                assertFalse(response.getSuccess());
+                assertEquals("Subscription Not Found", response.getError());
+            });
+    }
+
+    @Test
     public void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSucceed() {
         int expectedDepth = 10;
         SubscribeRequest<BookParameter> subscribeRequest = Helper.buildStandardBookSubscribeRequest();
@@ -135,17 +156,17 @@ public class PublicWebSocketClientTest {
         list.stream()
             .map(Single::blockingGet)
             .forEach(response -> {
-                Assertions.assertNotNull(response);
+                assertNotNull(response);
                 assertEquals(MethodMetadata.MethodType.UNSUBSCRIBE, response.getMethod());
                 assertEquals(subscribeRequest.getRequestId(), response.getRequestId());
-                Assertions.assertTrue(response.getSuccess());
+                assertTrue(response.getSuccess());
                 BookResult result = response.getResult();
-                Assertions.assertNotNull(result);
+                assertNotNull(result);
                 assertEquals(ChannelMetadata.ChannelType.BOOK, result.getChannel());
                 assertEquals(expectedDepth, result.getDepth());
                 ReplaySubject<BookMessage> publishSubject = response.getPublicationMessageReplaySubject();
-                Assertions.assertNotNull(publishSubject);
-                Assertions.assertTrue(publishSubject.hasComplete());
+                assertNotNull(publishSubject);
+                assertTrue(publishSubject.hasComplete());
             });
     }
 
@@ -159,11 +180,11 @@ public class PublicWebSocketClientTest {
         bookResponses.stream()
             .limit(testSize)
             .map(Single::blockingGet)
-            .forEach(r -> Assertions.assertTrue(r.getSuccess()));
+            .forEach(r -> assertTrue(r.getSuccess()));
         ohlcResponses.stream()
             .limit(testSize)
             .map(Single::blockingGet)
-            .forEach(r -> Assertions.assertTrue(r.getSuccess()));
+            .forEach(r -> assertTrue(r.getSuccess()));
     }
 
     @Test
@@ -180,19 +201,19 @@ public class PublicWebSocketClientTest {
         responses.stream()
             .map(Single::blockingGet)
             .forEach(r -> {
-                Assertions.assertNotNull(r);
+                assertNotNull(r);
                 assertEquals(MethodMetadata.MethodType.SUBSCRIBE, r.getMethod());
                 assertEquals(instrumentSubscribeRequest.getRequestId(), r.getRequestId());
-                Assertions.assertTrue(r.getSuccess());
+                assertTrue(r.getSuccess());
                 InstrumentResult result = r.getResult();
-                Assertions.assertNotNull(result);
-                Assertions.assertTrue(result.getSnapshot());
+                assertNotNull(result);
+                assertTrue(result.getSnapshot());
                 ReplaySubject<InstrumentMessage> publishSubject = r.getPublicationMessageReplaySubject();
-                Assertions.assertNotNull(publishSubject);
+                assertNotNull(publishSubject);
                 InstrumentMessage instrumentMessage = publishSubject.blockingFirst();
                 assertEquals(ChannelMetadata.ChangeType.SNAPSHOT, instrumentMessage.getType());
-                instrumentMessage.getData().getAssets().forEach(a -> Assertions.assertNotNull(a.getId()));
-                instrumentMessage.getData().getPairs().forEach(a -> Assertions.assertNotNull(a.getSymbol()));
+                instrumentMessage.getData().getAssets().forEach(a -> assertNotNull(a.getId()));
+                instrumentMessage.getData().getPairs().forEach(a -> assertNotNull(a.getSymbol()));
             });
     }
 }

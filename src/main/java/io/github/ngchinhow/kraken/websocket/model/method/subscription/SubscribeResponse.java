@@ -12,7 +12,7 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 @AllArgsConstructor
 public final class SubscribeResponse<R extends AbstractResult, P extends AbstractPublicationMessage>
         extends AbstractInteractionResponse<R> {

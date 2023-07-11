@@ -1,6 +1,7 @@
 package io.github.ngchinhow.kraken.websocket.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.websocket.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractMessage;
@@ -32,6 +33,8 @@ import java.util.Objects;
 
 import static io.github.ngchinhow.kraken.properties.KrakenProperties.KRAKEN_REQ_ID_MAX_LIMIT;
 import static io.github.ngchinhow.kraken.properties.KrakenProperties.WEBSOCKET_OBJECT_MAPPER;
+import static io.github.ngchinhow.kraken.websocket.enums.MethodMetadata.MethodType.SUBSCRIBE;
+import static io.github.ngchinhow.kraken.websocket.enums.MethodMetadata.MethodType.UNSUBSCRIBE;
 
 /**
  * Basal class handling logic against Kraken's WebSockets V2 API
@@ -62,8 +65,17 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         boolean isResponse = false;
         boolean isMessage = false;
         try {
-            abstractResponse = WEBSOCKET_OBJECT_MAPPER.readValue(s, AbstractResponse.class);
-            isResponse = true;
+            while (!isResponse) {
+                try {
+                    abstractResponse = WEBSOCKET_OBJECT_MAPPER.readValue(s, AbstractResponse.class);
+                    isResponse = true;
+                } catch (UnrecognizedPropertyException e) {
+                    // Currently, only known occurrence is when unsubscription is performed before any subscription happened.
+                    // Response is returned with method of "subscribe" instead of "unsubscribe".
+                    s = s.replace(SUBSCRIBE, UNSUBSCRIBE);
+                }
+            }
+
         } catch (JsonProcessingException e) {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
         }
