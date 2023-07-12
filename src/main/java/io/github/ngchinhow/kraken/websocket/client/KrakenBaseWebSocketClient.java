@@ -75,7 +75,6 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                     s = s.replace(SUBSCRIBE, UNSUBSCRIBE);
                 }
             }
-
         } catch (JsonProcessingException e) {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
         }
@@ -146,13 +145,13 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      * Behaviour caveats:
      * <ol>
      *   <li>
-     *     A RxJava PublishSubject is used for the messages of the subscription. This is due to its behaviour: only
-     *     messages after the retrieval request is sent, i.e. "get" related methods, are returned to the user. This
-     *     ensure the user always has the latest information of the subscribed channel.
+     *     A RxJava ReplaySubject is used for the messages of the subscription. Because there will always be a delay
+     *     between when this "subscribe" method is called and the "subscribe" method on the Single is called, this
+     *     Subject ensures that no messages are missed out during this period.
      *   </li>
      *   <li>
      *     If the same SubscribeRequest is sent twice or more to the same connection/client, the error received within
-     *     the SubscribeResponse will be passed to the user. The PublishSubject originally created in the first request
+     *     the SubscribeResponse will be passed to the user. The ReplaySubject originally created in the first request
      *     will also be returned with the SubscribeResponse.
      *   </li>
      * </ol>
