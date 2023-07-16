@@ -8,10 +8,10 @@ import lombok.*;
 @Getter
 @Setter(value = AccessLevel.PACKAGE)
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 public final class TickerResult extends AbstractChannelResult {
     @NonNull
-    private final String symbol;
+    private String symbol;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.TICKER);

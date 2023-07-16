@@ -10,6 +10,8 @@ import io.github.ngchinhow.kraken.websocket.model.method.channel.ohlc.OHLCResult
 import io.github.ngchinhow.kraken.websocket.model.method.channel.ticker.TickerResult;
 import io.github.ngchinhow.kraken.websocket.model.method.channel.trade.TradeResult;
 
+import java.util.List;
+
 /**
  * Nested class in responses from Kraken's WebSockets V2 API present across all response types, except for pong.
  *
@@ -35,6 +37,10 @@ public interface AbstractResult {
     }
 
     default String getSymbol() {
+        return null;
+    }
+
+    default List<String> getWarnings() {
         return null;
     }
 }

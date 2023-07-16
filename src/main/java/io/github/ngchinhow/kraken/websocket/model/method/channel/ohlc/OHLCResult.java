@@ -8,12 +8,12 @@ import lombok.*;
 @Getter
 @Setter(value = AccessLevel.PACKAGE)
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 public final class OHLCResult extends AbstractChannelResult {
     @NonNull
-    private final String symbol;
+    private String symbol;
     @NonNull
-    private final Integer interval;
+    private Integer interval;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.OHLC);

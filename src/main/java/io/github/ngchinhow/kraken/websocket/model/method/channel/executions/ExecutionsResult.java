@@ -9,16 +9,16 @@ import lombok.*;
 @Getter
 @Setter(value = AccessLevel.PACKAGE)
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 public final class ExecutionsResult extends AbstractChannelResult {
     @JsonProperty("snapshot_trades")
-    private final Boolean snapshotTrades;
+    private Boolean snapshotTrades;
     @JsonProperty("order_status")
-    private final Boolean orderStatus;
+    private Boolean orderStatus;
     @JsonProperty("ratecounter")
-    private final Boolean rateCounter;
+    private Boolean rateCounter;
     @NonNull
-    private final String token;
+    private String token;
 
     {
         this.setChannel(ChannelMetadata.ChannelType.EXECUTIONS);

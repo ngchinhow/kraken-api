@@ -35,6 +35,7 @@ public abstract class Helper {
         return SubscribeRequest.<OHLCParameter>builder()
             .requestId(new BigInteger("12345"))
             .params(OHLCParameter.builder()
+                .snapshot(false)
                 .interval(30)
                 .symbols(List.of("BTC/USD", "BTC/EUR"))
                 .build())

@@ -61,9 +61,8 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     public void onMessage(String s) {
         log.trace("Received message: {}", s);
         AbstractResponse abstractResponse = null;
-        AbstractMessage abstractMessage = null;
+        AbstractMessage abstractMessage;
         boolean isResponse = false;
-        boolean isMessage = false;
         try {
             while (!isResponse) {
                 try {
@@ -79,38 +78,56 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
         }
         if (isResponse) {
-            if (abstractResponse instanceof AbstractInteractionResponse<?> interactionResponse &&
-                !interactionResponse.getSuccess()) {
-                log.error(interactionResponse.getError());
+            log.trace("Response class: {}", abstractResponse);
+
+            if (abstractResponse instanceof PongResponse pongResponse) {
+                webSocketTrafficGateway.responseReplyPong(pongResponse);
+                return;
+            }
+            AbstractInteractionResponse<?> abstractInteractionResponse = (AbstractInteractionResponse<?>) abstractResponse;
+            if (!abstractInteractionResponse.getSuccess()) {
+                // Handle errors
+                log.error(abstractInteractionResponse.getError());
                 webSocketTrafficGateway.removeErrorRequest(abstractResponse);
-            } else {
-                webSocketTrafficGateway.responseReply(abstractResponse);
-                if (abstractResponse instanceof UnsubscribeResponse<?, ?> unsubscribeResponse)
-                    webSocketTrafficGateway.unsubscribeRequest(unsubscribeResponse);
+                return;
             }
+            List<String> warnings;
+            if (Objects.nonNull(warnings = abstractInteractionResponse.getResult().getWarnings())) {
+                // Handle warnings
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < warnings.size(); i++) {
+                    stringBuilder.append(i + 1)
+                        .append(": ")
+                        .append(warnings.get(i))
+                        .append("\n");
+                }
+                log.warn(stringBuilder.toString());
+            }
+            webSocketTrafficGateway.responseReplyInteraction(abstractInteractionResponse);
+
+            if (abstractInteractionResponse instanceof UnsubscribeResponse<?, ?> unsubscribeResponse)
+                webSocketTrafficGateway.unsubscribeRequest(unsubscribeResponse);
+
+            return;
+        }
+        try {
+            abstractMessage = WEBSOCKET_OBJECT_MAPPER.readValue(s, AbstractMessage.class);
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
+        }
+        log.trace("Message class: {}", abstractMessage);
+
+        if (abstractMessage instanceof HeartbeatMessage heartbeatMessage) {
+            //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of
+            // HeartbeatMessages to extend max time.
+        } else if (abstractMessage instanceof StatusMessage statusMessage) {
+            webSocketTrafficGateway.responseAnnounce(statusMessage);
+        } else if (abstractMessage instanceof AbstractPublicationMessage publicationMessage) {
+            webSocketTrafficGateway.publishMessage(publicationMessage);
         } else {
-            try {
-                abstractMessage = WEBSOCKET_OBJECT_MAPPER.readValue(s, AbstractMessage.class);
-                isMessage = true;
-            } catch (JsonProcessingException ex) {
-                throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
-            }
+            log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
+                "Received class is {}", abstractMessage.getClass());
         }
-        if (isMessage) {
-            if (abstractMessage instanceof HeartbeatMessage heartbeatMessage) {
-                //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of
-                // HeartbeatMessages to extend max time.
-            } else if (abstractMessage instanceof StatusMessage statusMessage) {
-                webSocketTrafficGateway.responseAnnounce(statusMessage);
-            } else if (abstractMessage instanceof AbstractPublicationMessage publicationMessage) {
-                webSocketTrafficGateway.publishMessage(publicationMessage);
-            } else {
-                log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
-                    "Received class is {}", abstractMessage.getClass());
-            }
-        }
-        if (Objects.nonNull(abstractResponse)) log.trace("Response class: {}", abstractResponse);
-        if (Objects.nonNull(abstractMessage)) log.trace("Message class: {}", abstractMessage);
     }
 
     @Override

@@ -6,6 +6,7 @@ import io.github.ngchinhow.kraken.websocket.model.message.status.StatusMessage;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
+import io.github.ngchinhow.kraken.websocket.model.method.echo.PongResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeResponse;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
@@ -70,8 +71,26 @@ public class WebSocketTrafficGateway {
         mapIterator.remove();
     }
 
+    /**
+     * Ping/Pong messages are not considered to be interactions, i.e. they do not have a "result" nested object.
+     * Duplicated method for this edge case.
+     * @param response pong response coming from a ping request
+     */
     @SuppressWarnings("unchecked")
-    public <U extends AbstractResponse> void responseReply(U response) {
+    public void responseReplyPong(PongResponse response) {
+        RequestIdentifier requestIdentifier = response.toRequestIdentifier();
+        ReplaySubject<PongResponse> responseSubject = (ReplaySubject<PongResponse>) requestsToResponsesMap.remove(requestIdentifier);
+        responseSubject.onNext(response);
+        responseSubject.onComplete();
+    }
+
+    /**
+     * Any message that has a "result" nested object. Logically no different from how a PongResponse is treated.
+     * @param response Channel or Order response
+     * @param <U> Any type that extends AbstractInteractionResponse. Only Channels and Orders
+     */
+    @SuppressWarnings("unchecked")
+    public <U extends AbstractInteractionResponse<?>> void responseReplyInteraction(U response) {
         RequestIdentifier requestIdentifier = response.toRequestIdentifier();
         ReplaySubject<U> responseSubject = (ReplaySubject<U>) requestsToResponsesMap.remove(requestIdentifier);
         responseSubject.onNext(response);

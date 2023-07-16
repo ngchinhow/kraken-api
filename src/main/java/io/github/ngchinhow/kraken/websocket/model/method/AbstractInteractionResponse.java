@@ -9,15 +9,14 @@ import lombok.experimental.SuperBuilder;
 @Setter(value = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 public abstract class AbstractInteractionResponse<T extends AbstractResult> extends AbstractResponse {
-    private final T result;
-    private final Boolean success;
-    private final String error;
+    private T result;
+    private Boolean success;
+    private String error;
 
     @Override
     public RequestIdentifier toRequestIdentifier() {
-        //noinspection DataFlowIssue
         return super.toRequestIdentifier().toBuilder()
             .channel(result.getChannel())
             .symbol(result.getSymbol())
