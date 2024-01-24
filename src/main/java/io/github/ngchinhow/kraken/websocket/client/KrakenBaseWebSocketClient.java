@@ -18,6 +18,7 @@ import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.Unsubscr
 import io.github.ngchinhow.kraken.websocket.utils.RandomUtils;
 import io.github.ngchinhow.kraken.websocket.utils.WebSocketTrafficGateway;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +48,8 @@ import static io.github.ngchinhow.kraken.websocket.enums.MethodMetadata.MethodTy
 public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     private final WebSocketTrafficGateway webSocketTrafficGateway = new WebSocketTrafficGateway();
     private final MarketDataClient marketDataClient;
+    private final CompositeDisposable disposableBin = new CompositeDisposable();
+    private LocalDateTime clientOpenTime;
 
     public KrakenBaseWebSocketClient(final URI krakenWebSocketUrl, MarketDataClient marketDataClient) {
         super(krakenWebSocketUrl);
@@ -55,6 +59,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
         log.trace("Connection opened with status: {}", serverHandshake.getHttpStatusMessage());
+        this.clientOpenTime = LocalDateTime.now();
     }
 
     @Override
@@ -117,15 +122,33 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         }
         log.trace("Message class: {}", abstractMessage);
 
-        if (abstractMessage instanceof HeartbeatMessage heartbeatMessage) {
-            //TODO: Implement default (or passed as parameter) keep-alive max time. Use frequency of
-            // HeartbeatMessages to extend max time.
-        } else if (abstractMessage instanceof StatusMessage statusMessage) {
-            webSocketTrafficGateway.responseAnnounce(statusMessage);
-        } else if (abstractMessage instanceof AbstractPublicationMessage publicationMessage) {
-            webSocketTrafficGateway.publishMessage(publicationMessage);
-        } else {
-            log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
+        if (abstractMessage == null) {
+            log.error("Unexpected null message. Stopping subscription");
+            throw new NullPointerException("Unexpected null message");
+        }
+
+        switch (abstractMessage) {
+            case HeartbeatMessage ignored -> {
+                var heartBeatReceivedTime = LocalDateTime.now();
+                if (clientOpenTime.plusSeconds(50).isBefore(heartBeatReceivedTime) &&
+                    clientOpenTime.plusSeconds(60).isAfter(heartBeatReceivedTime)) {
+                    var pongDisposable = this.ping()
+                        .subscribe(p -> {
+                            log.trace("Connection extended successfully. Updating connection start time to {}",
+                                heartBeatReceivedTime);
+                            clientOpenTime = heartBeatReceivedTime;
+                        }, e -> {
+                            log.error("Error faced when extending connection with message: {}. Failing now.",
+                                e.getMessage());
+                            throw e;
+                        });
+                    this.disposableBin.add(pongDisposable);
+                }
+            }
+            case StatusMessage statusMessage -> webSocketTrafficGateway.responseAnnounce(statusMessage);
+            case AbstractPublicationMessage publicationMessage ->
+                webSocketTrafficGateway.publishMessage(publicationMessage);
+            default -> log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
                 "Received class is {}", abstractMessage.getClass());
         }
     }
@@ -133,6 +156,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     @Override
     public void onClose(int i, String s, boolean b) {
         log.trace("Connection closed. i: {}, s: {}, b: {}", i, s, b);
+        disposableBin.dispose();
     }
 
     @Override

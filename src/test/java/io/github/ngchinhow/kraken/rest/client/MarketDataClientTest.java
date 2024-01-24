@@ -3,109 +3,120 @@ package io.github.ngchinhow.kraken.rest.client;
 import feign.FeignException;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.asset.RestAsset;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.pair.RestAssetPair;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-public class MarketDataClientTest extends PublicClientTest {
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class MarketDataClientTest extends PublicClientTest {
     private static MarketDataClient CLIENT;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
         CLIENT = KRAKEN_CONNECTION_MANAGER.getRestClient(MarketDataClient.class);
     }
 
     @Test
-    public void givenMarketDataClient_whenGetServerTime_thenSucceed() {
+    void givenMarketDataClient_whenGetServerTime_thenSucceed() {
         ServerTimeResult response = CLIENT.getServerTime();
-        Assertions.assertNotNull(response);
-        Assertions.assertNotNull(response.getIsoTime());
+        assertThat(response)
+            .isNotNull()
+            .extracting(ServerTimeResult::getIsoTime)
+            .isNotNull();
     }
 
     @Test
-    public void givenMarketDataClient_whenGetAssetInformation_thenSucceed() {
+    void givenMarketDataClient_whenGetAssetInformation_thenSucceed() {
         List<String> pairs = List.of("XXBT", "ZUSD", "XETH");
         AssetRequest request = AssetRequest.builder()
-            .pairs(pairs)
-            .build();
+                                           .pairs(pairs)
+                                           .build();
         AssetResult result = CLIENT.getAssetInformation(request);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(3, result.getAssets().size());
-        result.getAssets().forEach((name, asset) -> {
-            Assertions.assertNotNull(asset);
-            Assertions.assertTrue(pairs.contains(name) || pairs.contains(asset.getAlternateName()));
-        });
+        assertThat(result)
+            .isNotNull()
+            .extracting(AssetResult::getAssets, InstanceOfAssertFactories.map(String.class, RestAsset.class))
+            .hasSize(3)
+            .allSatisfy((name, asset) -> {
+                assertThat(asset).isNotNull();
+                assertTrue(pairs.contains(name) || pairs.contains(asset.getAlternateName()));
+            });
     }
 
     @Test
-    public void givenMarketDataClient_whenGetAssetInformationWithInvalidAsset_thenFail() {
+    void givenMarketDataClient_whenGetAssetInformationWithInvalidAsset_thenFail() {
         List<String> pairs = List.of("ABC123");
         AssetRequest request = AssetRequest.builder()
-            .pairs(pairs)
-            .build();
-        Assertions.assertThrows(
-            FeignException.BadRequest.class,
-            () -> CLIENT.getAssetInformation(request),
-            "EQuery:Unknown asset"
-        );
+                                           .pairs(pairs)
+                                           .build();
+        assertThatExceptionOfType(FeignException.BadRequest.class)
+            .isThrownBy(() -> CLIENT.getAssetInformation(request))
+            .withMessage("EQuery:Unknown asset");
     }
 
     @Test
-    public void givenMarketDataClient_whenGetTradableAssetPairs_thenSucceed() {
+    void givenMarketDataClient_whenGetTradableAssetPairs_thenSucceed() {
         List<String> pairs = List.of("XXBTZUSD", "XETHXXBT");
         TradableAssetPairRequest request = TradableAssetPairRequest.builder()
-            .pairs(pairs)
-            .build();
+                                                                   .pairs(pairs)
+                                                                   .build();
         TradableAssetPairResult result = CLIENT.getTradableAssetPairs(request);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(2, result.getAssetPairs().size());
-        result.getAssetPairs().forEach((pairName, assetPair) -> {
-            Assertions.assertTrue(pairs.contains(pairName));
-            Assertions.assertNotNull(assetPair);
-            Assertions.assertFalse(assetPair.getTakerFees().isEmpty());
-        });
+        assertThat(result)
+            .isNotNull()
+            .extracting(TradableAssetPairResult::getAssetPairs,
+                        InstanceOfAssertFactories.map(String.class, RestAssetPair.class))
+            .hasSize(2)
+            .allSatisfy((pairName, assetPair) -> {
+                assertThat(pairName)
+                    .isIn(pairs);
+                assertThat(assetPair)
+                    .isNotNull()
+                    .extracting(RestAssetPair::getTakerFees, InstanceOfAssertFactories.LIST)
+                    .isNotEmpty();
+            });
     }
 
     @Test
-    public void givenMarketDataClient_whenGetTradableAssetPairsWithInvalidPair_thenFail() {
+    void givenMarketDataClient_whenGetTradableAssetPairsWithInvalidPair_thenFail() {
         List<String> pairs = List.of("ABC/123");
         TradableAssetPairRequest request = TradableAssetPairRequest.builder()
-            .pairs(pairs)
-            .build();
-        Assertions.assertThrows(
-            FeignException.BadRequest.class,
-            () -> CLIENT.getTradableAssetPairs(request),
-            "EQuery:Unknown asset pair"
-        );
+                                                                   .pairs(pairs)
+                                                                   .build();
+        assertThatExceptionOfType(FeignException.BadRequest.class)
+            .isThrownBy(() -> CLIENT.getTradableAssetPairs(request))
+            .withMessage("EQuery:Unknown asset pair");
     }
 
     @Test
-    public void givenMarketDataClient_whenGetOHLCData_thenSucceed() {
+    void givenMarketDataClient_whenGetOHLCData_thenSucceed() {
         OHLCRequest request = OHLCRequest.builder()
-            .pair("XXBTZUSD")
-            .build();
+                                         .pair("XXBTZUSD")
+                                         .build();
         OHLCResult result = CLIENT.getOHLCData(request);
-        Assertions.assertNotNull(result);
-        Assertions.assertNotNull(result.getAssetPairName());
-        Assertions.assertFalse(result.getOhlcList().isEmpty());
+        assertThat(result)
+            .isNotNull()
+            .doesNotReturn(null, from(OHLCResult::getAssetPairName))
+            .extracting(OHLCResult::getOhlcList, InstanceOfAssertFactories.LIST)
+            .isNotEmpty();
     }
 
     @Test
-    public void givenMarketDataClient_whenGetOHLCDataWithInvalidPair_thenFail() {
+    void givenMarketDataClient_whenGetOHLCDataWithInvalidPair_thenFail() {
         OHLCRequest request = OHLCRequest.builder()
-            .pair("ABC/123")
-            .build();
-        Assertions.assertThrows(
-            FeignException.BadRequest.class,
-            () -> CLIENT.getOHLCData(request),
-            "EQuery:Unknown asset pair"
-        );
+                                         .pair("ABC/123")
+                                         .build();
+        assertThatExceptionOfType(FeignException.BadRequest.class)
+            .isThrownBy(() -> CLIENT.getOHLCData(request))
+            .withMessage("EQuery:Unknown asset pair");
     }
 }

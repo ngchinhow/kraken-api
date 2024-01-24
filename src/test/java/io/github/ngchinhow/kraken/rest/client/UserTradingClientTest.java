@@ -3,12 +3,12 @@ package io.github.ngchinhow.kraken.rest.client;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class UserTradingClientTest extends PrivateClientTest {
+class UserTradingClientTest extends PrivateClientTest {
 
     private static UserTradingClient CLIENT;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
         CLIENT = KRAKEN_CONNECTION_MANAGER.getRestClient(UserTradingClient.class);
     }
 

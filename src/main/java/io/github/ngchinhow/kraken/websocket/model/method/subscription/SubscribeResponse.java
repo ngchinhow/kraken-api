@@ -8,6 +8,7 @@ import io.reactivex.rxjava3.subjects.ReplaySubject;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
@@ -15,7 +16,7 @@ import lombok.extern.jackson.Jacksonized;
 @NoArgsConstructor
 @AllArgsConstructor
 public final class SubscribeResponse<R extends AbstractResult, P extends AbstractPublicationMessage>
-        extends AbstractInteractionResponse<R> {
+    extends AbstractInteractionResponse<R> {
     private ReplaySubject<P> publicationMessageReplaySubject;
 
     {

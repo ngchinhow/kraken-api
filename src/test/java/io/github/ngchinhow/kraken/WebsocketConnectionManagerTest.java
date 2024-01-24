@@ -1,32 +1,39 @@
 package io.github.ngchinhow.kraken;
 
 import io.github.ngchinhow.kraken.manager.KrakenConnectionManager;
-import org.junit.jupiter.api.Assertions;
+import io.github.ngchinhow.kraken.rest.client.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import static io.github.ngchinhow.kraken.rest.enums.RestEnumerations.Endpoint.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class WebsocketConnectionManagerTest {
+class WebsocketConnectionManagerTest {
     private static final KrakenConnectionManager KRAKEN_CONNECTION_MANAGER = new KrakenConnectionManager(
         System.getenv("KRAKEN_REST_API_KEY"),
         System.getenv("KRAKEN_REST_PRIVATE_KEY")
     );
 
-    @Test
-    public void givenCredentials_whenGettingRestClients_thenSuccess() {
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER);
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getRestClient(MARKET_DATA));
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getRestClient(USER_DATA));
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getRestClient(USER_TRADING));
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getRestClient(USER_FUNDING));
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getRestClient(USER_SUBACCOUNTS));
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getRestClient(USER_STAKING));
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getRestClient(WEBSOCKETS_AUTHENTICATION));
+    @ParameterizedTest
+    @ValueSource(classes = {MarketDataClient.class,
+                            UserDataClient.class,
+                            UserTradingClient.class,
+                            UserFundingClient.class,
+                            UserSubaccountsClient.class,
+                            UserStakingClient.class,
+                            WebSocketsAuthenticationClient.class})
+    void givenCredentials_whenGettingRestClients_thenSuccess(Class<? extends RestClient> clazz) {
+        assertThat(KRAKEN_CONNECTION_MANAGER)
+            .isNotNull()
+            .extracting(m -> m.getRestClient(clazz))
+            .isNotNull();
     }
 
     @Test
-    public void givenCredentials_whenGettingWebSocketsClient_thenSuccess() {
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getKrakenPublicWebSocketClient());
-        Assertions.assertNotNull(KRAKEN_CONNECTION_MANAGER.getKrakenPrivateWebSocketClient());
+    void givenCredentials_whenGettingWebSocketsClient_thenSuccess() {
+        assertThat(KRAKEN_CONNECTION_MANAGER.getKrakenPublicWebSocketClient())
+            .isNotNull();
+        assertThat(KRAKEN_CONNECTION_MANAGER.getKrakenPrivateWebSocketClient())
+            .isNotNull();
     }
 }

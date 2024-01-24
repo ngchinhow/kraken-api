@@ -17,50 +17,58 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.from;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class OHLCChannelSubscriptionTest {
+class OHLCChannelSubscriptionTest {
     private KrakenPublicWebSocketClient client;
 
     @BeforeEach
-    public void beforeEach() throws InterruptedException {
+    void beforeEach() throws InterruptedException {
         client = new KrakenConnectionManager(null, null).getKrakenPublicWebSocketClient();
         client.connectBlocking();
     }
 
     @Test
-    public void givenSubscription_thenSucceed() {
+    void givenSubscription_thenSucceed() {
         SubscribeRequest<OHLCParameter> request = Helper.buildStandardOHLCSubscribeRequest();
         List<Single<SubscribeResponse<OHLCResult, OHLCMessage>>> responses = client.subscribe(request);
+
         responses.stream()
-            .map(Single::blockingGet)
-            .forEach(r -> {
-                var result = r.getResult();
-                assertNotNull(r);
-                assertNotNull(result.getInterval());
-                assertNotNull(result.getSymbol());
-                ReplaySubject<OHLCMessage> publishSubject = r.getPublicationMessageReplaySubject();
-                try (Stream<OHLCMessage> stream = publishSubject.blockingStream()) {
-                    stream.limit(5)
-                        .filter(m -> m.getType().equals(ChannelMetadata.ChangeType.SNAPSHOT))
-                        .forEach(System.out::println);
-                }
-            });
+                 .map(Single::blockingGet)
+                 .forEach(r -> {
+                     assertThat(r)
+                         .isNotNull()
+                         .extracting(SubscribeResponse::getResult)
+                         .isNotNull()
+                         .doesNotReturn(null, from(OHLCResult::getInterval))
+                         .doesNotReturn(null, from(OHLCResult::getSymbol));
+
+                     ReplaySubject<OHLCMessage> publishSubject = r.getPublicationMessageReplaySubject();
+                     try (Stream<OHLCMessage> stream = publishSubject.blockingStream()) {
+                         stream.limit(5)
+                               .filter(m -> m.getType().equals(ChannelMetadata.ChangeType.SNAPSHOT))
+                               .forEach(System.out::println);
+                     }
+                 });
     }
 
     @Test
-    public void givenSubscriptionOnSameSymbol_thenFailOnSecondInterval() {
+    void givenSubscriptionOnSameSymbol_thenFailOnSecondInterval() {
         SubscribeRequest<OHLCParameter> request = Helper.buildStandardOHLCSubscribeRequest();
         List<Single<SubscribeResponse<OHLCResult, OHLCMessage>>> responses = client.subscribe(request);
         assertNotNull(responses);
+
+        // Change interval of request
         request.getParams().setInterval(1);
 
         List<Single<SubscribeResponse<OHLCResult, OHLCMessage>>> responsesNewInterval = client.subscribe(request);
         responsesNewInterval.stream()
-            .map(Single::blockingGet)
-            .forEach(r -> {
-                assertFalse(r.getSuccess());
-                assertEquals("Already subscribed to one ohlc interval on this symbol", r.getError());
-            });
+                            .map(Single::blockingGet)
+                            .forEach(r -> assertThat(r)
+                                .returns(false, from(SubscribeResponse::getSuccess))
+                                .returns("Already subscribed to one ohlc interval on this symbol",
+                                         from(SubscribeResponse::getError)));
     }
 }

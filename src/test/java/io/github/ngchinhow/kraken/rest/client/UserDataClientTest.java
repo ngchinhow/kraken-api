@@ -6,28 +6,32 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class UserDataClientTest extends PrivateClientTest {
+import static org.assertj.core.api.Assertions.assertThat;
+
+class UserDataClientTest extends PrivateClientTest {
 
     private static UserDataClient CLIENT;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
         CLIENT = KRAKEN_CONNECTION_MANAGER.getRestClient(UserDataClient.class);
     }
 
     @Test
-    public void givenUserDataClient_whenGetAccountBalance_thenSucceed() {
+    void givenUserDataClient_whenGetAccountBalance_thenSucceed() {
         var result = CLIENT.getAccountBalance();
-        Assertions.assertNotNull(result);
+        assertThat(result)
+            .isNotNull();
         System.out.println(result);
     }
 
     @Test
-    public void givenUserDataClient_whenGetOpenOrders_thenSucceed() {
+    void givenUserDataClient_whenGetOpenOrders_thenSucceed() {
         OpenOrdersRequest request = OpenOrdersRequest.builder()
             .includeTrades(true)
             .build();
         OpenOrdersResult result = CLIENT.getOpenOrders(request);
-        Assertions.assertNotNull(result);
+        assertThat(result)
+            .isNotNull();
     }
 }
