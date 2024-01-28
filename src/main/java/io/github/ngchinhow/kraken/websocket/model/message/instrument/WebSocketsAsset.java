@@ -39,7 +39,7 @@ public class WebSocketsAsset {
         DISABLED("disabled"),
         WORK_IN_PROGRESS("workinprogress");
 
-        @Getter(onMethod = @__(@JsonValue))
+        @Getter(onMethod_ = @JsonValue)
         private final String status;
 
         private static final Map<String, Status> STATUS_MAP;

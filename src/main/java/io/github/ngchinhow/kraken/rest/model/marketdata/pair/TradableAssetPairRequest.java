@@ -19,7 +19,7 @@ public class TradableAssetPairRequest implements AbstractRequest {
     private List<String> pairs;
     private Info info;
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum Info {
         INFO("info"),

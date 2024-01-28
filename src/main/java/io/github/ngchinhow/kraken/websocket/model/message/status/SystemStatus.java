@@ -19,7 +19,7 @@ public class SystemStatus {
     private String apiVersion;
     private String version;
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum System {
         ONLINE("online"),

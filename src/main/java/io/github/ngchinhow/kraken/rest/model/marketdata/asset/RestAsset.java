@@ -25,7 +25,7 @@ public class RestAsset {
     private BigDecimal collateralValue;
     private Status status;
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum Status {
         ENABLED("enabled"),

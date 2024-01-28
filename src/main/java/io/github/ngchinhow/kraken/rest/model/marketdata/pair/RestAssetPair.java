@@ -57,7 +57,7 @@ public class RestAssetPair {
     @JsonProperty("short_position_limit")
     private int shortPositionLimit;
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum Status {
         ONLINE("online"),

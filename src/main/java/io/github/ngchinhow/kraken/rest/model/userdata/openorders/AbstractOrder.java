@@ -65,7 +65,7 @@ public abstract class AbstractOrder {
         @JsonProperty("close")
         private String closeDescription;
 
-        @Getter(onMethod = @__(@JsonValue))
+        @Getter(onMethod_ = @JsonValue)
         @RequiredArgsConstructor
         public enum Side {
             BUY("buy"),
@@ -74,7 +74,7 @@ public abstract class AbstractOrder {
             private final String side;
         }
 
-        @Getter(onMethod = @__(@JsonValue))
+        @Getter(onMethod_ = @JsonValue)
         @RequiredArgsConstructor
         public enum OrderType {
             MARKET("market"),
@@ -89,7 +89,7 @@ public abstract class AbstractOrder {
         }
     }
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum Status {
         PENDING("pending"),
@@ -101,7 +101,7 @@ public abstract class AbstractOrder {
         private final String status;
     }
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum Trigger {
         INDEX("index"),
@@ -110,7 +110,7 @@ public abstract class AbstractOrder {
         private final String trigger;
     }
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum MiscellaneousInformation {
         STOPPED("stopped"),
@@ -121,7 +121,7 @@ public abstract class AbstractOrder {
         private final String miscellaneousInfo;
     }
 
-    @Getter(onMethod = @__(@JsonValue))
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum Flag {
         POST("post"),

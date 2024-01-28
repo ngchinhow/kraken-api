@@ -60,7 +60,7 @@ public class WebSocketsAssetPair {
         REDUCE_ONLY("reduce_only"),
         WORK_IN_PROGRESS("work_in_progress");
 
-        @Getter(onMethod = @__(@JsonValue))
+        @Getter(onMethod_ = @JsonValue)
         private final String status;
 
         private static final Map<String, Status> STATUS_MAP;
