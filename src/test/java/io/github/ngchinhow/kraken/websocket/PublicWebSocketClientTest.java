@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -289,5 +290,18 @@ class PublicWebSocketClientTest {
                      .extracting(InstrumentMessage::getData)
                      .is(new Condition<>(dataAssetsPredicate, "data assets"))
                      .is(new Condition<>(dataPairsPredicate, "data pairs")));
+    }
+
+    @Test
+    void givenPublicWebSocketClient_whenSubscribeLongerThan1Minute_thenPingToStayAlive() throws InterruptedException {
+        var startTime = publicWebSocketClient.getClientOpenTime();
+        SubscribeRequest<OHLCParameter> ohlcSubscribeRequest = Helper.buildStandardOHLCSubscribeRequest();
+        publicWebSocketClient.subscribe(ohlcSubscribeRequest);
+
+        // Wait for 1 minute
+        TimeUnit.MINUTES.sleep(1);
+
+        assertThat(publicWebSocketClient.getClientOpenTime())
+            .isAfter(startTime);
     }
 }

@@ -142,7 +142,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                                 e.getMessage());
                             throw e;
                         });
-                    this.disposableBin.add(pongDisposable);
+                    disposableBin.add(pongDisposable);
                 }
             }
             case StatusMessage statusMessage -> webSocketTrafficGateway.responseAnnounce(statusMessage);
