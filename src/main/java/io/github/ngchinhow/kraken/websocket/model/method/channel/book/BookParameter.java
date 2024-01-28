@@ -16,7 +16,7 @@ import java.util.List;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookParameter extends AbstractChannelParameter {
+public final class BookParameter extends AbstractChannelParameter {
     private Integer depth;
     @JsonProperty(value = "symbol", required = true)
     private List<String> symbols;

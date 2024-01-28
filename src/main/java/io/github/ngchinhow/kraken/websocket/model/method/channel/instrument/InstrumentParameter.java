@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
-public class InstrumentParameter extends AbstractChannelParameter {
+public final class InstrumentParameter extends AbstractChannelParameter {
     {
         this.setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
     }

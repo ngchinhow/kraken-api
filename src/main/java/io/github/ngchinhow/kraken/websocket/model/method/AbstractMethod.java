@@ -21,9 +21,9 @@ public abstract class AbstractMethod {
 
     public RequestIdentifier toRequestIdentifier(ZonedDateTime timestamp) {
         return RequestIdentifier.builder()
-            .method(method)
-            .requestId(requestId)
-            .timestamp(timestamp)
-            .build();
+                                .method(method)
+                                .requestId(requestId)
+                                .timestamp(timestamp)
+                                .build();
     }
 }

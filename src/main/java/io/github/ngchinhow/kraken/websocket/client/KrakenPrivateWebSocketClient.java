@@ -4,8 +4,9 @@ import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
 import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.token.WebSocketsTokenResult;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMessage;
-import io.github.ngchinhow.kraken.websocket.model.method.AbstractParameter;
-import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
+import io.github.ngchinhow.kraken.websocket.model.method.ParameterInterface;
+import io.github.ngchinhow.kraken.websocket.model.method.PrivateParameterInterface;
+import io.github.ngchinhow.kraken.websocket.model.method.channel.AbstractChannelResult;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeRequest;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.unsubscription.UnsubscribeRequest;
@@ -26,23 +27,23 @@ public final class KrakenPrivateWebSocketClient extends KrakenBaseWebSocketClien
         this.authenticationClient = authenticationClient;
     }
 
-    @Override
-    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends ParameterInterface>
     List<Single<SubscribeResponse<R, P>>> subscribe(SubscribeRequest<T> subscribeRequest) {
-        WebSocketsTokenResult tokenResponse = authenticationClient.getWebsocketsToken();
-        T param = subscribeRequest.getParams();
-        param.setToken(tokenResponse.getToken());
-        subscribeRequest.setParams(param);
+        if (subscribeRequest.getParams() instanceof PrivateParameterInterface privateParameter)
+            addTokenToParameter(privateParameter);
         return super.subscribe(subscribeRequest);
     }
 
     @Override
-    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends ParameterInterface>
     List<Single<UnsubscribeResponse<R, P>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
-        WebSocketsTokenResult tokenResponse = authenticationClient.getWebsocketsToken();
-        T param = unsubscribeRequest.getParams();
-        param.setToken(tokenResponse.getToken());
-        unsubscribeRequest.setParams(param);
+        if (unsubscribeRequest.getParams() instanceof PrivateParameterInterface privateParameter)
+            addTokenToParameter(privateParameter);
         return super.unsubscribe(unsubscribeRequest);
+    }
+
+    private void addTokenToParameter(PrivateParameterInterface param) {
+        WebSocketsTokenResult tokenResponse = authenticationClient.getWebsocketsToken();
+        param.setToken(tokenResponse.getToken());
     }
 }

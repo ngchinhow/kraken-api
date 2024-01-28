@@ -16,7 +16,7 @@ import java.util.List;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TradeParameter extends AbstractChannelParameter {
+public final class TradeParameter extends AbstractChannelParameter {
     @JsonProperty(value = "symbols", required = true)
     private List<String> symbols;
 

@@ -16,7 +16,7 @@ import java.util.List;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TickerParameter extends AbstractChannelParameter {
+public final class TickerParameter extends AbstractChannelParameter {
     @JsonProperty(value = "symbol", required = true)
     private List<String> symbols;
 

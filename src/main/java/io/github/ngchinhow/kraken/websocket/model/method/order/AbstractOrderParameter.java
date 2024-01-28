@@ -1,6 +1,6 @@
 package io.github.ngchinhow.kraken.websocket.model.method.order;
 
-import io.github.ngchinhow.kraken.websocket.model.method.AbstractParameter;
+import io.github.ngchinhow.kraken.websocket.model.method.ParameterInterface;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +10,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class AbstractOrderParameter implements AbstractParameter {
+public abstract class AbstractOrderParameter implements ParameterInterface {
     private String token;
 }

@@ -3,12 +3,17 @@ package io.github.ngchinhow.kraken.websocket.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
-import io.github.ngchinhow.kraken.websocket.dto.request.RequestIdentifier;
+import io.github.ngchinhow.kraken.websocket.dto.request.SubscriptionRequestIdentifier;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractResult;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.AbstractPublicationMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.HeartbeatMessage;
 import io.github.ngchinhow.kraken.websocket.model.message.status.StatusMessage;
-import io.github.ngchinhow.kraken.websocket.model.method.*;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractInteractionResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractRequest;
+import io.github.ngchinhow.kraken.websocket.model.method.AbstractResponse;
+import io.github.ngchinhow.kraken.websocket.model.method.ParameterInterface;
+import io.github.ngchinhow.kraken.websocket.model.method.channel.AbstractChannelResult;
 import io.github.ngchinhow.kraken.websocket.model.method.echo.PingRequest;
 import io.github.ngchinhow.kraken.websocket.model.method.echo.PongResponse;
 import io.github.ngchinhow.kraken.websocket.model.method.subscription.SubscribeRequest;
@@ -63,6 +68,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onMessage(String s) {
         log.trace("Received message: {}", s);
         AbstractResponse abstractResponse = null;
@@ -89,22 +95,24 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                 webSocketTrafficGateway.responseReplyPong(pongResponse);
                 return;
             }
-            AbstractInteractionResponse<?> abstractInteractionResponse = (AbstractInteractionResponse<?>) abstractResponse;
+            var abstractInteractionResponse = (AbstractInteractionResponse<? extends AbstractResult>) abstractResponse;
+
             if (!abstractInteractionResponse.getSuccess()) {
                 // Handle errors
                 log.error(abstractInteractionResponse.getError());
                 webSocketTrafficGateway.removeErrorRequest(abstractResponse);
                 return;
             }
-            List<String> warnings;
-            if (Objects.nonNull(warnings = abstractInteractionResponse.getResult().getWarnings())) {
+
+            var warnings = abstractInteractionResponse.getResult().getWarnings();
+            if (warnings != null) {
                 // Handle warnings
                 StringBuilder stringBuilder = new StringBuilder();
                 for (int i = 0; i < warnings.size(); i++) {
                     stringBuilder.append(i + 1)
-                        .append(": ")
-                        .append(warnings.get(i))
-                        .append("\n");
+                                 .append(": ")
+                                 .append(warnings.get(i))
+                                 .append("\n");
                 }
                 log.warn(stringBuilder.toString());
             }
@@ -133,15 +141,17 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
                 if (clientOpenTime.plusSeconds(50).isBefore(heartBeatReceivedTime) &&
                     clientOpenTime.plusSeconds(60).isAfter(heartBeatReceivedTime)) {
                     var pongDisposable = this.ping()
-                        .subscribe(p -> {
-                            log.trace("Connection extended successfully. Updating connection start time to {}",
-                                heartBeatReceivedTime);
-                            clientOpenTime = heartBeatReceivedTime;
-                        }, e -> {
-                            log.error("Error faced when extending connection with message: {}. Failing now.",
-                                e.getMessage());
-                            throw e;
-                        });
+                                             .subscribe(p -> {
+                                                 log.trace(
+                                                     "Connection extended successfully. Updating connection start time to {}",
+                                                     heartBeatReceivedTime);
+                                                 clientOpenTime = heartBeatReceivedTime;
+                                             }, e -> {
+                                                 log.error(
+                                                     "Error faced when extending connection with message: {}. Failing now.",
+                                                     e.getMessage());
+                                                 throw e;
+                                             });
                     disposableBin.add(pongDisposable);
                 }
             }
@@ -149,7 +159,7 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
             case AbstractPublicationMessage publicationMessage ->
                 webSocketTrafficGateway.publishMessage(publicationMessage);
             default -> log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
-                "Received class is {}", abstractMessage.getClass());
+                                 "Received class is {}", abstractMessage.getClass());
         }
     }
 
@@ -173,9 +183,9 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
         if (Objects.isNull(pingRequest.getRequestId())) pingRequest.setRequestId(this.generateRandomReqId());
         ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
         // PingRequests do not have any symbols involved, so there is only one entry - the one associated with null
-        RequestIdentifier requestIdentifier = pingRequest.toRequestIdentifier(serverTime);
+        var channelRequestIdentifier = pingRequest.toRequestIdentifier(serverTime);
         ReplaySubject<PongResponse> pongMessageReplaySubject = ReplaySubject.create();
-        webSocketTrafficGateway.registerRequest(requestIdentifier, pongMessageReplaySubject);
+        webSocketTrafficGateway.registerRequest(channelRequestIdentifier, pongMessageReplaySubject);
         this.sendPayload(pingRequest, serverTime);
         return pongMessageReplaySubject.firstOrError();
     }
@@ -203,22 +213,25 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#subscribe">Kraken Subscribe</a>
      */
-    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends ParameterInterface>
     List<Single<SubscribeResponse<R, P>>> subscribe(SubscribeRequest<T> subscribeRequest) {
-        if (Objects.isNull(subscribeRequest.getRequestId())) subscribeRequest.setRequestId(this.generateRandomReqId());
-        ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
-        List<RequestIdentifier> requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
-        List<Single<SubscribeResponse<R, P>>> list = new ArrayList<>();
-        for (RequestIdentifier requestIdentifier : requestIdentifiers) {
-            ReplaySubject<SubscribeResponse<R, P>> subscribeResponseReplaySubject = ReplaySubject.create(1);
-            webSocketTrafficGateway.registerRequest(requestIdentifier, subscribeResponseReplaySubject);
+        if (subscribeRequest.getRequestId() == null)
+            subscribeRequest.setRequestId(this.generateRandomReqId());
+
+        var serverTime = marketDataClient.getServerTime().getIsoTime();
+        var requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
+        var list = new ArrayList<Single<SubscribeResponse<R, P>>>();
+        for (var requestIdentifier : requestIdentifiers) {
+            var subscriptionRequestIdentifier = (SubscriptionRequestIdentifier) requestIdentifier;
+            var subscribeResponseReplaySubject = ReplaySubject.<SubscribeResponse<R, P>>create(1);
+            webSocketTrafficGateway.registerRequest(subscriptionRequestIdentifier, subscribeResponseReplaySubject);
             // Publication messages do not have req_id or timestamp information, so the RequestIdentifier cannot have
             // these field as keys in the map
-            RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
+            var publicationSubscriptionRequestIdentifier = subscriptionRequestIdentifier.duplicate();
             ReplaySubject<P> publicationMessageReplaySubject = webSocketTrafficGateway
-                .subscribePublication(publicationRequestIdentifier);
-            Single<SubscribeResponse<R, P>> subscribeResponseSingle = webSocketTrafficGateway
-                .retrieveResponse(requestIdentifier);
+                .subscribePublication(publicationSubscriptionRequestIdentifier);
+            Single<SubscribeResponse<R, P>> subscribeResponseSingle = webSocketTrafficGateway.retrieveResponse(
+                requestIdentifier);
             subscribeResponseSingle = subscribeResponseSingle.map(e -> {
                 e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
                 return e;
@@ -240,19 +253,21 @@ public abstract class KrakenBaseWebSocketClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#unsubscribe">Kraken Unsubscribe</a>
      */
-    public <R extends AbstractResult, P extends AbstractPublicationMessage, T extends AbstractParameter>
+    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends ParameterInterface>
     List<Single<UnsubscribeResponse<R, P>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
-        if (Objects.isNull(unsubscribeRequest.getRequestId()))
+        if (unsubscribeRequest.getRequestId() == null)
             unsubscribeRequest.setRequestId(this.generateRandomReqId());
+
         ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
-        List<RequestIdentifier> unsubscribeRequestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
-        List<Single<UnsubscribeResponse<R, P>>> list = new ArrayList<>();
-        for (RequestIdentifier requestIdentifier : unsubscribeRequestIdentifiers) {
-            ReplaySubject<UnsubscribeResponse<R, P>> unsubscribeResponseSubject = ReplaySubject.create();
+        var requestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
+        var list = new ArrayList<Single<UnsubscribeResponse<R, P>>>();
+        for (var requestIdentifier : requestIdentifiers) {
+            var unsubscribeRequestIdentifier = (SubscriptionRequestIdentifier) requestIdentifier;
+            var unsubscribeResponseSubject = ReplaySubject.<UnsubscribeResponse<R, P>>create();
             webSocketTrafficGateway.registerRequest(requestIdentifier, unsubscribeResponseSubject);
-            RequestIdentifier publicationRequestIdentifier = requestIdentifier.duplicate();
+            SubscriptionRequestIdentifier publicationChannelRequestIdentifier = unsubscribeRequestIdentifier.duplicate();
             ReplaySubject<P> publicationMessageReplaySubject = webSocketTrafficGateway
-                .subscribePublication(publicationRequestIdentifier);
+                .subscribePublication(publicationChannelRequestIdentifier);
             Single<UnsubscribeResponse<R, P>> unsubscribeResponseSingle = webSocketTrafficGateway
                 .retrieveResponse(requestIdentifier);
             unsubscribeResponseSingle = unsubscribeResponseSingle.map(e -> {

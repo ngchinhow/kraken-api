@@ -1,27 +1,27 @@
 package io.github.ngchinhow.kraken.websocket.dto.request;
 
-
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
 @Data
-@Builder(toBuilder = true, builderClassName = "Builder")
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
 @AllArgsConstructor
 public class RequestIdentifier {
     private String method;
-    private String channel;
-    private String symbol;
     private BigInteger requestId;
     @EqualsAndHashCode.Exclude
     private ZonedDateTime timestamp;
 
-    public RequestIdentifier duplicate() {
-        return RequestIdentifier.builder()
-            .method(method)
-            .channel(channel)
-            .symbol(symbol)
-            .build();
+    public RequestIdentifier(RequestIdentifier requestIdentifier) {
+        this.method = requestIdentifier.getMethod();
+        this.requestId = requestIdentifier.getRequestId();
+        this.timestamp = requestIdentifier.getTimestamp();
     }
 }

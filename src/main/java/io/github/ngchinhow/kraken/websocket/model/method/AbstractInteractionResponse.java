@@ -1,6 +1,5 @@
 package io.github.ngchinhow.kraken.websocket.model.method;
 
-import io.github.ngchinhow.kraken.websocket.dto.request.RequestIdentifier;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -10,16 +9,8 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
-public abstract class AbstractInteractionResponse<T extends AbstractResult> extends AbstractResponse {
+public abstract class AbstractInteractionResponse<T> extends AbstractResponse {
     private T result;
     private Boolean success;
     private String error;
-
-    @Override
-    public RequestIdentifier toRequestIdentifier() {
-        return super.toRequestIdentifier().toBuilder()
-            .channel(result.getChannel())
-            .symbol(result.getSymbol())
-            .build();
-    }
 }
