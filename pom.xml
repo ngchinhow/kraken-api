@@ -4,7 +4,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.ngchinhow</groupId>
     <artifactId>kraken-api</artifactId>
-    <version>1.1.2</version>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
     <name>kraken-api</name>
     <description>Java wrapper for Kraken's HTTP and Websocket APIs.</description>
     <url>https://github.com/ngchinhow/kraken-api</url>
@@ -22,6 +23,13 @@
             <email>ngchinhow@gmail.com</email>
         </developer>
     </developers>
+
+    <modules>
+        <module>starter</module>
+        <module>rest</module>
+        <module>websockets</module>
+    </modules>
+
     <scm>
         <connection>scm:git:git@github.com:ngchinhow/kraken-api.git</connection>
         <developerConnection>scm:git:ssh://github.com:ngchinhow/kraken-api.git</developerConnection>
@@ -39,12 +47,13 @@
     </distributionManagement>
 
     <properties>
+        <revision>1.1.2</revision>
         <java.version>21</java.version>
         <lombok.version>1.18.30</lombok.version>
-        <openfeign.version>12.2</openfeign.version>
         <slf4j.version>2.0.7</slf4j.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -53,39 +62,9 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-okhttp</artifactId>
-            <version>${openfeign.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-jackson</artifactId>
-            <version>${openfeign.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-slf4j</artifactId>
-            <version>${openfeign.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.openfeign.form</groupId>
-            <artifactId>feign-form</artifactId>
-            <version>3.8.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.reactivex.rxjava3</groupId>
-            <artifactId>rxjava</artifactId>
-            <version>3.1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.4</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -125,24 +104,10 @@
             <version>3.25.1</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
-<!--            <plugin>-->
-<!--                <groupId>org.projectlombok</groupId>-->
-<!--                <artifactId>lombok-maven-plugin</artifactId>-->
-<!--                <version>1.18.20.0</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>generate-sources</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>delombok</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
