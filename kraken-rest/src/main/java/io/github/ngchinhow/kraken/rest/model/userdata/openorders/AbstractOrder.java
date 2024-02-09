@@ -2,6 +2,8 @@ package io.github.ngchinhow.kraken.rest.model.userdata.openorders;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
+import io.github.ngchinhow.kraken.common.enumerations.Side;
+import io.github.ngchinhow.kraken.common.enumerations.TriggerReference;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -39,7 +41,7 @@ public abstract class AbstractOrder {
     private BigDecimal stopPrice;
     @JsonProperty("limitprice")
     private BigDecimal limitPrice;
-    private Trigger trigger;
+    private TriggerReference trigger;
     @JsonProperty("misc")
     private List<MiscellaneousInformation> miscellaneousInformationList;
     private List<Flag> flagList;
@@ -65,11 +67,6 @@ public abstract class AbstractOrder {
         @JsonProperty("close")
         private String closeDescription;
 
-        public enum Side implements BaseKrakenEnum {
-            BUY,
-            SELL
-        }
-
         public enum OrderType implements BaseKrakenEnum {
             MARKET,
             LIMIT,
@@ -87,11 +84,6 @@ public abstract class AbstractOrder {
         CLOSED,
         CANCELED,
         EXPIRED
-    }
-
-    public enum Trigger implements BaseKrakenEnum {
-        INDEX,
-        LAST
     }
 
     public enum MiscellaneousInformation implements BaseKrakenEnum {

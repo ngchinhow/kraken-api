@@ -3,6 +3,9 @@ package io.github.ngchinhow.kraken.websockets.model.message.executions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
+import io.github.ngchinhow.kraken.common.enumerations.Side;
+import io.github.ngchinhow.kraken.common.enumerations.TimeInForce;
+import io.github.ngchinhow.kraken.common.enumerations.TriggerReference;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,7 +54,7 @@ public class Execution {
     private LiquidityIndicator liquidityIndicator;
     private Boolean margin;
     @JsonProperty("no_mpp")
-    private Boolean hasNotMarketPriceProtection;
+    private Boolean hasNoMarketPriceProtection;
     @JsonProperty(value = "ord_ref_id", required = true)
     private String referralOrderId;
     @JsonProperty("order_id")
@@ -77,7 +80,7 @@ public class Execution {
     private ZonedDateTime timestamp;
     @JsonProperty("trade_id")
     private Integer tradeId;
-    private Trigger trigger;
+    private TriggerReference trigger;
     @JsonProperty("triggered_price")
     private BigDecimal triggeredPrice;
 
@@ -129,20 +132,5 @@ public class Execution {
         SETTLE_POSITION,
         PEG_BID,
         PEG_ASK
-    }
-
-    public enum Side implements BaseKrakenEnum {
-        BUY,
-        SELL
-    }
-
-    public enum TimeInForce implements BaseKrakenEnum {
-        IOC,
-        GTD,
-        GTC
-    }
-
-    public enum Trigger implements BaseKrakenEnum {
-        INDEX
     }
 }
