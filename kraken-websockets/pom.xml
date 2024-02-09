@@ -9,8 +9,8 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>starter</artifactId>
-    <description>Combination of Kraken's Rest and WebSockets APIs to be used in one place.</description>
+    <artifactId>kraken-websockets</artifactId>
+    <description>Simple wrapper around Kraken's WebSockets API.</description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -21,15 +21,25 @@
     <dependencies>
         <dependency>
             <groupId>io.github.ngchinhow</groupId>
-            <artifactId>rest</artifactId>
+            <artifactId>kraken-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.github.ngchinhow</groupId>
-            <artifactId>websockets</artifactId>
+            <artifactId>kraken-rest</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>3.1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.4</version>
         </dependency>
     </dependencies>
 

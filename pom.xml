@@ -25,9 +25,10 @@
     </developers>
 
     <modules>
-        <module>starter</module>
-        <module>rest</module>
-        <module>websockets</module>
+        <module>kraken-starter</module>
+        <module>kraken-rest</module>
+        <module>kraken-websockets</module>
+        <module>kraken-common</module>
     </modules>
 
     <scm>
