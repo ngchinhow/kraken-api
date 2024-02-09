@@ -19,7 +19,7 @@ import java.time.ZonedDateTime;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddOrderParameter extends AbstractOrderParameter {
+public final class AddOrderParameter extends AbstractOrderParameter {
     @JsonProperty(value = "cash_order_qty")
     private Integer cashOrderQuantity;
     private Conditional conditional;

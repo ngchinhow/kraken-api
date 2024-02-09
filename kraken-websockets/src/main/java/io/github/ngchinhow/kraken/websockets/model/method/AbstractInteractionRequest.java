@@ -2,7 +2,7 @@ package io.github.ngchinhow.kraken.websockets.model.method;
 
 import io.github.ngchinhow.kraken.websockets.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websockets.dto.request.SubscriptionRequestIdentifier;
-import io.github.ngchinhow.kraken.websockets.model.method.channel.ChannelParameterInterface;
+import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelParameter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,12 +23,12 @@ public abstract class AbstractInteractionRequest<T extends ParameterInterface> e
 
     public List<RequestIdentifier> toRequestIdentifiers(ZonedDateTime timestamp) {
         var requestIdentifier = super.toRequestIdentifier(timestamp);
-        if (params instanceof ChannelParameterInterface channelParameterInterface)
-            return channelParameterInterface.getSymbols()
+        if (params instanceof AbstractChannelParameter channelParameter)
+            return channelParameter.getSymbols()
                                             .stream()
                                             .map(e -> new SubscriptionRequestIdentifier(requestIdentifier)
                                                 .toBuilder()
-                                                .channel(channelParameterInterface.getChannel())
+                                                .channel(channelParameter.getChannel())
                                                 .symbol(e)
                                                 .build())
                                             .collect(Collectors.toUnmodifiableList());

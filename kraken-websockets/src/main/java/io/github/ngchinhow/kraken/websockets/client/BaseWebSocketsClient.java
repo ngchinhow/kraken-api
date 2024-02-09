@@ -9,6 +9,7 @@ import io.github.ngchinhow.kraken.websockets.model.message.AbstractPublicationMe
 import io.github.ngchinhow.kraken.websockets.model.message.HeartbeatMessage;
 import io.github.ngchinhow.kraken.websockets.model.message.status.StatusMessage;
 import io.github.ngchinhow.kraken.websockets.model.method.*;
+import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelResult;
 import io.github.ngchinhow.kraken.websockets.model.method.echo.PingRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.echo.PongResponse;
@@ -208,7 +209,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#subscribe">Kraken Subscribe</a>
      */
-    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends ParameterInterface>
+    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends AbstractChannelParameter>
     List<Single<SubscribeResponse<R, P>>> subscribe(SubscribeRequest<T> subscribeRequest) {
         if (subscribeRequest.getRequestId() == null)
             subscribeRequest.setRequestId(this.generateRandomReqId());
@@ -248,7 +249,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#unsubscribe">Kraken Unsubscribe</a>
      */
-    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends ParameterInterface>
+    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends AbstractChannelParameter>
     List<Single<UnsubscribeResponse<R, P>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
         if (unsubscribeRequest.getRequestId() == null)
             unsubscribeRequest.setRequestId(this.generateRandomReqId());
