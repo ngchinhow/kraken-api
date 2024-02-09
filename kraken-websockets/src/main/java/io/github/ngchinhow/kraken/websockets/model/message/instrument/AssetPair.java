@@ -1,7 +1,7 @@
 package io.github.ngchinhow.kraken.websockets.model.message.instrument;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -46,7 +46,7 @@ public class AssetPair {
     @JsonProperty("tick_size")
     private BigDecimal tickSize;
 
-    public enum Status implements BaseKrakenEnum {
+    public enum Status {
         CANCEL_ONLY,
         DELISTED,
         LIMIT_ONLY,
@@ -54,6 +54,11 @@ public class AssetPair {
         ONLINE,
         POST_ONLY,
         REDUCE_ONLY,
-        WORK_IN_PROGRESS
+        WORK_IN_PROGRESS;
+
+        @JsonValue
+        public String toJsonString() {
+            return this.name().toLowerCase();
+        }
     }
 }

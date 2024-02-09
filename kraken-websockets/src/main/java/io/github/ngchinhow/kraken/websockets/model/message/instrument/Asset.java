@@ -3,7 +3,8 @@ package io.github.ngchinhow.kraken.websockets.model.message.instrument;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Data;
-import lombok.*;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.math.BigDecimal;
 
@@ -26,16 +27,17 @@ public class Asset {
     @NonNull
     private Status status;
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
     public enum Status {
-        ENABLED("enabled"),
-        DEPOSIT_ONLY("depositonly"),
-        WITHDRAWAL_ONLY("withdrawalonly"),
-        FUNDING_TEMPORARILY_DISABLED("fundingtemporarilydisabled"),
-        DISABLED("disabled"),
-        WORK_IN_PROGRESS("workinprogress");
+        ENABLED,
+        DEPOSIT_ONLY,
+        WITHDRAWAL_ONLY,
+        FUNDING_TEMPORARILY_DISABLED,
+        DISABLED,
+        WORK_IN_PROGRESS;
 
-        private final String status;
+        @JsonValue
+        public String toJsonString() {
+            return this.name().toLowerCase().replace("_", "");
+        }
     }
 }
