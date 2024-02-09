@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class RestAssetPair {
+public class AssetPair {
     private String name;
     @JsonProperty("altname")
     private String alternateName;

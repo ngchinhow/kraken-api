@@ -7,7 +7,7 @@ import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.RestAsset;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.pair.RestAssetPair;
+import io.github.ngchinhow.kraken.rest.model.marketdata.pair.AssetPair;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
@@ -75,14 +75,14 @@ class MarketDataClientTest {
         assertThat(result)
             .isNotNull()
             .extracting(TradableAssetPairResult::getAssetPairs,
-                        InstanceOfAssertFactories.map(String.class, RestAssetPair.class))
+                        InstanceOfAssertFactories.map(String.class, AssetPair.class))
             .hasSize(2)
             .allSatisfy((pairName, assetPair) -> {
                 assertThat(pairName)
                     .isIn(pairs);
                 assertThat(assetPair)
                     .isNotNull()
-                    .extracting(RestAssetPair::getTakerFees, InstanceOfAssertFactories.LIST)
+                    .extracting(AssetPair::getTakerFees, InstanceOfAssertFactories.LIST)
                     .isNotEmpty();
             });
     }
