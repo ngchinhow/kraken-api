@@ -6,10 +6,6 @@ import lombok.Data;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor(force = true)
@@ -30,6 +26,7 @@ public class Asset {
     @NonNull
     private Status status;
 
+    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum Status {
         ENABLED("enabled"),
@@ -39,18 +36,6 @@ public class Asset {
         DISABLED("disabled"),
         WORK_IN_PROGRESS("workinprogress");
 
-        @Getter(onMethod_ = @JsonValue)
         private final String status;
-
-        private static final Map<String, Status> STATUS_MAP;
-
-        static {
-            STATUS_MAP = Arrays.stream(Status.values())
-                .collect(Collectors.toMap(Status::getStatus, Function.identity()));
-        }
-
-        public static Status fromString(String str) {
-            return STATUS_MAP.get(str);
-        }
     }
 }

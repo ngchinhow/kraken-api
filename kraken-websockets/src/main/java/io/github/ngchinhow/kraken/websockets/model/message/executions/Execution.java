@@ -2,6 +2,7 @@ package io.github.ngchinhow.kraken.websockets.model.message.executions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -80,26 +81,18 @@ public class Execution {
     @JsonProperty("triggered_price")
     private BigDecimal triggeredPrice;
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum ExecutionType {
-        PENDING_NEW("pending_new"),
-        NEW("new"),
-        FILLED("filled"),
-        CANCELED("canceled"),
-        EXPIRED("expired"),
-        TRADE("trade");
-
-        private final String executionType;
+    public enum ExecutionType implements BaseKrakenEnum {
+        PENDING_NEW,
+        NEW,
+        FILLED,
+        CANCELED,
+        EXPIRED,
+        TRADE
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum FeeCurrencyPreference {
-        FCIB("fcib"),
-        FCIQ("fciq");
-
-        private final String feePreference;
+    public enum FeeCurrencyPreference implements BaseKrakenEnum {
+        FCIB,
+        FCIQ
     }
 
     @Getter(onMethod_ = @JsonValue)
@@ -111,62 +104,45 @@ public class Execution {
         private final String liquidityIndicator;
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum OrderStatus {
-        PENDING_NEW("pending_new"),
-        NEW("new"),
-        FILLED("filled"),
-        CANCELED("canceled"),
-        EXPIRED("expired"),
-        TRIGGERED("triggered"),
-        PARTIALLY_FILLED("partially_filled");
-
-        private final String orderStatus;
+    public enum OrderStatus implements BaseKrakenEnum {
+        PENDING_NEW,
+        NEW,
+        FILLED,
+        CANCELED,
+        EXPIRED,
+        TRIGGERED,
+        PARTIALLY_FILLED
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum OrderType {
-        MARKET("market"),
-        LIMIT("limit"),
-        STOP_LOSS("stop-loss"),
-        TAKE_PROFIT("take-profit"),
-        STOP_LOSS_PROFIT("stop-loss-profit"),
-        STOP_LOSS_PROFIT_LIMIT("stop-loss-profit-limit"),
-        STOP_LOSS_LIMIT("stop-loss-limit"),
-        TAKE_PROFIT_LIMIT("take-profit-limit"),
-        TRAILING_STOP("trailing-stop"),
-        TRAILING_STOP_LIMIT("trailing-stop-limit"),
-        STOP_LOSS_AND_LIMIT("stop-loss-and-limit"),
-        SETTLE_POSITION("settle-position"),
-        PEG_BID("peg-bid"),
-        PEG_ASK("peg-ask");
-
-        private final String orderType;
+    public enum OrderType implements BaseKrakenEnum {
+        MARKET,
+        LIMIT,
+        STOP_LOSS,
+        TAKE_PROFIT,
+        STOP_LOSS_PROFIT,
+        STOP_LOSS_PROFIT_LIMIT,
+        STOP_LOSS_LIMIT,
+        TAKE_PROFIT_LIMIT,
+        TRAILING_STOP,
+        TRAILING_STOP_LIMIT,
+        STOP_LOSS_AND_LIMIT,
+        SETTLE_POSITION,
+        PEG_BID,
+        PEG_ASK
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Side {
-        BUY("buy"),
-        SELL("sell");
-
-        private final String side;
+    public enum Side implements BaseKrakenEnum {
+        BUY,
+        SELL
     }
 
-    @Getter
-    public enum TimeInForce {
+    public enum TimeInForce implements BaseKrakenEnum {
         IOC,
         GTD,
         GTC
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Trigger {
-        INDEX("index");
-
-        private final String trigger;
+    public enum Trigger implements BaseKrakenEnum {
+        INDEX
     }
 }

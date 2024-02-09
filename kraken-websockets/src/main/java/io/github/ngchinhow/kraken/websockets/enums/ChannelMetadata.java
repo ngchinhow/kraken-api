@@ -1,6 +1,6 @@
 package io.github.ngchinhow.kraken.websockets.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 
 public final class ChannelMetadata {
 
@@ -21,19 +21,8 @@ public final class ChannelMetadata {
         public static final String STATUS = "status";
     }
 
-    public enum ChangeType {
-        SNAPSHOT("snapshot"),
-        UPDATE("update");
-
-        private final String changeType;
-
-        ChangeType(String changeType) {
-            this.changeType = changeType;
-        }
-
-        @JsonValue
-        public String getChangeType() {
-            return this.changeType;
-        }
+    public enum ChangeType implements BaseKrakenEnum {
+        SNAPSHOT,
+        UPDATE
     }
 }

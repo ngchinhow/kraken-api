@@ -1,7 +1,7 @@
 package io.github.ngchinhow.kraken.rest.model.marketdata.asset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -25,14 +25,10 @@ public class RestAsset {
     private BigDecimal collateralValue;
     private Status status;
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Status {
-        ENABLED("enabled"),
-        DEPOSIT_ONLY("deposit_only"),
-        WITHDRAWAL_ONLY("withdrawal_only"),
-        FUNDING_TEMPORARILY_DISABLED("funding_temporarily_disabled");
-
-        private final String status;
+    public enum Status implements BaseKrakenEnum {
+        ENABLED,
+        DEPOSIT_ONLY,
+        WITHDRAWAL_ONLY,
+        FUNDING_TEMPORARILY_DISABLED
     }
 }

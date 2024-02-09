@@ -1,10 +1,8 @@
 package io.github.ngchinhow.kraken.rest.model.marketdata.pair;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -57,15 +55,11 @@ public class RestAssetPair {
     @JsonProperty("short_position_limit")
     private int shortPositionLimit;
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Status {
-        ONLINE("online"),
-        CANCEL_ONLY("cancel_only"),
-        POST_ONLY("post_only"),
-        LIMIT_ONLY("limit_only"),
-        REDUCE_ONLY("reduce_only");
-
-        private final String status;
+    public enum Status implements BaseKrakenEnum {
+        ONLINE,
+        CANCEL_ONLY,
+        POST_ONLY,
+        LIMIT_ONLY,
+        REDUCE_ONLY
     }
 }

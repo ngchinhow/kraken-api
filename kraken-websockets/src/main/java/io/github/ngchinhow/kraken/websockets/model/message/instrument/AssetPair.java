@@ -1,15 +1,12 @@
 package io.github.ngchinhow.kraken.websockets.model.message.instrument;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 import lombok.Data;
-import lombok.*;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor(force = true)
@@ -49,29 +46,14 @@ public class AssetPair {
     @JsonProperty("tick_size")
     private BigDecimal tickSize;
 
-    @RequiredArgsConstructor
-    public enum Status {
-        CANCEL_ONLY("cancel_only"),
-        DELISTED("delisted"),
-        LIMIT_ONLY("limit_only"),
-        MAINTENANCE("maintenance"),
-        ONLINE("online"),
-        POST_ONLY("post_only"),
-        REDUCE_ONLY("reduce_only"),
-        WORK_IN_PROGRESS("work_in_progress");
-
-        @Getter(onMethod_ = @JsonValue)
-        private final String status;
-
-        private static final Map<String, Status> STATUS_MAP;
-
-        static {
-            STATUS_MAP = Arrays.stream(Status.values())
-                .collect(Collectors.toMap(Status::getStatus, Function.identity()));
-        }
-
-        public static Status fromString(String str) {
-            return STATUS_MAP.get(str);
-        }
+    public enum Status implements BaseKrakenEnum {
+        CANCEL_ONLY,
+        DELISTED,
+        LIMIT_ONLY,
+        MAINTENANCE,
+        ONLINE,
+        POST_ONLY,
+        REDUCE_ONLY,
+        WORK_IN_PROGRESS
     }
 }

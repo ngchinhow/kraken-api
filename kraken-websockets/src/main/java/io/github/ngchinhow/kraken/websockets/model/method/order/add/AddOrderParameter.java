@@ -1,9 +1,8 @@
 package io.github.ngchinhow.kraken.websockets.model.method.order.add;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 import io.github.ngchinhow.kraken.websockets.model.method.order.AbstractOrderParameter;
-import io.github.ngchinhow.kraken.websockets.utils.EnumConverter;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -29,7 +28,7 @@ public class AddOrderParameter extends AbstractOrderParameter {
         @JsonProperty(value = "limit_price_type")
         private LimitPriceType limitPriceType;
 
-        enum OrderType implement {
+        public enum OrderType implements BaseKrakenEnum {
             LIMIT,
             MARKET,
             ICEBERG,
@@ -42,15 +41,10 @@ public class AddOrderParameter extends AbstractOrderParameter {
             SETTLE_POSITION
         }
 
-        enum LimitPriceType {
+        public enum LimitPriceType implements BaseKrakenEnum {
             STATIC,
             PCT,
-            QUOTE;
-
-            @JsonValue
-            public String getLimitPriceType() {
-                return this.name().toLowerCase();
-            }
+            QUOTE
         }
     }
 }

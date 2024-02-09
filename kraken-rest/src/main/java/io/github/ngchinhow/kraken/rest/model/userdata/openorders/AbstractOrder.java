@@ -1,7 +1,7 @@
 package io.github.ngchinhow.kraken.rest.model.userdata.openorders;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -65,71 +65,47 @@ public abstract class AbstractOrder {
         @JsonProperty("close")
         private String closeDescription;
 
-        @Getter(onMethod_ = @JsonValue)
-        @RequiredArgsConstructor
-        public enum Side {
-            BUY("buy"),
-            SELL("sell");
-
-            private final String side;
+        public enum Side implements BaseKrakenEnum {
+            BUY,
+            SELL
         }
 
-        @Getter(onMethod_ = @JsonValue)
-        @RequiredArgsConstructor
-        public enum OrderType {
-            MARKET("market"),
-            LIMIT("limit"),
-            STOP_LOSS("stop-loss"),
-            TAKE_PROFIT("take-profit"),
-            STOP_LOSS_LIMIT("stop-loss-limit"),
-            TAKE_PROFIT_LIMIT("take-profit-limit"),
-            SETTLE_POSITION("settle-position");
-
-            private final String orderType;
+        public enum OrderType implements BaseKrakenEnum {
+            MARKET,
+            LIMIT,
+            STOP_LOSS,
+            TAKE_PROFIT,
+            STOP_LOSS_LIMIT,
+            TAKE_PROFIT_LIMIT,
+            SETTLE_POSITION
         }
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Status {
-        PENDING("pending"),
-        OPEN("open"),
-        CLOSED("closed"),
-        CANCELED("canceled"),
-        EXPIRED("expired");
-
-        private final String status;
+    public enum Status implements BaseKrakenEnum {
+        PENDING,
+        OPEN,
+        CLOSED,
+        CANCELED,
+        EXPIRED
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Trigger {
-        INDEX("index"),
-        LAST("last");
-
-        private final String trigger;
+    public enum Trigger implements BaseKrakenEnum {
+        INDEX,
+        LAST
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum MiscellaneousInformation {
-        STOPPED("stopped"),
-        TOUCHED("touched"),
-        LIQUIDATED("liquidated"),
-        PARTIAL("partial");
-
-        private final String miscellaneousInfo;
+    public enum MiscellaneousInformation implements BaseKrakenEnum {
+        STOPPED,
+        TOUCHED,
+        LIQUIDATED,
+        PARTIAL
     }
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Flag {
-        POST("post"),
-        FCIB("fcib"),
-        FCIQ("fciq"),
-        NOMPP("nompp"),
-        VIQC("viqc");
-
-        private final String flag;
+    public enum Flag implements BaseKrakenEnum {
+        POST,
+        FCIB,
+        FCIQ,
+        NOMPP,
+        VIQC
     }
 }

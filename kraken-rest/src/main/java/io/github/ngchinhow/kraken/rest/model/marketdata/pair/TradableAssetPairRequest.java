@@ -1,12 +1,10 @@
 package io.github.ngchinhow.kraken.rest.model.marketdata.pair;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import feign.Param;
+import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
 import io.github.ngchinhow.kraken.rest.model.AbstractRequest;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
@@ -19,14 +17,10 @@ public class TradableAssetPairRequest implements AbstractRequest {
     private List<String> pairs;
     private Info info;
 
-    @Getter(onMethod_ = @JsonValue)
-    @RequiredArgsConstructor
-    public enum Info {
-        INFO("info"),
-        LEVERAGE("leverage"),
-        FEES("fees"),
-        MARGIN("margin");
-
-        private final String info;
+    public enum Info implements BaseKrakenEnum {
+        INFO,
+        LEVERAGE,
+        FEES,
+        MARGIN
     }
 }
