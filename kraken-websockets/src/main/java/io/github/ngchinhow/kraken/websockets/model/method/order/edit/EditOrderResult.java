@@ -1,6 +1,7 @@
-package io.github.ngchinhow.kraken.websockets.model.method.order;
+package io.github.ngchinhow.kraken.websockets.model.method.order.edit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderId;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
@@ -11,7 +12,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
-public class EditedOrderResult extends BaseOrderId {
+public class EditOrderResult extends BaseOrderId {
     @NonNull
     @JsonProperty("original_order_id")
     private String originalOrderId;

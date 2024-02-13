@@ -1,8 +1,7 @@
-package io.github.ngchinhow.kraken.websockets.model.method.subscription;
+package io.github.ngchinhow.kraken.websockets.model.method.order.batchadd;
 
 import io.github.ngchinhow.kraken.websockets.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websockets.model.method.AbstractInteractionRequest;
-import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelParameter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
@@ -12,9 +11,9 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
-public final class SubscribeRequest<T extends AbstractChannelParameter> extends AbstractInteractionRequest<T> {
+public final class BatchAddOrderRequest extends AbstractInteractionRequest<BatchAddOrderParameter> {
 
     {
-        this.setMethod(MethodMetadata.MethodType.SUBSCRIBE);
+        this.setMethod(MethodMetadata.MethodType.BATCH_ADD);
     }
 }

@@ -11,7 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
-public final class CreatedOrderResult extends BaseOrderId {
+public final class BaseOrderOutput extends BaseOrderId {
     @NonNull
     @JsonProperty("order_userref")
     private String orderUserReference;
