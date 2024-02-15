@@ -26,7 +26,7 @@ class OHLCChannelSubscriptionTest {
 
     @BeforeEach
     void beforeEach() throws InterruptedException {
-        final var marketDataClient = RestClientFactory.getRestClient(MarketDataClient.class, null, null);
+        final var marketDataClient = RestClientFactory.getPrivateRestClient(MarketDataClient.class, null, null);
         client = new PublicWebSocketsClient(marketDataClient);
         client.connectBlocking();
     }

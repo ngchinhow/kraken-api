@@ -10,7 +10,7 @@ class UserTradingClientTest {
 
     @BeforeAll
     static void beforeAll() {
-        CLIENT = RestClientFactory.getRestClient(
+        CLIENT = RestClientFactory.getPrivateRestClient(
             UserTradingClient.class,
             System.getenv("KRAKEN_REST_API_KEY"),
             System.getenv("KRAKEN_REST_PRIVATE_KEY"));

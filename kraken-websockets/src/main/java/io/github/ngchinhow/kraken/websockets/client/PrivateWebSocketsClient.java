@@ -4,6 +4,8 @@ import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
 import io.github.ngchinhow.kraken.rest.model.websocketsauthentication.token.WebSocketsTokenResult;
 import io.github.ngchinhow.kraken.websockets.model.message.AbstractPublicationMessage;
+import io.github.ngchinhow.kraken.websockets.model.method.AbstractInteractionRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.AbstractInteractionResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.PrivateParameterInterface;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelResult;
@@ -11,6 +13,7 @@ import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderRequ
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrderResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeResponse;
@@ -49,6 +52,19 @@ public final class PrivateWebSocketsClient extends BaseWebSocketsClient {
     }
 
     public Single<AddOrderResponse> addOrder(AddOrderRequest request) {
+        return sendDirectInteractionRequest(request);
+    }
+
+    public Single<BatchAddOrderResponse> batchAddOrder(BatchAddOrderRequest request) {
+        return sendDirectInteractionRequest(request);
+    }
+
+    public Single<EditOrderResponse> editOrder(EditOrderRequest request) {
+        return sendDirectInteractionRequest(request);
+    }
+
+    private <T, U extends AbstractInteractionResponse<T>, V extends PrivateParameterInterface> Single<U>
+    sendDirectInteractionRequest(AbstractInteractionRequest<V> request) {
         // Add custom request ID if not present
         if (request.getRequestId() == null)
             request.setRequestId(generateRandomReqId());
@@ -58,19 +74,11 @@ public final class PrivateWebSocketsClient extends BaseWebSocketsClient {
 
         var serverTime = getServerTime();
         final var requestIdentifier = request.toRequestIdentifier(serverTime);
-        final var addOrderResponseSubject = ReplaySubject.<AddOrderResponse>create();
+        final var addOrderResponseSubject = ReplaySubject.<U>create();
         webSocketsTrafficGateway.registerRequest(requestIdentifier, addOrderResponseSubject);
-        Single<AddOrderResponse> addOrderResponseSingle = webSocketsTrafficGateway.retrieveResponse(requestIdentifier);
+        final Single<U> addOrderResponseSingle = webSocketsTrafficGateway.retrieveResponse(requestIdentifier);
         sendPayload(request, serverTime);
         return addOrderResponseSingle;
-    }
-
-    public Single<BatchAddOrderResponse> batchAddOrder(BatchAddOrderRequest request) {
-        return null;
-    }
-
-    public Single<EditOrderResponse> editOrder(BatchAddOrderRequest request) {
-        return null;
     }
 
     private void addTokenToParameter(PrivateParameterInterface param) {

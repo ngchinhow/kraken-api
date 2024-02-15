@@ -25,7 +25,7 @@ class MarketDataClientTest {
 
     @BeforeAll
     static void beforeAll() {
-        CLIENT = RestClientFactory.getRestClient(MarketDataClient.class, null, null);
+        CLIENT = RestClientFactory.getPrivateRestClient(MarketDataClient.class, null, null);
     }
 
     @Test

@@ -39,45 +39,45 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.from;
 
-class PublicWebSocketClientTest {
-    private PublicWebSocketsClient publicWebSocketClient;
+class PublicWebSocketsClientTest {
+    private PublicWebSocketsClient client;
 
     @BeforeEach
     void beforeEach() throws InterruptedException {
-        final var marketDataClient = RestClientFactory.getRestClient(MarketDataClient.class, null, null);
-        publicWebSocketClient = new PublicWebSocketsClient(marketDataClient);
-        publicWebSocketClient.connectBlocking();
+        final var marketDataClient = RestClientFactory.getPrivateRestClient(MarketDataClient.class, null, null);
+        client = new PublicWebSocketsClient(marketDataClient);
+        client.connectBlocking();
     }
 
     @Test
-    void givenPublicWebSocketClient_whenPing_thenPongWithSameReqId() {
+    void givenPublicWebSocketsClient_whenPing_thenPongWithSameReqId() {
         BigInteger reqId = new BigInteger("12987");
         PingRequest pingRequest = PingRequest.builder()
                                              .requestId(reqId)
                                              .build();
-        PongResponse pongResponseMessage = publicWebSocketClient.ping(pingRequest)
-                                                                .blockingGet();
+        PongResponse pongResponseMessage = client.ping(pingRequest)
+                                                 .blockingGet();
 
         assertThat(pongResponseMessage)
             .isNotNull()
             .returns(MethodMetadata.MethodType.PONG, from(PongResponse::getMethod))
             .returns(reqId, from(PongResponse::getRequestId));
 
-        assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
+        assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .isEmpty();
     }
 
     @Test
-    void givenPublicWebSocketClient_whenSubscribe_thenSucceed() {
+    void givenPublicWebSocketsClient_whenSubscribe_thenSucceed() {
         int testSize = 10;
         int expectedDepth = 10;
         SubscribeRequest<BookParameter> subscribeRequest = Helper.buildStandardBookSubscribeRequest();
         int numSymbols = subscribeRequest.getParams()
                                          .getSymbols()
                                          .size();
-        List<Single<SubscribeResponse<BookResult, BookMessage>>> list = publicWebSocketClient.subscribe(subscribeRequest);
+        List<Single<SubscribeResponse<BookResult, BookMessage>>> list = client.subscribe(subscribeRequest);
 
-        assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
+        assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .hasSize(numSymbols);
 
         list.stream()
@@ -115,9 +115,9 @@ class PublicWebSocketClientTest {
 
         // Test subscribing using the same payload again
         List<Single<SubscribeResponse<BookResult, BookMessage>>>
-            listResubscribe = publicWebSocketClient.subscribe(subscribeRequest);
+            listResubscribe = client.subscribe(subscribeRequest);
 
-        assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
+        assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .hasSize(numSymbols);
 
         for (int i = 0; i < numSymbols; i++) {
@@ -135,9 +135,9 @@ class PublicWebSocketClientTest {
         // Test changing reqId will not affect the Publication PublishSubject
         subscribeRequest.setRequestId(new BigInteger("123"));
         List<Single<SubscribeResponse<BookResult, BookMessage>>>
-            listNewReqId = publicWebSocketClient.subscribe(subscribeRequest);
+            listNewReqId = client.subscribe(subscribeRequest);
 
-        assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
+        assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .hasSize(numSymbols);
 
         for (int i = 0; i < numSymbols; i++) {
@@ -154,15 +154,15 @@ class PublicWebSocketClientTest {
     }
 
     @Test
-    void givenPublicWebSocketClient_whenUnsubscribe_thenFail() {
+    void givenPublicWebSocketsClient_whenUnsubscribe_thenFail() {
         UnsubscribeRequest<BookParameter> unsubscribeRequest = Helper.buildStandardBookUnsubscribeRequest();
         int numSymbols = unsubscribeRequest.getParams()
                                            .getSymbols()
                                            .size();
         List<Single<UnsubscribeResponse<BookResult>>>
-            list = publicWebSocketClient.unsubscribe(unsubscribeRequest);
+            list = client.unsubscribe(unsubscribeRequest);
 
-        assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
+        assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .hasSize(numSymbols);
 
         list.stream()
@@ -179,21 +179,21 @@ class PublicWebSocketClientTest {
     }
 
     @Test
-    void givenPublicWebSocketClient_whenSubscribeAndUnsubscribe_thenSucceed() {
+    void givenPublicWebSocketsClient_whenSubscribeAndUnsubscribe_thenSucceed() {
         int expectedDepth = 10;
         SubscribeRequest<BookParameter> subscribeRequest = Helper.buildStandardBookSubscribeRequest();
-        publicWebSocketClient.subscribe(subscribeRequest)
-                             .stream()
-                             .map(Single::blockingGet)
-                             .forEach(System.out::println);
+        client.subscribe(subscribeRequest)
+              .stream()
+              .map(Single::blockingGet)
+              .forEach(System.out::println);
         UnsubscribeRequest<BookParameter> unsubscribeRequest = Helper.buildStandardBookUnsubscribeRequest();
         int numSymbols = unsubscribeRequest.getParams()
                                            .getSymbols()
                                            .size();
         List<Single<UnsubscribeResponse<BookResult>>>
-            list = publicWebSocketClient.unsubscribe(unsubscribeRequest);
+            list = client.unsubscribe(unsubscribeRequest);
 
-        assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
+        assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .hasSize(numSymbols);
 
         Predicate<UnsubscribeResponse<BookResult>> bookResultPredicate = r -> {
@@ -215,14 +215,14 @@ class PublicWebSocketClientTest {
     }
 
     @Test
-    void givenPublicWebSocketClient_whenSubscribeTwoChannelSameReqId_thenSucceed() {
+    void givenPublicWebSocketsClient_whenSubscribeTwoChannelSameReqId_thenSucceed() {
         int testSize = 10;
         SubscribeRequest<BookParameter> bookSubscribeRequest = Helper.buildStandardBookSubscribeRequest();
         SubscribeRequest<OHLCParameter> ohlcSubscribeRequest = Helper.buildStandardOHLCSubscribeRequest();
         List<Single<SubscribeResponse<BookResult, BookMessage>>>
-            bookResponses = publicWebSocketClient.subscribe(bookSubscribeRequest);
+            bookResponses = client.subscribe(bookSubscribeRequest);
         List<Single<SubscribeResponse<OHLCResult, OHLCMessage>>>
-            ohlcResponses = publicWebSocketClient.subscribe(ohlcSubscribeRequest);
+            ohlcResponses = client.subscribe(ohlcSubscribeRequest);
 
         bookResponses.stream()
                      .limit(testSize)
@@ -237,16 +237,16 @@ class PublicWebSocketClientTest {
     }
 
     @Test
-    void givenPublicWebSocketClient_whenSubscribeChannelWithNoSymbol_thenSucceed() {
+    void givenPublicWebSocketsClient_whenSubscribeChannelWithNoSymbol_thenSucceed() {
         int responseSize = 1;
         SubscribeRequest<InstrumentParameter>
             instrumentSubscribeRequest = Helper.buildStandardInstrumentSubscribeRequest();
         List<Single<SubscribeResponse<InstrumentResult, InstrumentMessage>>> responses =
-            publicWebSocketClient.subscribe(instrumentSubscribeRequest);
+            client.subscribe(instrumentSubscribeRequest);
 
         assertThat(responseSize)
             .isEqualTo(responses.size())
-            .isEqualTo(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap().size());
+            .isEqualTo(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap().size());
 
         Predicate<SubscribeResponse<InstrumentResult, InstrumentMessage>> instrumentPredicate = i -> {
             assertThat(i)
@@ -288,15 +288,15 @@ class PublicWebSocketClientTest {
     }
 
     @Test
-    void givenPublicWebSocketClient_whenSubscribeLongerThan1Minute_thenPingToStayAlive() throws InterruptedException {
-        var startTime = publicWebSocketClient.getClientOpenTime();
+    void givenPublicWebSocketsClient_whenSubscribeLongerThan1Minute_thenPingToStayAlive() throws InterruptedException {
+        var startTime = client.getClientOpenTime();
         SubscribeRequest<OHLCParameter> ohlcSubscribeRequest = Helper.buildStandardOHLCSubscribeRequest();
-        publicWebSocketClient.subscribe(ohlcSubscribeRequest);
+        client.subscribe(ohlcSubscribeRequest);
 
         // Wait for 1 minute
         TimeUnit.MINUTES.sleep(1);
 
-        assertThat(publicWebSocketClient.getClientOpenTime())
+        assertThat(client.getClientOpenTime())
             .isAfter(startTime);
     }
 }

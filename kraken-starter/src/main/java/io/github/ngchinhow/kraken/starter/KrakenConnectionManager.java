@@ -18,7 +18,7 @@ public final class KrakenConnectionManager {
     }
 
     public <T extends RestClient> T getRestClient(Class<T> clazz) {
-        return RestClientFactory.getRestClient(clazz, apiKey, privateKey);
+        return RestClientFactory.getPrivateRestClient(clazz, apiKey, privateKey);
     }
 
     public PrivateWebSocketsClient getKrakenPrivateWebSocketClient() {

@@ -14,7 +14,7 @@ class UserDataClientTest {
 
     @BeforeAll
     static void beforeAll() {
-        CLIENT = RestClientFactory.getRestClient(
+        CLIENT = RestClientFactory.getPrivateRestClient(
             UserDataClient.class,
             System.getenv("KRAKEN_REST_API_KEY"),
             System.getenv("KRAKEN_REST_PRIVATE_KEY"));

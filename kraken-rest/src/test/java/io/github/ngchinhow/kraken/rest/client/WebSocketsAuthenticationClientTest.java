@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class WebsocketsAuthenticationClientTest {
+class WebSocketsAuthenticationClientTest {
 
     private static WebSocketsAuthenticationClient CLIENT;
 
     @BeforeAll
     static void beforeAll() {
-        CLIENT = RestClientFactory.getRestClient(
+        CLIENT = RestClientFactory.getPrivateRestClient(
             WebSocketsAuthenticationClient.class,
             System.getenv("KRAKEN_REST_API_KEY"),
             System.getenv("KRAKEN_REST_PRIVATE_KEY"));
