@@ -22,6 +22,6 @@ public final class BookParameter extends AbstractChannelParameter {
     private List<String> symbols;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.BOOK);
+        setChannel(ChannelMetadata.ChannelType.BOOK);
     }
 }

@@ -24,7 +24,7 @@ public class OHLCMessage extends AbstractPublicationMessage {
     private ZonedDateTime timestamp;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.OHLC);
+        setChannel(ChannelMetadata.ChannelType.OHLC);
     }
 
     @Override

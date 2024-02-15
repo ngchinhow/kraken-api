@@ -15,6 +15,6 @@ import lombok.extern.jackson.Jacksonized;
 public final class AddOrderResponse extends AbstractInteractionResponse<BaseOrderOutput> {
 
     {
-        this.setMethod(MethodMetadata.MethodType.ADD_ORDER);
+        setMethod(MethodMetadata.MethodType.ADD_ORDER);
     }
 }

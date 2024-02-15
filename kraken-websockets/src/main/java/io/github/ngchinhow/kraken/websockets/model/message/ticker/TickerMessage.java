@@ -22,7 +22,7 @@ public class TickerMessage extends AbstractPublicationMessage {
     private List<Ticker> data;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.TICKER);
+        setChannel(ChannelMetadata.ChannelType.TICKER);
     }
 
     @Override

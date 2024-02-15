@@ -14,6 +14,6 @@ import lombok.experimental.SuperBuilder;
 public final class EditOrderResponse extends AbstractInteractionResponse<EditOrderResult> {
 
     {
-        this.setMethod(MethodMetadata.MethodType.EDIT_ORDER);
+        setMethod(MethodMetadata.MethodType.EDIT_ORDER);
     }
 }

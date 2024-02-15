@@ -22,7 +22,7 @@ public class TradeMessage extends AbstractPublicationMessage {
     private List<Trade> data;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.TRADE);
+        setChannel(ChannelMetadata.ChannelType.TRADE);
     }
 
     @Override

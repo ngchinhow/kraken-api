@@ -22,7 +22,7 @@ public class BookMessage extends AbstractPublicationMessage {
     private List<Book> data;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.BOOK);
+        setChannel(ChannelMetadata.ChannelType.BOOK);
     }
 
     @Override

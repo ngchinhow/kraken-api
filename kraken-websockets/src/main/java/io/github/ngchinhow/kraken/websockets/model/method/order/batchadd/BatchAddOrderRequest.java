@@ -14,6 +14,6 @@ import lombok.extern.jackson.Jacksonized;
 public final class BatchAddOrderRequest extends AbstractInteractionRequest<BatchAddOrderParameter> {
 
     {
-        this.setMethod(MethodMetadata.MethodType.BATCH_ADD);
+        setMethod(MethodMetadata.MethodType.BATCH_ADD);
     }
 }

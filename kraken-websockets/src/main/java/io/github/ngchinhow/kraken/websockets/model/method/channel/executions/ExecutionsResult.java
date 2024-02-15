@@ -21,6 +21,6 @@ public final class ExecutionsResult extends AbstractChannelResult {
     private String token;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.EXECUTIONS);
+        setChannel(ChannelMetadata.ChannelType.EXECUTIONS);
     }
 }

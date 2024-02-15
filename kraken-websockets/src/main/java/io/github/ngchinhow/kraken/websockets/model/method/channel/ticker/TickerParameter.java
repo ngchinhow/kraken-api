@@ -21,6 +21,6 @@ public final class TickerParameter extends AbstractChannelParameter {
     private List<String> symbols;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.TICKER);
+        setChannel(ChannelMetadata.ChannelType.TICKER);
     }
 }

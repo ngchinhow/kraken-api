@@ -15,6 +15,6 @@ import lombok.extern.jackson.Jacksonized;
 public final class SubscribeRequest<T extends AbstractChannelParameter> extends AbstractInteractionRequest<T> {
 
     {
-        this.setMethod(MethodMetadata.MethodType.SUBSCRIBE);
+        setMethod(MethodMetadata.MethodType.SUBSCRIBE);
     }
 }

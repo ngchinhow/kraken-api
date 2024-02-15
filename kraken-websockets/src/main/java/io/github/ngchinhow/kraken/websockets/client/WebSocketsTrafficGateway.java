@@ -47,7 +47,7 @@ public class WebSocketsTrafficGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <R extends AbstractChannelResult, U extends AbstractInteractionResponse<R>> Single<U> retrieveResponse(
+    public <R, U extends AbstractInteractionResponse<R>> Single<U> retrieveResponse(
         RequestIdentifier requestIdentifier) {
         return ((ReplaySubject<U>) requestsToResponsesMap.get(requestIdentifier)).firstOrError();
     }

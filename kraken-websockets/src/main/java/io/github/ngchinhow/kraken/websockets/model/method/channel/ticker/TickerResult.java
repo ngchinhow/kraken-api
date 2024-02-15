@@ -14,6 +14,6 @@ public final class TickerResult extends AbstractChannelResult {
     private String symbol;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.TICKER);
+        setChannel(ChannelMetadata.ChannelType.TICKER);
     }
 }

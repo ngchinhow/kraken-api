@@ -17,6 +17,7 @@ import io.github.ngchinhow.kraken.websockets.model.method.subscription.Subscribe
 import io.github.ngchinhow.kraken.websockets.model.method.unsubscription.UnsubscribeRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.unsubscription.UnsubscribeResponse;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.subjects.ReplaySubject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -48,7 +49,20 @@ public final class PrivateWebSocketsClient extends BaseWebSocketsClient {
     }
 
     public Single<AddOrderResponse> addOrder(AddOrderRequest request) {
-        return null;
+        // Add custom request ID if not present
+        if (request.getRequestId() == null)
+            request.setRequestId(generateRandomReqId());
+
+        // Add WebSockets token
+        addTokenToParameter(request.getParams());
+
+        var serverTime = getServerTime();
+        final var requestIdentifier = request.toRequestIdentifier(serverTime);
+        final var addOrderResponseSubject = ReplaySubject.<AddOrderResponse>create();
+        webSocketsTrafficGateway.registerRequest(requestIdentifier, addOrderResponseSubject);
+        Single<AddOrderResponse> addOrderResponseSingle = webSocketsTrafficGateway.retrieveResponse(requestIdentifier);
+        sendPayload(request, serverTime);
+        return addOrderResponseSingle;
     }
 
     public Single<BatchAddOrderResponse> batchAddOrder(BatchAddOrderRequest request) {

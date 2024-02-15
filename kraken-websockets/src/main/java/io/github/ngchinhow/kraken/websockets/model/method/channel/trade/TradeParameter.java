@@ -21,6 +21,6 @@ public final class TradeParameter extends AbstractChannelParameter {
     private List<String> symbols;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.TRADE);
+        setChannel(ChannelMetadata.ChannelType.TRADE);
     }
 }

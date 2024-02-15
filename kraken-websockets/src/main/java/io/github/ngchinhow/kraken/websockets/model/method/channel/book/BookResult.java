@@ -15,6 +15,6 @@ public final class BookResult extends AbstractChannelResult {
     private String symbol;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.BOOK);
+        setChannel(ChannelMetadata.ChannelType.BOOK);
     }
 }

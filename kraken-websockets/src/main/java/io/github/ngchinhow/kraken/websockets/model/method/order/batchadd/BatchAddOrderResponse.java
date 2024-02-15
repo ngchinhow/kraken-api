@@ -15,6 +15,6 @@ import java.util.List;
 @Jacksonized
 public final class BatchAddOrderResponse extends AbstractInteractionResponse<List<BaseOrderOutput>> {
     {
-        this.setMethod(MethodMetadata.MethodType.BATCH_ADD);
+        setMethod(MethodMetadata.MethodType.BATCH_ADD);
     }
 }

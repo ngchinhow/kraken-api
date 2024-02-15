@@ -16,7 +16,7 @@ public abstract class AbstractPublicationMessage extends AbstractMessage {
     public SubscriptionRequestIdentifier toRequestIdentifier() {
         return SubscriptionRequestIdentifier.builder()
                                             .method(MethodMetadata.MethodType.SUBSCRIBE)
-                                            .channel(this.getChannel())
+                                            .channel(getChannel())
                                             .build();
     }
 }

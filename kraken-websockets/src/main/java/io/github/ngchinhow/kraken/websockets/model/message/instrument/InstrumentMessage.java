@@ -18,6 +18,6 @@ public class InstrumentMessage extends AbstractPublicationMessage {
     private Data data;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
+        setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
     }
 }

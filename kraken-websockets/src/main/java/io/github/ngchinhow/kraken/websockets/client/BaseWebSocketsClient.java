@@ -47,7 +47,7 @@ import static io.github.ngchinhow.kraken.websockets.properties.WebSocketsPropert
 @Slf4j
 @Getter
 public abstract class BaseWebSocketsClient extends WebSocketClient {
-    private final WebSocketsTrafficGateway webSocketsTrafficGateway = new WebSocketsTrafficGateway();
+    protected final WebSocketsTrafficGateway webSocketsTrafficGateway = new WebSocketsTrafficGateway();
     private final MarketDataClient marketDataClient;
     private final CompositeDisposable disposableBin = new CompositeDisposable();
     private LocalDateTime clientOpenTime;
@@ -136,7 +136,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
                 var heartBeatReceivedTime = LocalDateTime.now();
                 if (clientOpenTime.plusSeconds(50).isBefore(heartBeatReceivedTime) &&
                     clientOpenTime.plusSeconds(60).isAfter(heartBeatReceivedTime)) {
-                    var pongDisposable = this.ping()
+                    var pongDisposable = ping()
                                              .subscribe(p -> {
                                                  log.trace(
                                                      "Connection extended successfully. Updating connection start time to {}",
@@ -176,13 +176,15 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
     }
 
     public Single<PongResponse> ping(PingRequest pingRequest) {
-        if (Objects.isNull(pingRequest.getRequestId())) pingRequest.setRequestId(this.generateRandomReqId());
-        ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
+        if (Objects.isNull(pingRequest.getRequestId()))
+            pingRequest.setRequestId(generateRandomReqId());
+
+        ZonedDateTime serverTime = getServerTime();
         // PingRequests do not have any symbols involved, so there is only one entry - the one associated with null
         var channelRequestIdentifier = pingRequest.toRequestIdentifier(serverTime);
         ReplaySubject<PongResponse> pongMessageReplaySubject = ReplaySubject.create();
         webSocketsTrafficGateway.registerRequest(channelRequestIdentifier, pongMessageReplaySubject);
-        this.sendPayload(pingRequest, serverTime);
+        sendPayload(pingRequest, serverTime);
         return pongMessageReplaySubject.firstOrError();
     }
 
@@ -212,9 +214,9 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
     public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends AbstractChannelParameter>
     List<Single<SubscribeResponse<R, P>>> subscribe(SubscribeRequest<T> subscribeRequest) {
         if (subscribeRequest.getRequestId() == null)
-            subscribeRequest.setRequestId(this.generateRandomReqId());
+            subscribeRequest.setRequestId(generateRandomReqId());
 
-        var serverTime = marketDataClient.getServerTime().getIsoTime();
+        var serverTime = getServerTime();
         var requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
         var list = new ArrayList<Single<SubscribeResponse<R, P>>>();
         for (var requestIdentifier : requestIdentifiers) {
@@ -234,7 +236,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
             });
             list.add(subscribeResponseSingle);
         }
-        this.sendPayload(subscribeRequest, serverTime);
+        sendPayload(subscribeRequest, serverTime);
         return list;
     }
 
@@ -252,9 +254,9 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
     public <R extends AbstractChannelResult, T extends AbstractChannelParameter>
     List<Single<UnsubscribeResponse<R>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
         if (unsubscribeRequest.getRequestId() == null)
-            unsubscribeRequest.setRequestId(this.generateRandomReqId());
+            unsubscribeRequest.setRequestId(generateRandomReqId());
 
-        ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
+        ZonedDateTime serverTime = getServerTime();
         var requestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
         var list = new ArrayList<Single<UnsubscribeResponse<R>>>();
         for (var requestIdentifier : requestIdentifiers) {
@@ -264,7 +266,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
                 .retrieveResponse(requestIdentifier);
             list.add(unsubscribeResponseSingle);
         }
-        this.sendPayload(unsubscribeRequest, serverTime);
+        sendPayload(unsubscribeRequest, serverTime);
         return list;
     }
 
@@ -280,18 +282,22 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
 
     }
 
-    private <T extends AbstractRequest> void sendPayload(T request, ZonedDateTime timestamp) {
+    protected BigInteger generateRandomReqId() {
+        return RandomUtils.nextBigInteger(REQ_ID_MAX_LIMIT);
+    }
+
+    protected <T extends AbstractRequest> void sendPayload(T request, ZonedDateTime timestamp) {
         String requestAsJson;
         try {
             requestAsJson = OBJECT_MAPPER.writeValueAsString(request);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        this.send(requestAsJson);
+        send(requestAsJson);
         log.trace("Subscription payload sent at: {}", timestamp);
     }
 
-    private BigInteger generateRandomReqId() {
-        return RandomUtils.nextBigInteger(REQ_ID_MAX_LIMIT);
+    protected ZonedDateTime getServerTime() {
+        return marketDataClient.getServerTime().getIsoTime();
     }
 }

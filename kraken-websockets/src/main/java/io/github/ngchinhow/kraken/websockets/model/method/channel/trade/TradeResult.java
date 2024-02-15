@@ -14,6 +14,6 @@ public final class TradeResult extends AbstractChannelResult {
     private String symbol;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.TRADE);
+        setChannel(ChannelMetadata.ChannelType.TRADE);
     }
 }

@@ -15,6 +15,6 @@ import lombok.extern.jackson.Jacksonized;
 public final class AddOrderRequest extends AbstractInteractionRequest<AddOrderParameter> {
 
     {
-        this.setMethod(MethodMetadata.MethodType.ADD_ORDER);
+        setMethod(MethodMetadata.MethodType.ADD_ORDER);
     }
 }

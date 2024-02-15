@@ -5,6 +5,6 @@ import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChanne
 
 public final class InstrumentResult extends AbstractChannelResult {
     {
-        this.setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
+        setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
     }
 }

@@ -16,6 +16,6 @@ import lombok.extern.jackson.Jacksonized;
 @NoArgsConstructor
 public class UnsubscribeRequest<T extends AbstractChannelParameter> extends AbstractInteractionRequest<T> {
     {
-        this.setMethod(MethodMetadata.MethodType.UNSUBSCRIBE);
+        setMethod(MethodMetadata.MethodType.UNSUBSCRIBE);
     }
 }

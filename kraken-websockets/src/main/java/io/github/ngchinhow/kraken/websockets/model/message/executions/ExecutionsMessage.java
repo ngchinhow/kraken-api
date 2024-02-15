@@ -18,6 +18,6 @@ public class ExecutionsMessage extends AbstractPublicationMessage {
     private final int sequence;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.EXECUTIONS);
+        setChannel(ChannelMetadata.ChannelType.EXECUTIONS);
     }
 }

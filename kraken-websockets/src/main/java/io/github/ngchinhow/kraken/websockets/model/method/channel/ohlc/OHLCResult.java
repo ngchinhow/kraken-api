@@ -16,6 +16,6 @@ public final class OHLCResult extends AbstractChannelResult {
     private Integer interval;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.OHLC);
+        setChannel(ChannelMetadata.ChannelType.OHLC);
     }
 }

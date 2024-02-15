@@ -22,6 +22,6 @@ public final class OHLCParameter extends AbstractChannelParameter {
     private Integer interval;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.OHLC);
+        setChannel(ChannelMetadata.ChannelType.OHLC);
     }
 }

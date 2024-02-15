@@ -16,7 +16,7 @@ import lombok.extern.jackson.Jacksonized;
 @NoArgsConstructor
 public final class PongResponse extends AbstractResponse {
     {
-        this.setMethod(MethodMetadata.MethodType.PONG);
+        setMethod(MethodMetadata.MethodType.PONG);
     }
 
     @Override

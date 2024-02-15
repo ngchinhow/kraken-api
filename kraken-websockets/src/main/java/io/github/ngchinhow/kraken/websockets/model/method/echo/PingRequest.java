@@ -15,6 +15,6 @@ import lombok.extern.jackson.Jacksonized;
 @NoArgsConstructor
 public class PingRequest extends AbstractRequest {
     {
-        this.setMethod(MethodMetadata.MethodType.PING);
+        setMethod(MethodMetadata.MethodType.PING);
     }
 }

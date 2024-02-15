@@ -23,6 +23,6 @@ public final class SubscribeResponse<R extends AbstractChannelResult, P extends 
     private ReplaySubject<P> publicationMessageReplaySubject;
 
     {
-        this.setMethod(MethodMetadata.MethodType.SUBSCRIBE);
+        setMethod(MethodMetadata.MethodType.SUBSCRIBE);
     }
 }

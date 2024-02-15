@@ -13,6 +13,6 @@ import lombok.extern.jackson.Jacksonized;
 public class HeartbeatMessage extends AbstractMessage {
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.HEARTBEAT);
+        setChannel(ChannelMetadata.ChannelType.HEARTBEAT);
     }
 }

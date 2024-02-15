@@ -21,6 +21,6 @@ public class StatusMessage extends AbstractMessage {
     private List<SystemStatus> data;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.STATUS);
+        setChannel(ChannelMetadata.ChannelType.STATUS);
     }
 }

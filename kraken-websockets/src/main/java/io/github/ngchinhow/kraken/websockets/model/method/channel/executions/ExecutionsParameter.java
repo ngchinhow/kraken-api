@@ -23,6 +23,6 @@ public final class ExecutionsParameter extends AbstractChannelParameter implemen
     private String token;
 
     {
-        this.setChannel(ChannelMetadata.ChannelType.EXECUTIONS);
+        setChannel(ChannelMetadata.ChannelType.EXECUTIONS);
     }
 }

@@ -11,6 +11,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public final class InstrumentParameter extends AbstractChannelParameter {
     {
-        this.setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
+        setChannel(ChannelMetadata.ChannelType.INSTRUMENT);
     }
 }

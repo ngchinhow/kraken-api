@@ -19,6 +19,6 @@ import lombok.extern.jackson.Jacksonized;
 public final class UnsubscribeResponse<R extends AbstractChannelResult> extends AbstractSubscriptionResponse<R> {
 
     {
-        this.setMethod(MethodMetadata.MethodType.UNSUBSCRIBE);
+        setMethod(MethodMetadata.MethodType.UNSUBSCRIBE);
     }
 }

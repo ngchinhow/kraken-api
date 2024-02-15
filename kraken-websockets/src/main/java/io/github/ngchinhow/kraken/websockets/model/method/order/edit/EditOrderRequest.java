@@ -13,6 +13,6 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public final class EditOrderRequest extends AbstractInteractionRequest<EditOrderParameter> {
     {
-        this.setMethod(MethodMetadata.MethodType.EDIT_ORDER);
+        setMethod(MethodMetadata.MethodType.EDIT_ORDER);
     }
 }

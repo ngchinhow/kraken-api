@@ -22,13 +22,13 @@ public final class KrakenConnectionManager {
     }
 
     public PrivateWebSocketsClient getKrakenPrivateWebSocketClient() {
-        MarketDataClient marketDataClient = this.getRestClient(RestEnumerations.Endpoint.MARKET_DATA);
-        WebSocketsAuthenticationClient webSocketsAuthenticationClient = this.getRestClient(RestEnumerations.Endpoint.WEBSOCKETS_AUTHENTICATION);
+        MarketDataClient marketDataClient = getRestClient(RestEnumerations.Endpoint.MARKET_DATA);
+        WebSocketsAuthenticationClient webSocketsAuthenticationClient = getRestClient(RestEnumerations.Endpoint.WEBSOCKETS_AUTHENTICATION);
         return new PrivateWebSocketsClient(marketDataClient, webSocketsAuthenticationClient);
     }
 
     public PublicWebSocketsClient getKrakenPublicWebSocketClient() {
-        MarketDataClient marketDataClient = this.getRestClient(RestEnumerations.Endpoint.MARKET_DATA);
+        MarketDataClient marketDataClient = getRestClient(RestEnumerations.Endpoint.MARKET_DATA);
         return new PublicWebSocketsClient(marketDataClient);
     }
 }
