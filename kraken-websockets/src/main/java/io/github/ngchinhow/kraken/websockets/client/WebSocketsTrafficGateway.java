@@ -80,7 +80,7 @@ public class WebSocketsTrafficGateway {
      * @param response pong response coming from a ping request
      */
     @SuppressWarnings("unchecked")
-    public void responseReplyPong(PongResponse response) {
+    public void forwardPongResponse(PongResponse response) {
         var channelRequestIdentifier = response.toRequestIdentifier();
         var responseSubject = (ReplaySubject<PongResponse>) requestsToResponsesMap.remove(channelRequestIdentifier);
         responseSubject.onNext(response);
@@ -94,7 +94,7 @@ public class WebSocketsTrafficGateway {
      * @param <U>      Any type that extends AbstractInteractionResponse. Only Channels and Orders
      */
     @SuppressWarnings("unchecked")
-    public <U extends AbstractInteractionResponse<?>> void responseReplyInteraction(U response) {
+    public <U extends AbstractInteractionResponse<?>> void forwardInteractionResponse(U response) {
         var requestIdentifier = response.toRequestIdentifier();
         ReplaySubject<U> responseSubject = (ReplaySubject<U>) requestsToResponsesMap.remove(requestIdentifier);
         responseSubject.onNext(response);
@@ -110,7 +110,7 @@ public class WebSocketsTrafficGateway {
 
     @SuppressWarnings("unchecked")
     public <R extends AbstractChannelResult, P extends AbstractPublicationMessage>
-    void unsubscribeRequest(UnsubscribeResponse<R, P> unsubscribeResponse) {
+    void unsubscribeRequest(UnsubscribeResponse<R> unsubscribeResponse) {
         SubscriptionRequestIdentifier channelRequestIdentifier = unsubscribeResponse.toRequestIdentifier();
         channelRequestIdentifier.setRequestId(null);
         ReplaySubject<P> abstractPublishMessageSubject = (ReplaySubject<P>) subscriptionsToPublicationsMap

@@ -7,6 +7,11 @@ import io.github.ngchinhow.kraken.websockets.model.message.AbstractPublicationMe
 import io.github.ngchinhow.kraken.websockets.model.method.PrivateParameterInterface;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelResult;
+import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrderRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrderResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.unsubscription.UnsubscribeRequest;
@@ -35,11 +40,23 @@ public final class PrivateWebSocketsClient extends BaseWebSocketsClient {
     }
 
     @Override
-    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends AbstractChannelParameter>
-    List<Single<UnsubscribeResponse<R, P>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
+    public <R extends AbstractChannelResult, T extends AbstractChannelParameter>
+    List<Single<UnsubscribeResponse<R>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
         if (unsubscribeRequest.getParams() instanceof PrivateParameterInterface privateParameter)
             addTokenToParameter(privateParameter);
         return super.unsubscribe(unsubscribeRequest);
+    }
+
+    public Single<AddOrderResponse> addOrder(AddOrderRequest request) {
+        return null;
+    }
+
+    public Single<BatchAddOrderResponse> batchAddOrder(BatchAddOrderRequest request) {
+        return null;
+    }
+
+    public Single<EditOrderResponse> editOrder(BatchAddOrderRequest request) {
+        return null;
     }
 
     private void addTokenToParameter(PrivateParameterInterface param) {

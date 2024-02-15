@@ -159,7 +159,7 @@ class PublicWebSocketClientTest {
         int numSymbols = unsubscribeRequest.getParams()
                                            .getSymbols()
                                            .size();
-        List<Single<UnsubscribeResponse<BookResult, BookMessage>>>
+        List<Single<UnsubscribeResponse<BookResult>>>
             list = publicWebSocketClient.unsubscribe(unsubscribeRequest);
 
         assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
@@ -173,7 +173,8 @@ class PublicWebSocketClientTest {
                 .returns(MethodMetadata.MethodType.UNSUBSCRIBE, from(UnsubscribeResponse::getMethod))
                 .returns(false, from(UnsubscribeResponse::getSuccess))
                 .returns("Subscription Not Found", from(UnsubscribeResponse::getError))
-                .extracting(UnsubscribeResponse::getSymbol)
+                .extracting(UnsubscribeResponse::getResult)
+                .extracting(BookResult::getSymbol)
                 .isNotNull());
     }
 
@@ -189,25 +190,17 @@ class PublicWebSocketClientTest {
         int numSymbols = unsubscribeRequest.getParams()
                                            .getSymbols()
                                            .size();
-        List<Single<UnsubscribeResponse<BookResult, BookMessage>>>
+        List<Single<UnsubscribeResponse<BookResult>>>
             list = publicWebSocketClient.unsubscribe(unsubscribeRequest);
 
         assertThat(publicWebSocketClient.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .hasSize(numSymbols);
 
-        Predicate<UnsubscribeResponse<BookResult, BookMessage>> bookResultPredicate = r -> {
+        Predicate<UnsubscribeResponse<BookResult>> bookResultPredicate = r -> {
             assertThat(r)
                 .extracting(UnsubscribeResponse::getResult)
                 .returns(ChannelMetadata.ChannelType.BOOK, from(BookResult::getChannel))
                 .returns(expectedDepth, from(BookResult::getDepth));
-            return true;
-        };
-
-        Predicate<UnsubscribeResponse<BookResult, BookMessage>> publicationMessageReplaySubjectPredicate = r -> {
-            assertThat(r)
-                .extracting(UnsubscribeResponse::getPublicationMessageReplaySubject)
-                .isNotNull()
-                .returns(true, from(ReplaySubject::hasComplete));
             return true;
         };
 
@@ -218,8 +211,7 @@ class PublicWebSocketClientTest {
                 .returns(MethodMetadata.MethodType.UNSUBSCRIBE, from(UnsubscribeResponse::getMethod))
                 .returns(subscribeRequest.getRequestId(), from(UnsubscribeResponse::getRequestId))
                 .returns(true, from(UnsubscribeResponse::getSuccess))
-                .is(new Condition<>(bookResultPredicate, "book result"))
-                .is(new Condition<>(publicationMessageReplaySubjectPredicate, "publication")));
+                .is(new Condition<>(bookResultPredicate, "book result")));
     }
 
     @Test

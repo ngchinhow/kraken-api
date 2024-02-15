@@ -88,7 +88,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
             log.trace("Response class: {}", abstractResponse);
 
             if (abstractResponse instanceof PongResponse pongResponse) {
-                webSocketsTrafficGateway.responseReplyPong(pongResponse);
+                webSocketsTrafficGateway.forwardPongResponse(pongResponse);
                 return;
             }
             var abstractInteractionResponse = (AbstractInteractionResponse<? extends AbstractResult>) abstractResponse;
@@ -112,9 +112,9 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
                 }
                 log.warn(stringBuilder.toString());
             }
-            webSocketsTrafficGateway.responseReplyInteraction(abstractInteractionResponse);
+            webSocketsTrafficGateway.forwardInteractionResponse(abstractInteractionResponse);
 
-            if (abstractInteractionResponse instanceof UnsubscribeResponse<?, ?> unsubscribeResponse)
+            if (abstractInteractionResponse instanceof UnsubscribeResponse<?> unsubscribeResponse)
                 webSocketsTrafficGateway.unsubscribeRequest(unsubscribeResponse);
 
             return;
@@ -249,39 +249,23 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
      * @see <a href="https://reactivex.io/documentation/subject.html">ReactiveX Subject</a>
      * @see <a href="https://docs.kraken.com/websockets-v2/#unsubscribe">Kraken Unsubscribe</a>
      */
-    public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends AbstractChannelParameter>
-    List<Single<UnsubscribeResponse<R, P>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
+    public <R extends AbstractChannelResult, T extends AbstractChannelParameter>
+    List<Single<UnsubscribeResponse<R>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
         if (unsubscribeRequest.getRequestId() == null)
             unsubscribeRequest.setRequestId(this.generateRandomReqId());
 
         ZonedDateTime serverTime = marketDataClient.getServerTime().getIsoTime();
         var requestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
-        var list = new ArrayList<Single<UnsubscribeResponse<R, P>>>();
+        var list = new ArrayList<Single<UnsubscribeResponse<R>>>();
         for (var requestIdentifier : requestIdentifiers) {
-            var unsubscribeRequestIdentifier = (SubscriptionRequestIdentifier) requestIdentifier;
-            var unsubscribeResponseSubject = ReplaySubject.<UnsubscribeResponse<R, P>>create();
+            var unsubscribeResponseSubject = ReplaySubject.<UnsubscribeResponse<R>>create();
             webSocketsTrafficGateway.registerRequest(requestIdentifier, unsubscribeResponseSubject);
-            SubscriptionRequestIdentifier publicationChannelRequestIdentifier = unsubscribeRequestIdentifier.duplicate();
-            ReplaySubject<P> publicationMessageReplaySubject = webSocketsTrafficGateway
-                .subscribePublication(publicationChannelRequestIdentifier);
-            Single<UnsubscribeResponse<R, P>> unsubscribeResponseSingle = webSocketsTrafficGateway
+            Single<UnsubscribeResponse<R>> unsubscribeResponseSingle = webSocketsTrafficGateway
                 .retrieveResponse(requestIdentifier);
-            unsubscribeResponseSingle = unsubscribeResponseSingle.map(e -> {
-                e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
-                return e;
-            });
             list.add(unsubscribeResponseSingle);
         }
         this.sendPayload(unsubscribeRequest, serverTime);
         return list;
-    }
-
-    public void addOrder() {
-
-    }
-
-    public void editOrder() {
-
     }
 
     public void cancelOrder() {

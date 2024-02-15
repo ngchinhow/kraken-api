@@ -25,13 +25,13 @@ public abstract class AbstractInteractionRequest<T extends ParameterInterface> e
         var requestIdentifier = super.toRequestIdentifier(timestamp);
         if (params instanceof AbstractChannelParameter channelParameter)
             return channelParameter.getSymbols()
-                                            .stream()
-                                            .map(e -> new SubscriptionRequestIdentifier(requestIdentifier)
-                                                .toBuilder()
-                                                .channel(channelParameter.getChannel())
-                                                .symbol(e)
-                                                .build())
-                                            .collect(Collectors.toUnmodifiableList());
+                                   .stream()
+                                   .map(e -> new SubscriptionRequestIdentifier(requestIdentifier)
+                                       .toBuilder()
+                                       .channel(channelParameter.getChannel())
+                                       .symbol(e)
+                                       .build())
+                                   .collect(Collectors.toUnmodifiableList());
         else
             return List.of(requestIdentifier);
     }
