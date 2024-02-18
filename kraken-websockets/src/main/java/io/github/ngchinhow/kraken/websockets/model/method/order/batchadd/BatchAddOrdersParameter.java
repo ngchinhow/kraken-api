@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public final class BatchAddOrderParameter implements PrivateParameterInterface {
+public final class BatchAddOrdersParameter implements PrivateParameterInterface {
     private ZonedDateTime deadline;
     @JsonProperty(required = true)
     private List<BaseOrderCreationInput> orders;

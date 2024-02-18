@@ -11,8 +11,8 @@ import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChanne
 import io.github.ngchinhow.kraken.websockets.model.method.channel.AbstractChannelResult;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderResponse;
-import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrderRequest;
-import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrderResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeRequest;
@@ -55,7 +55,7 @@ public final class PrivateWebSocketsClient extends BaseWebSocketsClient {
         return sendDirectInteractionRequest(request);
     }
 
-    public Single<BatchAddOrderResponse> batchAddOrder(BatchAddOrderRequest request) {
+    public Single<BatchAddOrdersResponse> batchAddOrders(BatchAddOrdersRequest request) {
         return sendDirectInteractionRequest(request);
     }
 

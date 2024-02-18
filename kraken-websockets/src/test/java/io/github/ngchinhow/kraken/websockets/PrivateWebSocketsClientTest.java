@@ -1,19 +1,17 @@
 package io.github.ngchinhow.kraken.websockets;
 
-import io.github.ngchinhow.kraken.common.enumerations.Side;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
 import io.github.ngchinhow.kraken.rest.factory.RestClientFactory;
 import io.github.ngchinhow.kraken.websockets.client.PrivateWebSocketsClient;
-import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderCreationInput;
 import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderOutput;
-import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderParameter;
-import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersResponse;
+import io.github.ngchinhow.kraken.websockets.utils.Helper;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,18 +37,7 @@ class PrivateWebSocketsClientTest {
     void givenPrivateWebSocketsClient_whenAddOrder_thenSucceed() {
         final var reqId = BigInteger.TEN;
         final var orderUserReference = BigInteger.ONE;
-        final var addOrderParam = AddOrderParameter.builder()
-                                                   .limitPrice(BigDecimal.ONE)
-                                                   .orderType(BaseOrderCreationInput.OrderType.LIMIT)
-                                                   .orderUserReference(orderUserReference)
-                                                   .orderQuantity(new BigDecimal("0.000001"))
-                                                   .side(Side.BUY)
-                                                   .symbol("BTC/USD")
-                                                   .build();
-        final var addOrderRequest = AddOrderRequest.builder()
-                                                   .requestId(reqId)
-                                                   .params(addOrderParam)
-                                                   .build();
+        final var addOrderRequest = Helper.buildStandardAddOrderRequest(reqId, orderUserReference);
 
         final var response = client.addOrder(addOrderRequest).blockingGet();
 
@@ -62,6 +49,30 @@ class PrivateWebSocketsClientTest {
             .isNotNull()
             .doesNotReturn(null, from(BaseOrderOutput::getOrderId))
             .returns(orderUserReference, from(BaseOrderOutput::getOrderUserReference));
+
+        assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
+            .isEmpty();
+    }
+
+    @Test
+    void givenPrivateWebSocketsClient_whenBatchAddOrders_thenSucceed() {
+        final var reqId = BigInteger.TEN;
+        final var orderUserReference = BigInteger.ONE;
+        final var batchAddOrderRequest = Helper.buildStandardBatchAddOrdersRequest(reqId, orderUserReference);
+
+        final var response = client.batchAddOrders(batchAddOrderRequest).blockingGet();
+
+        assertThat(response)
+            .isNotNull()
+            .returns(reqId, from(BatchAddOrdersResponse::getRequestId))
+            .returns(true, from(BatchAddOrdersResponse::getSuccess))
+            .extracting(BatchAddOrdersResponse::getResult)
+            .asInstanceOf(InstanceOfAssertFactories.list(BaseOrderOutput.class))
+            .isNotEmpty()
+            .allSatisfy(r -> assertThat(r)
+                .isNotNull()
+                .doesNotReturn(null, from(BaseOrderOutput::getOrderId))
+                .returns(orderUserReference, from(BaseOrderOutput::getOrderUserReference)));
 
         assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .isEmpty();

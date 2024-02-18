@@ -17,7 +17,7 @@ import java.time.ZonedDateTime;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class BaseOrderCreationInput extends BaseOrderInput {
+public class BaseOrderCreationInput extends BaseOrderInput {
     @JsonProperty(value = "cash_order_qty")
     private Integer cashOrderQuantity;
     private Conditional conditional;

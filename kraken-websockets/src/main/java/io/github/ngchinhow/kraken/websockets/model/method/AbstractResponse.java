@@ -7,7 +7,7 @@ import io.github.ngchinhow.kraken.websockets.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websockets.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websockets.model.method.echo.PongResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderResponse;
-import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrderResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.unsubscription.UnsubscribeResponse;
@@ -33,7 +33,7 @@ import java.time.ZonedDateTime;
     @JsonSubTypes.Type(value = SubscribeResponse.class, name = MethodMetadata.MethodType.SUBSCRIBE),
     @JsonSubTypes.Type(value = UnsubscribeResponse.class, name = MethodMetadata.MethodType.UNSUBSCRIBE),
     @JsonSubTypes.Type(value = AddOrderResponse.class, name = MethodMetadata.MethodType.ADD_ORDER),
-    @JsonSubTypes.Type(value = BatchAddOrderResponse.class, name = MethodMetadata.MethodType.BATCH_ADD),
+    @JsonSubTypes.Type(value = BatchAddOrdersResponse.class, name = MethodMetadata.MethodType.BATCH_ADD),
     @JsonSubTypes.Type(value = EditOrderResponse.class, name = MethodMetadata.MethodType.EDIT_ORDER)
 })
 public abstract class AbstractResponse extends AbstractMethod {

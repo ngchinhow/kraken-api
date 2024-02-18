@@ -91,7 +91,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
                 webSocketsTrafficGateway.forwardPongResponse(pongResponse);
                 return;
             }
-            var abstractInteractionResponse = (AbstractInteractionResponse<? extends AbstractResult>) abstractResponse;
+            var abstractInteractionResponse = (AbstractInteractionResponse<?>) abstractResponse;
 
             if (!abstractInteractionResponse.getSuccess()) {
                 // Handle errors
@@ -100,9 +100,10 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
                 return;
             }
 
-            var warnings = abstractInteractionResponse.getResult().getWarnings();
-            if (warnings != null) {
-                // Handle warnings
+            var result = abstractInteractionResponse.getResult();
+            if (result instanceof AbstractResult abstractResult) {
+                final var warnings = abstractResult.getWarnings();
+                // Handle warning
                 StringBuilder stringBuilder = new StringBuilder();
                 for (int i = 0; i < warnings.size(); i++) {
                     stringBuilder.append(i + 1)
@@ -294,7 +295,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
             throw new RuntimeException(e);
         }
         send(requestAsJson);
-        log.trace("Subscription payload sent at: {}", timestamp);
+        log.trace("WebSockets payload sent at: {}", timestamp);
     }
 
     protected ZonedDateTime getServerTime() {

@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
+import java.math.BigInteger;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
@@ -14,5 +16,5 @@ import lombok.extern.jackson.Jacksonized;
 public final class BaseOrderOutput extends BaseOrderId {
     @NonNull
     @JsonProperty("order_userref")
-    private String orderUserReference;
+    private BigInteger orderUserReference;
 }
