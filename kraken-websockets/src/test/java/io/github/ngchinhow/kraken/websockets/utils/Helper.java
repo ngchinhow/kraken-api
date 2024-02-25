@@ -9,6 +9,8 @@ import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderPara
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderParameter;
+import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.unsubscription.UnsubscribeRequest;
 
@@ -101,5 +103,17 @@ public final class Helper {
                                     .requestId(reqId)
                                     .params(batchAddOrderParam)
                                     .build();
+    }
+
+    public static EditOrderRequest buildStandardEditOrderRequest(BigInteger requestId, String orderId) {
+        final var editOrderParam = EditOrderParameter.builder()
+                                                     .orderId(orderId)
+                                                     .symbol("BTC/USD")
+                                                     .orderQuantity(new BigDecimal("0.0002"))
+                                                     .build();
+        return EditOrderRequest.builder()
+                               .requestId(requestId)
+                               .params(editOrderParam)
+                               .build();
     }
 }
