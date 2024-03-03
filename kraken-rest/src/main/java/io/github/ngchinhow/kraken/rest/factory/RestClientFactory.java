@@ -9,7 +9,7 @@ import feign.jackson.JacksonEncoder;
 import feign.okhttp.OkHttpClient;
 import feign.slf4j.Slf4jLogger;
 import io.github.ngchinhow.kraken.rest.client.RestClient;
-import io.github.ngchinhow.kraken.rest.encoder.ListJoinQueryMapEncoder;
+import io.github.ngchinhow.kraken.rest.encoder.KrakenQueryMapEncoder;
 import io.github.ngchinhow.kraken.rest.interceptor.KrakenRequestInterceptor;
 import io.github.ngchinhow.kraken.rest.interceptor.KrakenResponseInterceptor;
 import io.github.ngchinhow.kraken.rest.properties.RestProperties;
@@ -32,7 +32,7 @@ public class RestClientFactory {
                                  .logger(new Slf4jLogger())
                                  .logLevel(Logger.Level.FULL)
                                  .responseInterceptor(new KrakenResponseInterceptor())
-                                 .queryMapEncoder(new ListJoinQueryMapEncoder());
+                                 .queryMapEncoder(new KrakenQueryMapEncoder());
 
         if (requestInterceptor != null)
             builder.requestInterceptor(requestInterceptor);

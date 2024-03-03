@@ -4,6 +4,8 @@ import feign.FeignException;
 import io.github.ngchinhow.kraken.rest.factory.RestClientFactory;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.book.OrderBookRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.book.OrderBookResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
@@ -12,10 +14,14 @@ import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeRes
 import io.github.ngchinhow.kraken.rest.model.marketdata.system.SystemStatusResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.trades.RecentTradesRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.trades.RecentTradesResult;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -166,6 +172,75 @@ class MarketDataClientTest {
                                          .build();
         assertThatExceptionOfType(FeignException.BadRequest.class)
             .isThrownBy(() -> CLIENT.getOHLCData(request))
+            .withMessage("EQuery:Unknown asset pair");
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetOrderBook_thenSucceed() {
+        final var pair = "BTC/USD";
+        final var request = OrderBookRequest.builder()
+                                            .pair(pair)
+                                            .build();
+
+        final var response = CLIENT.getOrderBook(request);
+
+        assertThat(response)
+            .isNotNull()
+            .returns(pair, from(OrderBookResult::getAssetPairName))
+            .extracting(OrderBookResult::getOrderBook)
+            .isNotNull();
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetOrderBookWithInvalidPair_thenFail() {
+        final var request = OrderBookRequest.builder()
+                                            .pair("ABC/123")
+                                            .build();
+        assertThatExceptionOfType(FeignException.BadRequest.class)
+            .isThrownBy(() -> CLIENT.getOrderBook(request))
+            .withMessage("EQuery:Unknown asset pair");
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetRecentTrades_thenSucceed() {
+        final var pair = "BTC/USD";
+        final var request = RecentTradesRequest.builder()
+                                               .pair(pair)
+                                               .build();
+
+        final var response = CLIENT.getRecentTrades(request);
+
+        assertThat(response)
+            .isNotNull()
+            .returns(pair, from(RecentTradesResult::getAssetPairName))
+            .extracting(RecentTradesResult::getTickData, InstanceOfAssertFactories.LIST)
+            .isNotEmpty();
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetRecentTradesWithSince_thenSucceed() {
+        final var pair = "BTC/USD";
+        final var request = RecentTradesRequest.builder()
+                                               .pair(pair)
+                                               .since(ZonedDateTime.of(2024, 2, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                               .build();
+
+        final var response = CLIENT.getRecentTrades(request);
+
+        assertThat(response)
+            .isNotNull()
+            .returns(pair, from(RecentTradesResult::getAssetPairName))
+            .extracting(RecentTradesResult::getTickData, InstanceOfAssertFactories.LIST)
+            .isNotEmpty();
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetRecentTradesWithInvalidPair_thenFail() {
+        final var request = RecentTradesRequest.builder()
+                                               .pair("ABC/123")
+                                               .build();
+        assertThatExceptionOfType(FeignException.BadRequest.class)
+            .isThrownBy(() -> CLIENT.getRecentTrades(request))
             .withMessage("EQuery:Unknown asset pair");
     }
 }
