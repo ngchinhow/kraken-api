@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-public class TradableAssetPairRequest implements AbstractRequest {
+public final class TradableAssetPairRequest implements AbstractRequest {
     @Param("pair")
     private List<String> pairs;
     private Info info;

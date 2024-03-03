@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.ZonedDateTime;
 
 @Data
-public class ServerTimeResult implements AbstractResult {
+public final class ServerTimeResult implements AbstractResult {
     @JsonProperty(value = "unixtime", required = true)
     private int unixTime;
     @JsonProperty(value = "rfc1123", required = true)

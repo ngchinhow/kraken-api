@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-public class AssetRequest implements AbstractRequest {
+public final class AssetRequest implements AbstractRequest {
     @Param("asset")
     private List<String> pairs;
     @Param("aclass")

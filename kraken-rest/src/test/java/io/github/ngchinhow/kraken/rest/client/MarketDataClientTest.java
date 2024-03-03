@@ -4,13 +4,14 @@ import feign.FeignException;
 import io.github.ngchinhow.kraken.rest.factory.RestClientFactory;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.asset.RestAsset;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.pair.AssetPair;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.system.SystemStatusResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerResult;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class MarketDataClientTest {
 
     @BeforeAll
     static void beforeAll() {
-        CLIENT = RestClientFactory.getPrivateRestClient(MarketDataClient.class, null, null);
+        CLIENT = RestClientFactory.getPublicRestClient(MarketDataClient.class);
     }
 
     @Test
@@ -38,6 +39,16 @@ class MarketDataClientTest {
     }
 
     @Test
+    void givenMarketDataClient_whenGetSystemStatus_thenSucceed() {
+        final var response = CLIENT.getSystemStatus();
+
+        assertThat(response)
+            .isNotNull()
+            .doesNotReturn(null, from(SystemStatusResult::getStatus))
+            .doesNotReturn(null, from(SystemStatusResult::getTimestamp));
+    }
+
+    @Test
     void givenMarketDataClient_whenGetAssetInformation_thenSucceed() {
         List<String> pairs = List.of("XXBT", "ZUSD", "XETH");
         AssetRequest request = AssetRequest.builder()
@@ -46,7 +57,7 @@ class MarketDataClientTest {
         AssetResult result = CLIENT.getAssetInformation(request);
         assertThat(result)
             .isNotNull()
-            .extracting(AssetResult::getAssets, InstanceOfAssertFactories.map(String.class, RestAsset.class))
+            .extracting(AssetResult::getAssets, InstanceOfAssertFactories.map(String.class, AssetResult.Asset.class))
             .hasSize(3)
             .allSatisfy((name, asset) -> {
                 assertThat(asset).isNotNull();
@@ -75,14 +86,14 @@ class MarketDataClientTest {
         assertThat(result)
             .isNotNull()
             .extracting(TradableAssetPairResult::getAssetPairs,
-                        InstanceOfAssertFactories.map(String.class, AssetPair.class))
+                        InstanceOfAssertFactories.map(String.class, TradableAssetPairResult.AssetPair.class))
             .hasSize(2)
             .allSatisfy((pairName, assetPair) -> {
                 assertThat(pairName)
                     .isIn(pairs);
                 assertThat(assetPair)
                     .isNotNull()
-                    .extracting(AssetPair::getTakerFees, InstanceOfAssertFactories.LIST)
+                    .extracting(TradableAssetPairResult.AssetPair::getTakerFees, InstanceOfAssertFactories.LIST)
                     .isNotEmpty();
             });
     }
@@ -95,6 +106,43 @@ class MarketDataClientTest {
                                                                    .build();
         assertThatExceptionOfType(FeignException.BadRequest.class)
             .isThrownBy(() -> CLIENT.getTradableAssetPairs(request))
+            .withMessage("EQuery:Unknown asset pair");
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetTickerInformation_thenSucceed() {
+        final var request = TickerRequest.builder().build();
+        final var response = CLIENT.getTickerInformation(request);
+
+        assertThat(response)
+            .isNotNull()
+            .extracting(from(TickerResult::getAssetTickerInfoMap), InstanceOfAssertFactories.MAP)
+            .isNotEmpty();
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetTickerInformationForOnePair_thenOnlyOneResult() {
+        final var pair = "PEPE/USD";
+        final var request = TickerRequest.builder()
+                                         .pair(pair)
+                                         .build();
+
+        final var response = CLIENT.getTickerInformation(request);
+
+        assertThat(response)
+            .isNotNull()
+            .extracting(from(TickerResult::getAssetTickerInfoMap), InstanceOfAssertFactories.MAP)
+            .containsOnlyKeys(pair);
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetTickerInformationWithInvalidPair_thenFail() {
+        final var pair = "ABC/123";
+        final var request = TickerRequest.builder()
+                                         .pair(pair)
+                                         .build();
+        assertThatExceptionOfType(FeignException.BadRequest.class)
+            .isThrownBy(() -> CLIENT.getTickerInformation(request))
             .withMessage("EQuery:Unknown asset pair");
     }
 
