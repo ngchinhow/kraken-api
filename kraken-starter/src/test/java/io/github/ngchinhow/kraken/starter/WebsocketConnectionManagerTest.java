@@ -15,11 +15,11 @@ class WebsocketConnectionManagerTest {
 
     @ParameterizedTest
     @ValueSource(classes = {MarketDataClient.class,
-                            UserDataClient.class,
-                            UserTradingClient.class,
-                            UserFundingClient.class,
-                            UserSubaccountsClient.class,
-                            UserStakingClient.class,
+                            AccountDataClient.class,
+                            TradingClient.class,
+                            FundingClient.class,
+                            SubAccountsClient.class,
+                            StakingClient.class,
                             WebSocketsAuthenticationClient.class})
     void givenCredentials_whenGettingRestClients_thenSuccess(Class<? extends RestClient> clazz) {
         assertThat(KRAKEN_CONNECTION_MANAGER)

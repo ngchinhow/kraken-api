@@ -1,5 +1,4 @@
-package io.github.ngchinhow.kraken.websockets.model.method.order.add;
-
+package io.github.ngchinhow.kraken.websockets.model.method.order.cancelallafter;
 
 import io.github.ngchinhow.kraken.websockets.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websockets.model.method.AbstractInteractionRequest;
@@ -8,9 +7,9 @@ import lombok.extern.jackson.Jacksonized;
 
 @SuperBuilder
 @Jacksonized
-public final class AddOrderRequest extends AbstractInteractionRequest<AddOrderParameter> {
+public final class CancelAllOrdersAfterRequest extends AbstractInteractionRequest<CancelAllOrdersAfterParameter> {
 
     {
-        setMethod(MethodMetadata.MethodType.ADD_ORDER);
+        setMethod(MethodMetadata.MethodType.CANCEL_ALL_ORDERS_AFTER);
     }
 }

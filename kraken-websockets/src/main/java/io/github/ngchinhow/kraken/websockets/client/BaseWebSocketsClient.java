@@ -3,6 +3,7 @@ package io.github.ngchinhow.kraken.websockets.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
+import io.github.ngchinhow.kraken.websockets.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websockets.dto.request.SubscriptionRequestIdentifier;
 import io.github.ngchinhow.kraken.websockets.model.message.AbstractMessage;
 import io.github.ngchinhow.kraken.websockets.model.message.AbstractPublicationMessage;
@@ -32,10 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import static io.github.ngchinhow.kraken.websockets.enums.MethodMetadata.MethodType.SUBSCRIBE;
-import static io.github.ngchinhow.kraken.websockets.enums.MethodMetadata.MethodType.UNSUBSCRIBE;
 import static io.github.ngchinhow.kraken.websockets.properties.WebSocketsProperties.OBJECT_MAPPER;
 import static io.github.ngchinhow.kraken.websockets.properties.WebSocketsProperties.REQ_ID_MAX_LIMIT;
 
@@ -64,7 +62,6 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void onMessage(String s) {
         log.trace("Received message: {}", s);
         AbstractResponse abstractResponse = null;
@@ -78,7 +75,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
                 } catch (UnrecognizedPropertyException e) {
                     // Currently, only known occurrence is when unsubscription is performed before any subscription happened.
                     // Response is returned with method of "subscribe" instead of "unsubscribe".
-                    s = s.replace(SUBSCRIBE, UNSUBSCRIBE);
+//                    s = s.replace(SUBSCRIBE, UNSUBSCRIBE);
                 }
             }
         } catch (JsonProcessingException e) {
@@ -101,7 +98,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
             }
 
             var result = abstractInteractionResponse.getResult();
-            if (result instanceof AbstractResult abstractResult) {
+            if (result instanceof AbstractResult abstractResult && abstractResult.getWarnings() != null) {
                 final var warnings = abstractResult.getWarnings();
                 // Handle warning
                 StringBuilder stringBuilder = new StringBuilder();
@@ -137,7 +134,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
                 var heartBeatReceivedTime = LocalDateTime.now();
                 if (clientOpenTime.plusSeconds(50).isBefore(heartBeatReceivedTime) &&
                     clientOpenTime.plusSeconds(60).isAfter(heartBeatReceivedTime)) {
-                    var pongDisposable = ping()
+                    var pongDisposable = this.ping()
                                              .subscribe(p -> {
                                                  log.trace(
                                                      "Connection extended successfully. Updating connection start time to {}",
@@ -177,16 +174,7 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
     }
 
     public Single<PongResponse> ping(PingRequest pingRequest) {
-        if (Objects.isNull(pingRequest.getRequestId()))
-            pingRequest.setRequestId(generateRandomReqId());
-
-        ZonedDateTime serverTime = getServerTime();
-        // PingRequests do not have any symbols involved, so there is only one entry - the one associated with null
-        var channelRequestIdentifier = pingRequest.toRequestIdentifier(serverTime);
-        ReplaySubject<PongResponse> pongMessageReplaySubject = ReplaySubject.create();
-        webSocketsTrafficGateway.registerRequest(channelRequestIdentifier, pongMessageReplaySubject);
-        sendPayload(pingRequest, serverTime);
-        return pongMessageReplaySubject.firstOrError();
+        return sendDirectRequest(pingRequest);
     }
 
     /**
@@ -195,14 +183,14 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
      * Behaviour caveats:
      * <ol>
      *   <li>
-     *     A RxJava ReplaySubject is used for the messages of the subscription. Because there will always be a delay
-     *     between when this "subscribe" method is called and the "subscribe" method on the Single is called, this
-     *     Subject ensures that no messages are missed out during this period.
+     *     A {@link ReplaySubject} is used for the messages of the subscription. Because there will always be a delay
+     *     between when this "subscribe" method is called and the "subscribe" method on the {@link Single} is called,
+     *     this Subject ensures that no messages are missed out during this period.
      *   </li>
      *   <li>
-     *     If the same SubscribeRequest is sent twice or more to the same connection/client, the error received within
-     *     the SubscribeResponse will be passed to the user. The ReplaySubject originally created in the first request
-     *     will also be returned with the SubscribeResponse.
+     *     If the same {@link SubscribeRequest} is sent twice or more to the same connection/client, the error received
+     *     within the {@link SubscribeResponse} will be passed to the user. The ReplaySubject originally created in the
+     *     first request will also be returned with the SubscribeResponse.
      *   </li>
      * </ol>
      * <p>
@@ -214,28 +202,22 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
      */
     public <R extends AbstractChannelResult, P extends AbstractPublicationMessage, T extends AbstractChannelParameter>
     List<Single<SubscribeResponse<R, P>>> subscribe(SubscribeRequest<T> subscribeRequest) {
-        if (subscribeRequest.getRequestId() == null)
-            subscribeRequest.setRequestId(generateRandomReqId());
+        checkRequestId(subscribeRequest);
+
+        checkPrivateParameter(subscribeRequest.getParams());
 
         var serverTime = getServerTime();
         var requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
         var list = new ArrayList<Single<SubscribeResponse<R, P>>>();
         for (var requestIdentifier : requestIdentifiers) {
-            var subscriptionRequestIdentifier = (SubscriptionRequestIdentifier) requestIdentifier;
-            var subscribeResponseReplaySubject = ReplaySubject.<SubscribeResponse<R, P>>create(1);
-            webSocketsTrafficGateway.registerRequest(subscriptionRequestIdentifier, subscribeResponseReplaySubject);
-            // Publication messages do not have req_id or timestamp information, so the RequestIdentifier cannot have
-            // these field as keys in the map
-            var publicationSubscriptionRequestIdentifier = subscriptionRequestIdentifier.duplicate();
-            ReplaySubject<P> publicationMessageReplaySubject = webSocketsTrafficGateway
-                .subscribePublication(publicationSubscriptionRequestIdentifier);
-            Single<SubscribeResponse<R, P>> subscribeResponseSingle = webSocketsTrafficGateway.retrieveResponse(
-                requestIdentifier);
-            subscribeResponseSingle = subscribeResponseSingle.map(e -> {
+            var responseSingle = webSocketsTrafficGateway.<RequestIdentifier, SubscribeResponse<R, P>>registerRequest(requestIdentifier);
+            final var publicationSubscriptionRequestIdentifier = ((SubscriptionRequestIdentifier) requestIdentifier).buildForPublicationMessages();
+            final var publicationMessageReplaySubject = webSocketsTrafficGateway.<P>subscribePublication(publicationSubscriptionRequestIdentifier);
+            responseSingle = responseSingle.map(e -> {
                 e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
                 return e;
             });
-            list.add(subscribeResponseSingle);
+            list.add(responseSingle);
         }
         sendPayload(subscribeRequest, serverTime);
         return list;
@@ -254,37 +236,58 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
      */
     public <R extends AbstractChannelResult, T extends AbstractChannelParameter>
     List<Single<UnsubscribeResponse<R>>> unsubscribe(UnsubscribeRequest<T> unsubscribeRequest) {
-        if (unsubscribeRequest.getRequestId() == null)
-            unsubscribeRequest.setRequestId(generateRandomReqId());
-
-        ZonedDateTime serverTime = getServerTime();
-        var requestIdentifiers = unsubscribeRequest.toRequestIdentifiers(serverTime);
-        var list = new ArrayList<Single<UnsubscribeResponse<R>>>();
-        for (var requestIdentifier : requestIdentifiers) {
-            var unsubscribeResponseSubject = ReplaySubject.<UnsubscribeResponse<R>>create();
-            webSocketsTrafficGateway.registerRequest(requestIdentifier, unsubscribeResponseSubject);
-            Single<UnsubscribeResponse<R>> unsubscribeResponseSingle = webSocketsTrafficGateway
-                .retrieveResponse(requestIdentifier);
-            list.add(unsubscribeResponseSingle);
-        }
-        sendPayload(unsubscribeRequest, serverTime);
-        return list;
+        return sendExpandingRequest(unsubscribeRequest);
     }
 
-    public void cancelOrder() {
-
-    }
-
-    public void cancelAllOrders() {
-
-    }
-
-    public void cancelAllOrdersAfter() {
-
-    }
-
-    protected BigInteger generateRandomReqId() {
+    private BigInteger generateRandomReqId() {
         return RandomUtils.nextBigInteger(REQ_ID_MAX_LIMIT);
+    }
+
+    /**
+     * Add custom request ID if not present
+     *
+     * @param request Request to be sent to Kraken
+     */
+    protected void checkRequestId(AbstractRequest request) {
+        if (request.getRequestId() == null)
+            request.setRequestId(generateRandomReqId());
+    }
+
+    protected void checkPrivateParameter(ParameterInterface param) {
+    }
+
+    protected ZonedDateTime getServerTime() {
+        return marketDataClient.getServerTime().getIsoTime();
+    }
+
+    protected <T extends AbstractRequest, U extends AbstractResponse> Single<U> sendDirectRequest(T request) {
+        checkRequestId(request);
+
+        if (request instanceof AbstractInteractionRequest<?> interactionRequest)
+            checkPrivateParameter(interactionRequest.getParams());
+
+        final var serverTime = getServerTime();
+        final var requestIdentifier = request.toRequestIdentifier(serverTime);
+        final var responseSingle = webSocketsTrafficGateway.<RequestIdentifier, U>registerRequest(requestIdentifier);
+        sendPayload(request, serverTime);
+        return responseSingle;
+    }
+
+    protected <T extends ParameterInterface, U extends AbstractInteractionRequest<T>, V extends AbstractResponse>
+    List<Single<V>> sendExpandingRequest(U request) {
+        checkRequestId(request);
+
+        checkPrivateParameter(request.getParams());
+
+        final var serverTime = getServerTime();
+        final var requestIdentifiers = request.toRequestIdentifiers(serverTime);
+        final var list = new ArrayList<Single<V>>();
+        for (var requestIdentifier : requestIdentifiers) {
+            final var responseSingle = webSocketsTrafficGateway.<RequestIdentifier, V>registerRequest(requestIdentifier);
+            list.add(responseSingle);
+        }
+        sendPayload(request, serverTime);
+        return list;
     }
 
     protected <T extends AbstractRequest> void sendPayload(T request, ZonedDateTime timestamp) {
@@ -296,9 +299,5 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
         }
         send(requestAsJson);
         log.trace("WebSockets payload sent at: {}", timestamp);
-    }
-
-    protected ZonedDateTime getServerTime() {
-        return marketDataClient.getServerTime().getIsoTime();
     }
 }

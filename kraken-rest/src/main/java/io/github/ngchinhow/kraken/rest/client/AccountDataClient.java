@@ -6,7 +6,7 @@ import io.github.ngchinhow.kraken.rest.model.userdata.account.AccountBalanceResu
 import io.github.ngchinhow.kraken.rest.model.userdata.openorders.OpenOrdersRequest;
 import io.github.ngchinhow.kraken.rest.model.userdata.openorders.OpenOrdersResult;
 
-public interface UserDataClient extends RestClient {
+public interface AccountDataClient extends RestClient {
 
 
     @RequestLine("POST /0/private/Balance")

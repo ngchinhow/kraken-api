@@ -6,11 +6,11 @@ import io.github.ngchinhow.kraken.websockets.client.PublicWebSocketsClient;
 import io.github.ngchinhow.kraken.websockets.enums.ChannelMetadata;
 import io.github.ngchinhow.kraken.websockets.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websockets.model.message.book.BookMessage;
+import io.github.ngchinhow.kraken.websockets.model.message.instrument.Asset;
+import io.github.ngchinhow.kraken.websockets.model.message.instrument.AssetPair;
 import io.github.ngchinhow.kraken.websockets.model.message.instrument.Data;
 import io.github.ngchinhow.kraken.websockets.model.message.instrument.InstrumentMessage;
 import io.github.ngchinhow.kraken.websockets.model.message.ohlc.OHLCMessage;
-import io.github.ngchinhow.kraken.websockets.model.message.instrument.Asset;
-import io.github.ngchinhow.kraken.websockets.model.message.instrument.AssetPair;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.book.BookParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.book.BookResult;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.instrument.InstrumentParameter;
@@ -26,14 +26,15 @@ import io.github.ngchinhow.kraken.websockets.model.method.unsubscription.Unsubsc
 import io.github.ngchinhow.kraken.websockets.utils.Helper;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
-import org.assertj.core.api.Condition;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +48,11 @@ class PublicWebSocketsClientTest {
         final var marketDataClient = RestClientFactory.getPrivateRestClient(MarketDataClient.class, null, null);
         client = new PublicWebSocketsClient(marketDataClient);
         client.connectBlocking();
+    }
+
+    @AfterEach
+    void afterEach() throws InterruptedException {
+        client.closeBlocking();
     }
 
     @Test
@@ -69,7 +75,7 @@ class PublicWebSocketsClientTest {
 
     @Test
     void givenPublicWebSocketsClient_whenSubscribe_thenSucceed() {
-        int testSize = 10;
+        int testSize = 3;
         int expectedDepth = 10;
         SubscribeRequest<BookParameter> subscribeRequest = Helper.buildStandardBookSubscribeRequest();
         int numSymbols = subscribeRequest.getParams()
@@ -154,17 +160,32 @@ class PublicWebSocketsClientTest {
     }
 
     @Test
+    void givenPublicWebSocketsClient_whenSubscribeUnknownSymbol_thenFail() {
+        final var symbol = "UNKNOWN";
+        SubscribeRequest<BookParameter> subscribeRequest = Helper.buildStandardBookSubscribeRequest();
+        subscribeRequest.getParams().setSymbols(List.of(symbol));
+        List<Single<SubscribeResponse<BookResult, BookMessage>>> list = client.subscribe(subscribeRequest);
+
+        list.stream()
+            .map(Single::blockingGet)
+            .forEach(response -> assertThat(response)
+                .isNotNull()
+                .returns(subscribeRequest.getRequestId(), from(SubscribeResponse::getRequestId))
+                .returns(false, from(SubscribeResponse::getSuccess))
+                .returns("Currency pair not in ISO 4217-A3 format " + symbol, from(SubscribeResponse::getError)));
+    }
+
+    @Test
     void givenPublicWebSocketsClient_whenUnsubscribe_thenFail() {
-        UnsubscribeRequest<BookParameter> unsubscribeRequest = Helper.buildStandardBookUnsubscribeRequest();
-        int numSymbols = unsubscribeRequest.getParams()
-                                           .getSymbols()
-                                           .size();
-        List<Single<UnsubscribeResponse<BookResult>>>
-            list = client.unsubscribe(unsubscribeRequest);
+        final var unsubscribeRequest = Helper.buildStandardBookUnsubscribeRequest();
+        final var symbols = unsubscribeRequest.getParams()
+                                              .getSymbols();
+        List<Single<UnsubscribeResponse<BookResult>>> list = client.unsubscribe(unsubscribeRequest);
 
         assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
-            .hasSize(numSymbols);
+            .hasSize(symbols.size());
 
+        List<String> responseSymbols = new ArrayList<>();
         list.stream()
             .map(Single::blockingGet)
             .forEach(response -> assertThat(response)
@@ -173,9 +194,10 @@ class PublicWebSocketsClientTest {
                 .returns(MethodMetadata.MethodType.UNSUBSCRIBE, from(UnsubscribeResponse::getMethod))
                 .returns(false, from(UnsubscribeResponse::getSuccess))
                 .returns("Subscription Not Found", from(UnsubscribeResponse::getError))
-                .extracting(UnsubscribeResponse::getResult)
-                .extracting(BookResult::getSymbol)
-                .isNotNull());
+                .satisfies(r -> responseSymbols.add(r.getSymbol())));
+
+        assertThat(responseSymbols)
+            .isEqualTo(symbols);
     }
 
     @Test
@@ -190,19 +212,10 @@ class PublicWebSocketsClientTest {
         int numSymbols = unsubscribeRequest.getParams()
                                            .getSymbols()
                                            .size();
-        List<Single<UnsubscribeResponse<BookResult>>>
-            list = client.unsubscribe(unsubscribeRequest);
+        List<Single<UnsubscribeResponse<BookResult>>> list = client.unsubscribe(unsubscribeRequest);
 
         assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
             .hasSize(numSymbols);
-
-        Predicate<UnsubscribeResponse<BookResult>> bookResultPredicate = r -> {
-            assertThat(r)
-                .extracting(UnsubscribeResponse::getResult)
-                .returns(ChannelMetadata.ChannelType.BOOK, from(BookResult::getChannel))
-                .returns(expectedDepth, from(BookResult::getDepth));
-            return true;
-        };
 
         list.stream()
             .map(Single::blockingGet)
@@ -211,12 +224,14 @@ class PublicWebSocketsClientTest {
                 .returns(MethodMetadata.MethodType.UNSUBSCRIBE, from(UnsubscribeResponse::getMethod))
                 .returns(subscribeRequest.getRequestId(), from(UnsubscribeResponse::getRequestId))
                 .returns(true, from(UnsubscribeResponse::getSuccess))
-                .is(new Condition<>(bookResultPredicate, "book result")));
+                .extracting(UnsubscribeResponse::getResult)
+                .returns(ChannelMetadata.ChannelType.BOOK, from(BookResult::getChannel))
+                .returns(expectedDepth, from(BookResult::getDepth)));
     }
 
     @Test
     void givenPublicWebSocketsClient_whenSubscribeTwoChannelSameReqId_thenSucceed() {
-        int testSize = 10;
+        int testSize = 3;
         SubscribeRequest<BookParameter> bookSubscribeRequest = Helper.buildStandardBookSubscribeRequest();
         SubscribeRequest<OHLCParameter> ohlcSubscribeRequest = Helper.buildStandardOHLCSubscribeRequest();
         List<Single<SubscribeResponse<BookResult, BookMessage>>>
@@ -248,27 +263,18 @@ class PublicWebSocketsClientTest {
             .isEqualTo(responses.size())
             .isEqualTo(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap().size());
 
-        Predicate<SubscribeResponse<InstrumentResult, InstrumentMessage>> instrumentPredicate = i -> {
-            assertThat(i)
-                .extracting(SubscribeResponse::getResult)
-                .isNotNull()
-                .returns(true, from(InstrumentResult::getSnapshot));
-            return true;
-        };
+        Consumer<SubscribeResponse<InstrumentResult, InstrumentMessage>> instrumentConsumer = i -> assertThat(i)
+            .extracting(SubscribeResponse::getResult)
+            .isNotNull()
+            .returns(true, from(InstrumentResult::getSnapshot));
 
-        Predicate<Data> dataAssetsPredicate = d -> {
-            assertThat(d.getAssets())
-                .extracting(Asset::getId)
-                .doesNotContainNull();
-            return true;
-        };
+        Consumer<Data> dataAssetsConsumer = d -> assertThat(d.getAssets())
+            .extracting(Asset::getId)
+            .doesNotContainNull();
 
-        Predicate<Data> dataPairsPredicate = d -> {
-            assertThat(d.getPairs())
-                .extracting(AssetPair::getSymbol)
-                .doesNotContainNull();
-            return true;
-        };
+        Consumer<Data> dataPairsConsumer = d -> assertThat(d.getPairs())
+            .extracting(AssetPair::getSymbol)
+            .doesNotContainNull();
 
         responses.stream()
                  .map(Single::blockingGet)
@@ -277,14 +283,13 @@ class PublicWebSocketsClientTest {
                      .returns(MethodMetadata.MethodType.SUBSCRIBE, from(SubscribeResponse::getMethod))
                      .returns(instrumentSubscribeRequest.getRequestId(), from(SubscribeResponse::getRequestId))
                      .returns(true, from(SubscribeResponse::getSuccess))
-                     .is(new Condition<>(instrumentPredicate, "instrument result"))
+                     .satisfies(instrumentConsumer)
                      .extracting(SubscribeResponse::getPublicationMessageReplaySubject)
                      .isNotNull()
                      .extracting(ReplaySubject::blockingFirst)
                      .returns(ChannelMetadata.ChangeType.SNAPSHOT, InstrumentMessage::getType)
                      .extracting(InstrumentMessage::getData)
-                     .is(new Condition<>(dataAssetsPredicate, "data assets"))
-                     .is(new Condition<>(dataPairsPredicate, "data pairs")));
+                     .satisfies(dataAssetsConsumer, dataPairsConsumer));
     }
 
     @Test

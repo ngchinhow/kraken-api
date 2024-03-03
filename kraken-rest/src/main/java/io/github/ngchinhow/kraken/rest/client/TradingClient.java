@@ -4,7 +4,7 @@ import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
 
-public interface UserTradingClient extends RestClient {
+public interface TradingClient extends RestClient {
 
     @RequestLine("POST /0/private/AddOrder")
     @Headers("Content-Type: application/x-www-form-urlencoded; charset=utf-8")

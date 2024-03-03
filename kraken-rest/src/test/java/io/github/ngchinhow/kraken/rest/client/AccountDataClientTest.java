@@ -8,14 +8,14 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class UserDataClientTest {
+class AccountDataClientTest {
 
-    private static UserDataClient CLIENT;
+    private static AccountDataClient CLIENT;
 
     @BeforeAll
     static void beforeAll() {
         CLIENT = RestClientFactory.getPrivateRestClient(
-            UserDataClient.class,
+            AccountDataClient.class,
             System.getenv("KRAKEN_REST_API_KEY"),
             System.getenv("KRAKEN_REST_PRIVATE_KEY"));
     }

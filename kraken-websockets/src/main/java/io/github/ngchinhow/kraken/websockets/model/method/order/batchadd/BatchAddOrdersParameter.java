@@ -1,25 +1,23 @@
 package io.github.ngchinhow.kraken.websockets.model.method.order.batchadd;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.ngchinhow.kraken.websockets.model.method.PrivateParameterInterface;
+import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderCreationInput;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
-@Builder
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public final class BatchAddOrdersParameter implements PrivateParameterInterface {
+public final class BatchAddOrdersParameter extends BaseOrderParameter {
     private ZonedDateTime deadline;
     @JsonProperty(required = true)
     private List<BaseOrderCreationInput> orders;
     private String symbol;
-    private String token;
     private Boolean validate;
 }

@@ -11,15 +11,25 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
+@AllArgsConstructor
 public abstract class AbstractSubscriptionResponse<T extends AbstractChannelResult>
     extends AbstractInteractionResponse<T> {
+    private String symbol;
 
     @Override
     public SubscriptionRequestIdentifier toRequestIdentifier() {
+        var symbol = this.symbol;
+        if (symbol == null) {
+            if (getResult() != null && getResult().getSymbol() != null)
+                symbol = getResult().getSymbol();
+        }
+
+        final var channel = getResult() == null ? null : getResult().getChannel();
+
         return new SubscriptionRequestIdentifier(super.toRequestIdentifier())
-                    .toBuilder()
-                    .channel(getResult().getChannel())
-                    .symbol(getResult().getSymbol())
-                    .build();
+            .toBuilder()
+            .channel(channel)
+            .symbol(symbol)
+            .build();
     }
 }

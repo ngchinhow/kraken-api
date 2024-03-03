@@ -14,7 +14,6 @@ import java.math.BigInteger;
 @NoArgsConstructor
 @AllArgsConstructor
 public final class BaseOrderOutput extends BaseOrderId {
-    @NonNull
     @JsonProperty("order_userref")
     private BigInteger orderUserReference;
 }

@@ -5,10 +5,18 @@ import io.github.ngchinhow.kraken.websockets.model.method.channel.book.BookParam
 import io.github.ngchinhow.kraken.websockets.model.method.channel.instrument.InstrumentParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.channel.ohlc.OHLCParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderCreationInput;
+import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchcancel.BatchCancelOrdersParameter;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchcancel.BatchCancelOrdersRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancel.CancelOrderParameter;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancel.CancelOrderRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancelall.CancelAllOrdersRequest;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancelallafter.CancelAllOrdersAfterParameter;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancelallafter.CancelAllOrdersAfterRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeRequest;
@@ -103,6 +111,45 @@ public final class Helper {
                                     .requestId(reqId)
                                     .params(batchAddOrderParam)
                                     .build();
+    }
+
+    public static BatchCancelOrdersRequest buildStandardBatchCancelOrdersRequest(BigInteger reqId,
+                                                                                 List<String> orders) {
+        final var batchCancelOrdersParam = BatchCancelOrdersParameter.builder()
+                                                                     .orders(orders)
+                                                                     .build();
+        return BatchCancelOrdersRequest.builder()
+                                       .requestId(reqId)
+                                       .params(batchCancelOrdersParam)
+                                       .build();
+    }
+
+    public static CancelAllOrdersRequest buildStandardCancelAllOrdersRequest(BigInteger reqId) {
+        final var cancelAllOrdersParam = new BaseOrderParameter();
+        return CancelAllOrdersRequest.builder()
+                                     .requestId(reqId)
+                                     .params(cancelAllOrdersParam)
+                                     .build();
+    }
+
+    public static CancelAllOrdersAfterRequest buildStandardCancelAllOrdersAfterRequest(BigInteger reqId) {
+        final var param = CancelAllOrdersAfterParameter.builder()
+                                                       .timeout(5)
+                                                       .build();
+        return CancelAllOrdersAfterRequest.builder()
+                                          .requestId(reqId)
+                                          .params(param)
+                                          .build();
+    }
+
+    public static CancelOrderRequest buildStandardCancelOrderRequest(BigInteger reqId, List<String> orderIds) {
+        final var param = CancelOrderParameter.builder()
+                                              .orderIds(orderIds)
+                                              .build();
+        return CancelOrderRequest.builder()
+                                 .requestId(reqId)
+                                 .params(param)
+                                 .build();
     }
 
     public static EditOrderRequest buildStandardEditOrderRequest(BigInteger requestId, String orderId) {

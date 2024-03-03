@@ -10,6 +10,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class AbstractOrderParameter implements PrivateParameterInterface {
+public class BaseOrderParameter implements PrivateParameterInterface {
     private String token;
 }

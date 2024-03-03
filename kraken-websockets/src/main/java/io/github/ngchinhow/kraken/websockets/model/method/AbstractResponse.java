@@ -8,6 +8,10 @@ import io.github.ngchinhow.kraken.websockets.enums.MethodMetadata;
 import io.github.ngchinhow.kraken.websockets.model.method.echo.PongResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.batchcancel.BatchCancelOrdersResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancel.CancelOrderResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancelall.CancelAllOrdersResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancelallafter.CancelAllOrdersAfterResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.subscription.SubscribeResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.unsubscription.UnsubscribeResponse;
@@ -34,6 +38,10 @@ import java.time.ZonedDateTime;
     @JsonSubTypes.Type(value = UnsubscribeResponse.class, name = MethodMetadata.MethodType.UNSUBSCRIBE),
     @JsonSubTypes.Type(value = AddOrderResponse.class, name = MethodMetadata.MethodType.ADD_ORDER),
     @JsonSubTypes.Type(value = BatchAddOrdersResponse.class, name = MethodMetadata.MethodType.BATCH_ADD),
+    @JsonSubTypes.Type(value = BatchCancelOrdersResponse.class, name = MethodMetadata.MethodType.BATCH_CANCEL),
+    @JsonSubTypes.Type(value = CancelAllOrdersResponse.class, name = MethodMetadata.MethodType.CANCEL_ALL),
+    @JsonSubTypes.Type(value = CancelAllOrdersAfterResponse.class, name = MethodMetadata.MethodType.CANCEL_ALL_ORDERS_AFTER),
+    @JsonSubTypes.Type(value = CancelOrderResponse.class, name = MethodMetadata.MethodType.CANCEL_ORDER),
     @JsonSubTypes.Type(value = EditOrderResponse.class, name = MethodMetadata.MethodType.EDIT_ORDER)
 })
 public abstract class AbstractResponse extends AbstractMethod {

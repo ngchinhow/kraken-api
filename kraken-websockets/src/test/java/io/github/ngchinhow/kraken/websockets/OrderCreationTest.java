@@ -1,17 +1,15 @@
 package io.github.ngchinhow.kraken.websockets;
 
-import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
-import io.github.ngchinhow.kraken.rest.client.WebSocketsAuthenticationClient;
-import io.github.ngchinhow.kraken.rest.factory.RestClientFactory;
-import io.github.ngchinhow.kraken.websockets.client.PrivateWebSocketsClient;
 import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderOutput;
+import io.github.ngchinhow.kraken.websockets.model.method.order.BaseOrderParameter;
 import io.github.ngchinhow.kraken.websockets.model.method.order.add.AddOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.batchadd.BatchAddOrdersResponse;
+import io.github.ngchinhow.kraken.websockets.model.method.order.cancelall.CancelAllOrdersRequest;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderResponse;
 import io.github.ngchinhow.kraken.websockets.model.method.order.edit.EditOrderResult;
 import io.github.ngchinhow.kraken.websockets.utils.Helper;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -19,20 +17,15 @@ import java.math.BigInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.from;
 
-class PrivateWebSocketsClientTest {
-    private static final String KRAKEN_REST_API_KEY = System.getenv("KRAKEN_REST_API_KEY");
-    private static final String KRAKEN_PRIVATE_API_KEY = System.getenv("KRAKEN_REST_PRIVATE_KEY");
-    private static final MarketDataClient MARKET_DATA_CLIENT = RestClientFactory.getPublicRestClient(MarketDataClient.class);
-    private static final WebSocketsAuthenticationClient WEB_SOCKETS_AUTHENTICATION_CLIENT = RestClientFactory.getPrivateRestClient(
-        WebSocketsAuthenticationClient.class,
-        KRAKEN_REST_API_KEY,
-        KRAKEN_PRIVATE_API_KEY);
-    private PrivateWebSocketsClient client;
+class OrderCreationTest extends BasePrivateWebSocketsClientTest {
 
-    @BeforeEach
-    void beforeEach() throws InterruptedException {
-        client = new PrivateWebSocketsClient(MARKET_DATA_CLIENT, WEB_SOCKETS_AUTHENTICATION_CLIENT);
-        client.connectBlocking();
+    private final CancelAllOrdersRequest cancelAllOrdersRequest = CancelAllOrdersRequest.builder()
+                                                                                        .params(new BaseOrderParameter())
+                                                                                        .build();
+
+    @AfterEach
+    void cleanup() {
+        client.cancelAllOrders(cancelAllOrdersRequest).blockingSubscribe();
     }
 
     @Test
