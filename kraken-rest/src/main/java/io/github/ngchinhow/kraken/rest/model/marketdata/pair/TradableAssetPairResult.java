@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class TradableAssetPairResult implements AbstractResult {
+public class TradableAssetPairResult implements ResultInterface {
     private Map<String, AssetPair> assetPairs = new HashMap<>();
 
     @SuppressWarnings("unused")

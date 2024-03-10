@@ -3,7 +3,7 @@ package io.github.ngchinhow.kraken.rest.model.marketdata.asset;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public final class AssetResult implements AbstractResult {
+public final class AssetResult implements ResultInterface {
     private Map<String, Asset> assets = new HashMap<>();
 
     @JsonAnySetter

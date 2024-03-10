@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonValue;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
-public final class RecentTradesResult implements AbstractResult {
+public final class RecentTradesResult implements ResultInterface {
     private String assetPairName;
     private List<TickData> tickData;
     private String last;

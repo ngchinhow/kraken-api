@@ -2,7 +2,7 @@ package io.github.ngchinhow.kraken.rest.model.marketdata.pair;
 
 import feign.Param;
 import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;
-import io.github.ngchinhow.kraken.rest.model.AbstractRequest;
+import io.github.ngchinhow.kraken.rest.model.RequestInterface;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-public final class TradableAssetPairRequest implements AbstractRequest {
+public final class TradableAssetPairRequest implements RequestInterface {
     @Param("pair")
     private List<String> pairs;
     private Info info;

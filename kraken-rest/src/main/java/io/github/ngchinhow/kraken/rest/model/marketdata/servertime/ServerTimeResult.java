@@ -2,13 +2,13 @@ package io.github.ngchinhow.kraken.rest.model.marketdata.servertime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.Data;
 
 import java.time.ZonedDateTime;
 
 @Data
-public final class ServerTimeResult implements AbstractResult {
+public final class ServerTimeResult implements ResultInterface {
     @JsonProperty(value = "unixtime", required = true)
     private int unixTime;
     @JsonProperty(value = "rfc1123", required = true)

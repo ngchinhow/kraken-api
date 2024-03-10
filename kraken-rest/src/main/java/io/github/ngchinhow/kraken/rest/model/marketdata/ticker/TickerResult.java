@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public final class TickerResult implements AbstractResult {
+public final class TickerResult implements ResultInterface {
     private final Map<String, AssetTickerInfo> assetTickerInfoMap = new HashMap<>();
 
     @SuppressWarnings("unused")

@@ -11,6 +11,8 @@ import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spreads.RecentSpreadsRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spreads.RecentSpreadsResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.system.SystemStatusResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerResult;
@@ -41,4 +43,7 @@ public interface MarketDataClient extends RestClient {
 
     @RequestLine("GET /0/public/Trades")
     RecentTradesResult getRecentTrades(@QueryMap RecentTradesRequest request);
+
+    @RequestLine("GET /0/public/Spread")
+    RecentSpreadsResult getRecentSpreads(@QueryMap RecentSpreadsRequest request);
 }

@@ -3,14 +3,14 @@ package io.github.ngchinhow.kraken.rest.model.marketdata.ohlc;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class OHLCResult implements AbstractResult {
+public class OHLCResult implements ResultInterface {
     private Long last;
     private String assetPairName;
     private List<OHLC> ohlcList;

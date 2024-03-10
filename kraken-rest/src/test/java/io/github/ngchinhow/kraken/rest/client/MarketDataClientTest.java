@@ -11,6 +11,8 @@ import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spreads.RecentSpreadsRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spreads.RecentSpreadsResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.system.SystemStatusResult;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerRequest;
 import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerResult;
@@ -50,8 +52,8 @@ class MarketDataClientTest {
 
         assertThat(response)
             .isNotNull()
-            .doesNotReturn(null, from(SystemStatusResult::getStatus))
-            .doesNotReturn(null, from(SystemStatusResult::getTimestamp));
+            .doesNotReturn(null, from(SystemStatusResult::status))
+            .doesNotReturn(null, from(SystemStatusResult::timestamp));
     }
 
     @Test
@@ -241,6 +243,49 @@ class MarketDataClientTest {
                                                .build();
         assertThatExceptionOfType(FeignException.BadRequest.class)
             .isThrownBy(() -> CLIENT.getRecentTrades(request))
+            .withMessage("EQuery:Unknown asset pair");
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetRecentSpreads_thenSucceed() {
+        final var pair = "BTC/USD";
+        final var request = RecentSpreadsRequest.builder()
+                                                .pair(pair)
+                                                .build();
+
+        final var response = CLIENT.getRecentSpreads(request);
+
+        assertThat(response)
+            .isNotNull()
+            .returns(pair, from(RecentSpreadsResult::getAssetPairName))
+            .extracting(RecentSpreadsResult::getSpreadData, InstanceOfAssertFactories.LIST)
+            .isNotEmpty();
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetRecentSpreadsWithSince_thenSucceed() {
+        final var pair = "BTC/USD";
+        final var request = RecentSpreadsRequest.builder()
+                                                .pair(pair)
+                                                .since(ZonedDateTime.of(2024, 2, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                .build();
+
+        final var response = CLIENT.getRecentSpreads(request);
+
+        assertThat(response)
+            .isNotNull()
+            .returns(pair, from(RecentSpreadsResult::getAssetPairName))
+            .extracting(RecentSpreadsResult::getSpreadData, InstanceOfAssertFactories.LIST)
+            .isNotEmpty();
+    }
+
+    @Test
+    void givenMarketDataClient_whenGetRecentSpreadsWithInvalidPair_thenFail() {
+        final var request = RecentSpreadsRequest.builder()
+                                                .pair("ABC/123")
+                                                .build();
+        assertThatExceptionOfType(FeignException.BadRequest.class)
+            .isThrownBy(() -> CLIENT.getRecentSpreads(request))
             .withMessage("EQuery:Unknown asset pair");
     }
 }

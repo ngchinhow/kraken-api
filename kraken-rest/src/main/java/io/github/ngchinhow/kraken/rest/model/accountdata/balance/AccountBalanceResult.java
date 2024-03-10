@@ -1,7 +1,7 @@
-package io.github.ngchinhow.kraken.rest.model.userdata.account;
+package io.github.ngchinhow.kraken.rest.model.accountdata.balance;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public class AccountBalanceResult implements AbstractResult {
+public class AccountBalanceResult implements ResultInterface {
     private Map<String, BigDecimal> assets = new HashMap<>();
 
     @JsonAnySetter

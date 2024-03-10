@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class KrakenResponse<T extends AbstractResult> {
+public class KrakenResponse<T extends ResultInterface> {
     private List<String> error;
     private T result;
 }

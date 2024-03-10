@@ -1,7 +1,7 @@
 package io.github.ngchinhow.kraken.rest.model.userdata.openorders;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import io.github.ngchinhow.kraken.rest.model.AbstractResult;
+import io.github.ngchinhow.kraken.rest.model.ResultInterface;
 import lombok.*;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import java.util.Map;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class OpenOrdersResult implements AbstractResult {
+public class OpenOrdersResult implements ResultInterface {
     private Open open;
 
     @Getter
