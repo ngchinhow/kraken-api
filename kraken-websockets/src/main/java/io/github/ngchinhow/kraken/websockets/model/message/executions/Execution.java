@@ -7,7 +7,6 @@ import io.github.ngchinhow.kraken.common.enumerations.Side;
 import io.github.ngchinhow.kraken.common.enumerations.TimeInForce;
 import io.github.ngchinhow.kraken.common.enumerations.TriggerReference;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
@@ -98,13 +97,17 @@ public class Execution {
         FCIQ
     }
 
-    @Getter(onMethod_ = @JsonValue)
     @RequiredArgsConstructor
     public enum LiquidityIndicator {
         TAKER("t"),
         MAKER("m");
 
         private final String liquidityIndicator;
+
+        @JsonValue
+        public String getLiquidityIndicator() {
+            return liquidityIndicator;
+        }
     }
 
     public enum OrderStatus implements BaseKrakenEnum {

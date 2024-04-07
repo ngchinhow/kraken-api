@@ -66,7 +66,6 @@ class OrderCreationTest extends BasePrivateWebSocketsClientTest {
             .isNotEmpty()
             .allSatisfy(r -> assertThat(r)
                 .isNotNull()
-                .doesNotReturn(null, from(BaseOrderOutput::getOrderId))
                 .returns(orderUserReference, from(BaseOrderOutput::getOrderUserReference)));
 
         assertThat(client.getWebSocketsTrafficGateway().getRequestsToResponsesMap())
@@ -78,6 +77,7 @@ class OrderCreationTest extends BasePrivateWebSocketsClientTest {
         final var reqId = BigInteger.TEN;
         final var orderUserReference = BigInteger.ONE;
         final var addOrderRequest = Helper.buildStandardAddOrderRequest(reqId, orderUserReference);
+        addOrderRequest.getParams().setValidate(false);
         final var orderId = client.addOrder(addOrderRequest)
                                   .blockingGet()
                                   .getResult()

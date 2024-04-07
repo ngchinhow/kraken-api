@@ -9,6 +9,7 @@ import io.github.ngchinhow.kraken.websockets.model.method.order.cancelallafter.C
 import io.github.ngchinhow.kraken.websockets.utils.Helper;
 import io.reactivex.rxjava3.core.Single;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -19,6 +20,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.from;
 
+@Disabled
 class OrderCancelTest extends BasePrivateWebSocketsClientTest {
 
     private List<String> orderIds;

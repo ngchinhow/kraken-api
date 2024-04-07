@@ -1,7 +1,6 @@
 package io.github.ngchinhow.kraken.websockets.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import io.github.ngchinhow.kraken.rest.client.MarketDataClient;
 import io.github.ngchinhow.kraken.websockets.dto.request.RequestIdentifier;
 import io.github.ngchinhow.kraken.websockets.dto.request.SubscriptionRequestIdentifier;
@@ -64,96 +63,20 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
     @Override
     public void onMessage(String s) {
         log.trace("Received message: {}", s);
-        AbstractResponse abstractResponse = null;
+        AbstractResponse abstractResponse;
         AbstractMessage abstractMessage;
-        boolean isResponse = false;
         try {
-            while (!isResponse) {
-                try {
-                    abstractResponse = OBJECT_MAPPER.readValue(s, AbstractResponse.class);
-                    isResponse = true;
-                } catch (UnrecognizedPropertyException e) {
-                    // Currently, only known occurrence is when unsubscription is performed before any subscription happened.
-                    // Response is returned with method of "subscribe" instead of "unsubscribe".
-//                    s = s.replace(SUBSCRIBE, UNSUBSCRIBE);
-                }
-            }
+            abstractResponse = OBJECT_MAPPER.readValue(s, AbstractResponse.class);
+            processResponse(abstractResponse);
+            return;
         } catch (JsonProcessingException e) {
             log.trace("Received message is not an AbstractResponse. {}", e.getLocalizedMessage());
         }
-        if (isResponse) {
-            log.trace("Response class: {}", abstractResponse);
-
-            if (abstractResponse instanceof PongResponse pongResponse) {
-                webSocketsTrafficGateway.forwardPongResponse(pongResponse);
-                return;
-            }
-            var abstractInteractionResponse = (AbstractInteractionResponse<?>) abstractResponse;
-
-            if (!abstractInteractionResponse.getSuccess()) {
-                // Handle errors
-                log.error(abstractInteractionResponse.getError());
-                webSocketsTrafficGateway.removeErrorRequest(abstractResponse);
-                return;
-            }
-
-            var result = abstractInteractionResponse.getResult();
-            if (result instanceof AbstractResult abstractResult && abstractResult.getWarnings() != null) {
-                final var warnings = abstractResult.getWarnings();
-                // Handle warning
-                StringBuilder stringBuilder = new StringBuilder();
-                for (int i = 0; i < warnings.size(); i++) {
-                    stringBuilder.append(i + 1)
-                                 .append(": ")
-                                 .append(warnings.get(i))
-                                 .append("\n");
-                }
-                log.warn(stringBuilder.toString());
-            }
-            webSocketsTrafficGateway.forwardInteractionResponse(abstractInteractionResponse);
-
-            if (abstractInteractionResponse instanceof UnsubscribeResponse<?> unsubscribeResponse)
-                webSocketsTrafficGateway.unsubscribeRequest(unsubscribeResponse);
-
-            return;
-        }
         try {
             abstractMessage = OBJECT_MAPPER.readValue(s, AbstractMessage.class);
+            processMessage(abstractMessage);
         } catch (JsonProcessingException ex) {
             throw new RuntimeException("Received message is of unknown type. " + ex.getMessage());
-        }
-        log.trace("Message class: {}", abstractMessage);
-
-        if (abstractMessage == null) {
-            log.error("Unexpected null message. Stopping subscription");
-            throw new NullPointerException("Unexpected null message");
-        }
-
-        switch (abstractMessage) {
-            case HeartbeatMessage ignored -> {
-                var heartBeatReceivedTime = LocalDateTime.now();
-                if (clientOpenTime.plusSeconds(50).isBefore(heartBeatReceivedTime) &&
-                    clientOpenTime.plusSeconds(60).isAfter(heartBeatReceivedTime)) {
-                    var pongDisposable = this.ping()
-                                             .subscribe(p -> {
-                                                 log.trace(
-                                                     "Connection extended successfully. Updating connection start time to {}",
-                                                     heartBeatReceivedTime);
-                                                 clientOpenTime = heartBeatReceivedTime;
-                                             }, e -> {
-                                                 log.error(
-                                                     "Error faced when extending connection with message: {}. Failing now.",
-                                                     e.getMessage());
-                                                 throw e;
-                                             });
-                    disposableBin.add(pongDisposable);
-                }
-            }
-            case StatusMessage statusMessage -> webSocketsTrafficGateway.responseAnnounce(statusMessage);
-            case AbstractPublicationMessage publicationMessage ->
-                webSocketsTrafficGateway.publishMessage(publicationMessage);
-            default -> log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
-                                 "Received class is {}", abstractMessage.getClass());
         }
     }
 
@@ -210,9 +133,11 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
         var requestIdentifiers = subscribeRequest.toRequestIdentifiers(serverTime);
         var list = new ArrayList<Single<SubscribeResponse<R, P>>>();
         for (var requestIdentifier : requestIdentifiers) {
-            var responseSingle = webSocketsTrafficGateway.<RequestIdentifier, SubscribeResponse<R, P>>registerRequest(requestIdentifier);
+            var responseSingle = webSocketsTrafficGateway.<RequestIdentifier, SubscribeResponse<R, P>>registerRequest(
+                requestIdentifier);
             final var publicationSubscriptionRequestIdentifier = ((SubscriptionRequestIdentifier) requestIdentifier).buildForPublicationMessages();
-            final var publicationMessageReplaySubject = webSocketsTrafficGateway.<P>subscribePublication(publicationSubscriptionRequestIdentifier);
+            final var publicationMessageReplaySubject = webSocketsTrafficGateway.<P>subscribePublication(
+                publicationSubscriptionRequestIdentifier);
             responseSingle = responseSingle.map(e -> {
                 e.setPublicationMessageReplaySubject(publicationMessageReplaySubject);
                 return e;
@@ -299,5 +224,76 @@ public abstract class BaseWebSocketsClient extends WebSocketClient {
         }
         send(requestAsJson);
         log.trace("WebSockets payload sent at: {}", timestamp);
+    }
+
+    private void processResponse(AbstractResponse response) {
+        log.trace("Response class: {}", response);
+
+        if (response instanceof PongResponse pongResponse) {
+            webSocketsTrafficGateway.forwardPongResponse(pongResponse);
+            return;
+        }
+        var abstractInteractionResponse = (AbstractInteractionResponse<?>) response;
+
+        if (!abstractInteractionResponse.getSuccess()) {
+            // Handle errors
+            log.error(abstractInteractionResponse.getError());
+            webSocketsTrafficGateway.removeErrorRequest(response);
+            return;
+        }
+
+        var result = abstractInteractionResponse.getResult();
+        if (result instanceof AbstractResult abstractResult && abstractResult.getWarnings() != null) {
+            final var warnings = abstractResult.getWarnings();
+            // Handle warning
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < warnings.size(); i++) {
+                stringBuilder.append(i + 1)
+                             .append(": ")
+                             .append(warnings.get(i))
+                             .append("\n");
+            }
+            log.warn(stringBuilder.toString());
+        }
+        webSocketsTrafficGateway.forwardInteractionResponse(abstractInteractionResponse);
+
+        if (abstractInteractionResponse instanceof UnsubscribeResponse<?> unsubscribeResponse)
+            webSocketsTrafficGateway.unsubscribeRequest(unsubscribeResponse);
+    }
+
+    private void processMessage(AbstractMessage message) {
+        log.trace("Message class: {}", message);
+
+        if (message == null) {
+            log.error("Unexpected null message. Stopping subscription");
+            throw new NullPointerException("Unexpected null message");
+        }
+
+        switch (message) {
+            case HeartbeatMessage ignored -> {
+                var heartBeatReceivedTime = LocalDateTime.now();
+                if (clientOpenTime.plusSeconds(50).isBefore(heartBeatReceivedTime) &&
+                    clientOpenTime.plusSeconds(60).isAfter(heartBeatReceivedTime)) {
+                    var pongDisposable = this.ping()
+                                             .subscribe(p -> {
+                                                 log.trace(
+                                                     "Connection extended successfully. Updating connection start time to {}",
+                                                     heartBeatReceivedTime);
+                                                 clientOpenTime = heartBeatReceivedTime;
+                                             }, e -> {
+                                                 log.error(
+                                                     "Error faced when extending connection with message: {}. Failing now.",
+                                                     e.getMessage());
+                                                 throw e;
+                                             });
+                    disposableBin.add(pongDisposable);
+                }
+            }
+            case StatusMessage statusMessage -> webSocketsTrafficGateway.responseAnnounce(statusMessage);
+            case AbstractPublicationMessage publicationMessage ->
+                webSocketsTrafficGateway.publishMessage(publicationMessage);
+            default -> log.error("Mismatch error: object passes through object mapper but is not of a known type. " +
+                                 "Received class is {}", message.getClass());
+        }
     }
 }

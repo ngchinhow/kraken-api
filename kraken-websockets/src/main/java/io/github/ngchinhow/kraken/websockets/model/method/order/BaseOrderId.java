@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -12,7 +11,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseOrderId implements OrderIdInterface {
-    @NonNull
     @JsonProperty("order_id")
     private String orderId;
 }

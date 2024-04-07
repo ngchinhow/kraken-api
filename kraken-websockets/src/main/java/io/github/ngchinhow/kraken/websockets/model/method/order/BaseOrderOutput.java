@@ -16,4 +16,5 @@ import java.math.BigInteger;
 public final class BaseOrderOutput extends BaseOrderId {
     @JsonProperty("order_userref")
     private BigInteger orderUserReference;
+    private String validation;
 }

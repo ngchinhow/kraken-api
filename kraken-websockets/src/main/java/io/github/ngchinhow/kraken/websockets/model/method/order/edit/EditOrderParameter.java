@@ -23,4 +23,5 @@ public final class EditOrderParameter extends BaseOrderInput implements PrivateP
     private String orderId;
     private String symbol;
     private String token;
+    private Boolean validate;
 }

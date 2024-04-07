@@ -80,6 +80,7 @@ public final class Helper {
                                                    .orderQuantity(new BigDecimal("0.0001"))
                                                    .side(Side.BUY)
                                                    .symbol("BTC/USD")
+                                                   .validate(true)
                                                    .build();
         return AddOrderRequest.builder()
                               .requestId(reqId)
@@ -106,6 +107,7 @@ public final class Helper {
         final var batchAddOrderParam = BatchAddOrdersParameter.builder()
                                                               .orders(List.of(order1, order2))
                                                               .symbol("BTC/USD")
+                                                              .validate(true)
                                                               .build();
         return BatchAddOrdersRequest.builder()
                                     .requestId(reqId)
@@ -157,6 +159,7 @@ public final class Helper {
                                                      .orderId(orderId)
                                                      .symbol("BTC/USD")
                                                      .orderQuantity(new BigDecimal("0.0002"))
+                                                     .validate(true)
                                                      .build();
         return EditOrderRequest.builder()
                                .requestId(requestId)
