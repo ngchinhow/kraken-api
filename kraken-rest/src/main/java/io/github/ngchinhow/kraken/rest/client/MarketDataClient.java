@@ -2,22 +2,22 @@ package io.github.ngchinhow.kraken.rest.client;
 
 import feign.QueryMap;
 import feign.RequestLine;
-import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetRequest;
-import io.github.ngchinhow.kraken.rest.model.marketdata.asset.AssetResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.book.OrderBookRequest;
-import io.github.ngchinhow.kraken.rest.model.marketdata.book.OrderBookResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCRequest;
-import io.github.ngchinhow.kraken.rest.model.marketdata.ohlc.OHLCResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairRequest;
-import io.github.ngchinhow.kraken.rest.model.marketdata.pair.TradableAssetPairResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.servertime.ServerTimeResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.spreads.RecentSpreadsRequest;
-import io.github.ngchinhow.kraken.rest.model.marketdata.spreads.RecentSpreadsResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.system.SystemStatusResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerRequest;
-import io.github.ngchinhow.kraken.rest.model.marketdata.ticker.TickerResult;
-import io.github.ngchinhow.kraken.rest.model.marketdata.trades.RecentTradesRequest;
-import io.github.ngchinhow.kraken.rest.model.marketdata.trades.RecentTradesResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.asset.AssetRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.asset.AssetResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.book.OrderBookRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.book.OrderBookResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.ohlc.OHLCRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.ohlc.OHLCResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.pair.TradableAssetPairRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.pair.TradableAssetPairResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.servertime.ServerTimeResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.spreads.RecentSpreadsRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.spreads.RecentSpreadsResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.system.SystemStatusResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.ticker.TickerRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.ticker.TickerResult;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.trades.RecentTradesRequest;
+import io.github.ngchinhow.kraken.rest.model.marketdata.spot.trades.RecentTradesResult;
 
 public interface MarketDataClient extends RestClient {
     @RequestLine("GET /0/public/Time")

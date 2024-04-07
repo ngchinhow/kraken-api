@@ -1,17 +1,14 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.trades;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.book;
 
 import io.github.ngchinhow.kraken.rest.model.RequestInterface;
 import lombok.*;
-
-import java.time.ZonedDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public final class RecentTradesRequest implements RequestInterface {
+public final class OrderBookRequest implements RequestInterface {
     @NonNull
     private String pair;
-    private ZonedDateTime since;
     private Integer count;
 }

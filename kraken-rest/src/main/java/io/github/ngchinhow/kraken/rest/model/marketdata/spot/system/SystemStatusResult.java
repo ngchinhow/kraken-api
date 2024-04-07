@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.system;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.system;
 
 import io.github.ngchinhow.kraken.common.enumerations.Status;
 import io.github.ngchinhow.kraken.rest.model.ResultInterface;

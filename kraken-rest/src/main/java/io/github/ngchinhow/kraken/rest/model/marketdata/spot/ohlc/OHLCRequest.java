@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.ohlc;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.ohlc;
 
 import io.github.ngchinhow.kraken.rest.model.RequestInterface;
 import lombok.*;

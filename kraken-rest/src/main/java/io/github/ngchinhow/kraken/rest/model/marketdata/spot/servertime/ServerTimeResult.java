@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.servertime;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.servertime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;

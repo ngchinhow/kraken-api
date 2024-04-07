@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.pair;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.pair;
 
 import feign.Param;
 import io.github.ngchinhow.kraken.common.enumerations.BaseKrakenEnum;

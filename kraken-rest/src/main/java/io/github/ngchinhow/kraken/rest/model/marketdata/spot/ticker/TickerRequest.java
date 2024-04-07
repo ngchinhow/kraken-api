@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.ticker;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.ticker;
 
 import io.github.ngchinhow.kraken.rest.model.RequestInterface;
 import lombok.AllArgsConstructor;

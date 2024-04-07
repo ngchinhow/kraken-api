@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Value
 public class ExtendedBalanceResult implements ResultInterface {
-    Map<String, ExtendedBalance > assets = new HashMap<>();
+    Map<String, ExtendedBalance> assets = new HashMap<>();
 
     @JsonAnySetter
     public void setMap(String assetName, ExtendedBalance balance) {

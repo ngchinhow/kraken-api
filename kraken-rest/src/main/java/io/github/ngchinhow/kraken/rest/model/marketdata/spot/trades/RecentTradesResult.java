@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.trades;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.trades;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;

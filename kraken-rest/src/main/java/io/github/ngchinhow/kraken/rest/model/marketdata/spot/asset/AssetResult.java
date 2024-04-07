@@ -1,4 +1,4 @@
-package io.github.ngchinhow.kraken.rest.model.marketdata.asset;
+package io.github.ngchinhow.kraken.rest.model.marketdata.spot.asset;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
